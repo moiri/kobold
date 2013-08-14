@@ -1,0 +1,55 @@
+body {
+    margin:0px;
+    padding:0px;
+}
+
+.kobold {
+    position:absolute;
+    bottom:500px;
+    left:10px;
+    height:100px;
+    width:100px;
+    border:solid black 1px;
+}
+
+.floor {
+    position:absolute;
+    bottom:10px;
+    height:10px;
+    width:100%;
+    border:solid black 1px;
+}
+
+.stone1 {
+    position:absolute;
+    bottom:20px;
+    left:0px;
+    height:50px;
+    width:50px;
+    border:solid black 1px;
+}
+
+.stone2 {
+    position:absolute;
+    bottom:20px;
+    left:500px;
+    height:150px;
+    width:300px;
+    border:solid black 1px;
+}
+
+.fps {
+    position:absolute;
+    top:10px;
+    right:10px;
+}
+
+.blink {
+    background-color:black;
+    color:white;
+}
+
+.collider {
+    position:absolute;
+    /*background-color:red;*/
+}
