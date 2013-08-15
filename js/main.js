@@ -1,6 +1,6 @@
 $(document).ready(function() {
     for (i=1; i<=6; i++)
-        for (j=0; j<1; j++)
+        for (j=0; j<50; j++)
             $('body')
             .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
     var solids = $('.solid');
@@ -8,6 +8,7 @@ $(document).ready(function() {
     var keyHandler = new KeyHandler();
     var kobold = new Movable('kobold', solids);
     var tempJumpDist = null;
+    $('#solidCnt').text(solids.length);
     ticker.drawFps();
     ticker.startTicker(function () {
         kobold.setDeltaTime(ticker.getDeltaTime() * 0.2);
@@ -44,8 +45,8 @@ function Movable (id, solids) {
     me.collider.bottom = [];
     me.collider.bottom.isColliding = false;
     me.speed = [];
-    me.speed.left = -1;
     me.speed.right = 1;
+    me.speed.left = -1;
     me.speed.jump = 6;
     me.speed.fall = -6;
     me.speed.inAir = 0;
@@ -53,7 +54,7 @@ function Movable (id, solids) {
     me.move.x = 0;
     me.move.y = 0;
     me.deltaTime = 5;
-    me.deltaDist = -0.1;
+    me.deltaDist = me.speed.fall/50;
 
     $('<div id="' + me.id + '-collider-left" class="collider colliderLeft"></div>')
     .appendTo('#' + me.id)
@@ -131,8 +132,8 @@ function Movable (id, solids) {
     this.inAir = function () {
         var collidedObjects = null,
             moveDistCollider = 0;
+        me.move.y = Math.floor(me.speed.inAir * me.deltaTime);
         if (me.move.y <= 0) {
-            me.move.y = Math.floor(me.speed.inAir * me.deltaTime);
             moveDistCollider = Math.abs(me.move.y) + 1;
             me.collider.bottom.obj.height(moveDistCollider + "px");
             collidedObjects = me.collisionCheck("bottom");
@@ -149,7 +150,6 @@ function Movable (id, solids) {
             }
         }
         else {
-            me.move.y = Math.floor(me.speed.inAir * me.deltaTime);
             moveDistCollider = me.move.y + 1;
             me.collider.top.obj.height(moveDistCollider + "px");
             me.collider.top.obj.css("top", "-" + moveDistCollider + "px");
@@ -160,6 +160,8 @@ function Movable (id, solids) {
             }
             else {
                 me.speed.inAir = 0;
+                me.collider.top.obj.height("0px");
+                me.collider.top.obj.css("top", "0px");
                 collidedObjects.sort(function(a,b) {return b[1][1] - a[1][1]});
                 me.obj.css("bottom", $(window).height() - 
                     collidedObjects[0][1][1] - me.obj.outerWidth() + "px");
@@ -189,7 +191,6 @@ function KeyHandler () {
         me.keyCodeMap[keyCode] = val;
     };
 }
-
 
 function Ticker () {
     var me = this;
@@ -230,7 +231,6 @@ function Ticker () {
 
     this.drawFps = function () {
         me.fps.real = Math.floor(1000 / me.tick.real);
-        //$('#fps').toggleClass('blink');
         $('#fps').text(me.fps.real + " / " + me.fps.max );
 
     };
