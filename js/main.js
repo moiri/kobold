@@ -1,6 +1,6 @@
 $(document).ready(function() {
     for (i=1; i<=6; i++)
-        for (j=0; j<50; j++)
+        for (j=0; j<20; j++)
             $('body')
             .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
     var solids = $('.solid');
@@ -45,8 +45,8 @@ function Movable (id, solids) {
     me.collider.bottom = [];
     me.collider.bottom.isColliding = false;
     me.speed = [];
-    me.speed.right = 1;
-    me.speed.left = -1;
+    me.speed.right = 2;
+    me.speed.left = -2;
     me.speed.jump = 6;
     me.speed.fall = -6;
     me.speed.inAir = 0;
@@ -54,7 +54,11 @@ function Movable (id, solids) {
     me.move.x = 0;
     me.move.y = 0;
     me.deltaTime = 5;
-    me.deltaDist = me.speed.fall/50;
+    me.deltaDistFactor = 50;
+    me.deltaDist = me.speed.fall/me.deltaDistFactor;
+    me.jumpLimiter = [];
+    me.jumpLimiter.maxHeight = Math.floor(me.speed.jump * (2.5 + me.deltaDistFactor / 2));
+    me.jumpLimiter.startHeight = 0;
 
     $('<div id="' + me.id + '-collider-left" class="collider colliderLeft"></div>')
     .appendTo('#' + me.id)
@@ -155,6 +159,12 @@ function Movable (id, solids) {
             me.collider.top.obj.css("top", "-" + moveDistCollider + "px");
             collidedObjects = me.collisionCheck("top");
             if (!me.collider.top.isColliding) {
+                var jumpOffset = me.jumpLimiter.maxHeight -
+                        (me.jumpLimiter.startHeight - (me.obj.offset().top - me.move.y));
+                if (jumpOffset < 0) {
+                    me.speed.inAir = 0;
+                    me.move.y += jumpOffset;
+                }
                 me.obj.css("bottom", "+=" + me.move.y + "px");
                 me.speed.inAir += (me.deltaDist * me.deltaTime);
             }
@@ -172,6 +182,7 @@ function Movable (id, solids) {
     this.jump = function () {
         if (me.collider.bottom.isColliding) {
             me.speed.inAir = me.speed.jump;
+            me.jumpLimiter.startHeight = me.obj.offset().top;
             me.collider.bottom.isColliding = false;
         }
     };
