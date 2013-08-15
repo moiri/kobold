@@ -7,6 +7,7 @@ $(document).ready(function() {
     var tempJumpDist = null;
     ticker.drawFps();
     ticker.startTicker(function () {
+        var solids = $('.solid');
         var moveDist = Math.floor(5 * ticker.getFpsRelation());
         var fallDist = Math.floor(15 * ticker.getFpsRelation());
         var jumpDist = Math.floor(20 * ticker.getFpsRelation());
@@ -16,12 +17,6 @@ $(document).ready(function() {
         if (keyHandler.keyCodeMap[32] && !kobold.isJumping())
             tempJumpDist = kobold.jump(jumpDist);
         else if (kobold.isJumping()) tempJumpDist = kobold.jump(tempJumpDist);
-/*
-        var test = 0;
-        while(test < 10000000) {
-            test++
-        }
-*/
     });
 
     $(document).keydown( function (event) {
@@ -39,10 +34,15 @@ function Movable (id, solids) {
     me.id = id;
     me.obj = $('#' + me.id);
     me.collider = [];
-    me.collider.left = false;
-    me.collider.right = false;
-    me.collider.top = false;
-    me.collider.bottom = false;
+    me.collider.left = [];
+    me.collider.left.val = false;
+    me.collider.right = [];
+    me.collider.right.val = false;
+    me.collider.top = [];
+    me.collider.top.val = false;
+    me.collider.top.obj = null;
+    me.collider.bottom = [];
+    me.collider.bottom.val = false;
     me.jumping = false;
 
     $('<div id="' + me.id + '-collider-left" class="collider colliderLeft"></div>')
@@ -50,11 +50,15 @@ function Movable (id, solids) {
     .width("10px")
     .height($('#' + me.id).height() + "px")
     .css("left", "-10px");
+    me.collider.left.obj = $('#' + me.id + '-collider-left');
+
     $('<div id="' + me.id + '-collider-right" class="collider colliderRight"></div>')
     .appendTo('#' + me.id)
     .width("10px")
     .height($('#' + me.id).height() + "px")
     .css("left", ($('#' + me.id).width()) + "px");
+    me.collider.right.obj = $('#' + me.id + '-collider-right');
+
     $('#' + me.id).append('<div id="' + me.id
         + '-collider-top" class="collider colliderTop"></div>');
     $('<div id="' + me.id + '-collider-bottom" class="collider colliderBottom"></div>')
@@ -62,21 +66,26 @@ function Movable (id, solids) {
     .height("10px")
     .width($('#' + me.id).width() + "px")
     .css("top", $('#' + me.id).height() + "px");
+    me.collider.bottom.obj = $('#' + me.id + '-collider-bottom');
 
     this.moveLeft = function (val) {
-        var collider = $('#' + me.id + '-collider-left');
         var collision = false;
         var collidedObject = null;
-        collider.width((val + 1) + "px");
-        collider.css("left", "-" + (val + 1) + "px");
+        me.collider.left.obj.width((val + 1) + "px");
+        me.collider.left.obj.css("left", "-" + (val + 1) + "px");
         solids.each(function () {
-            if (overlaps(collider, $(this))) {
-                collision = true;
-                collidedObject = $(this);
-            }
-            me.collider.left = collision;
+            //var distColliderRight = $(this).offset().left + $(this).outerWidth();
+            //var distMeLeft = me.obj.offset().left;
+            //if ((distColliderRight <= distMeLeft) &&
+            //    (distColliderRight > (distMeLeft - val - 1))) {
+                if (overlaps(me.collider.left.obj, $(this))) {
+                    collision = true;
+                    collidedObject = $(this);
+                }
+            //}
+            me.collider.left.val = collision;
         });
-        if (!me.collider.left)
+        if (!me.collider.left.val)
             me.obj.css("left", "-=" + val + "px");
         else {
             var newVal = collidedObject.position().left + collidedObject.outerWidth();
@@ -85,18 +94,22 @@ function Movable (id, solids) {
     };
 
     this.moveRight = function (val) {
-        var collider = $('#' + me.id + '-collider-right');
         var collision = false;
         var collidedObject = null;
-        collider.width((val + 1) + "px");
+        me.collider.right.obj.width((val + 1) + "px");
         solids.each(function () {
-            if (overlaps(collider, $(this))) {
-                collision = true;
-                collidedObject = $(this);
-            }
-            me.collider.right = collision;
+            //var distColliderLeft = $(this).offset().left;
+            //var distMeRight = me.obj.offset().left + me.obj.outerWidth();
+            //if ((distColliderLeft >= distMeRight) &&
+            //    (distColliderLeft < (distMeRight + val + 1))) {
+                if (overlaps(me.collider.right.obj, $(this))) {
+                    collision = true;
+                    collidedObject = $(this);
+                }
+            //}
+            me.collider.right.val = collision;
         });
-        if (!me.collider.right)
+        if (!me.collider.right.val)
             me.obj.css("left", "+=" + val + "px");
         else {
             var newVal = collidedObject.position().left - me.obj.outerWidth();
@@ -105,19 +118,23 @@ function Movable (id, solids) {
     };
 
     this.fallDown = function (val) {
-        var collider = $('#' + me.id + '-collider-bottom');
         var collision = false;
         var collidedObject = null;
-        collider.height((val + 1) + "px");
+        me.collider.bottom.obj.height((val + 1) + "px");
         solids.each(function () {
-            if (overlaps(collider, $(this))) {
-                collision = true;
-                collidedObject = $(this);
-            }
-            me.collider.bottom = collision;
+            //var distColliderTop = $(this).offset().top;
+            //var distMeBottom = me.obj.offset().top + me.obj.outerHeight();
+            //if ((distColliderTop >= distMeBottom) &&
+            //    (distColliderTop < (distMeBottom + val + 1))) {
+                if (overlaps(me.collider.bottom.obj, $(this))) {
+                    collision = true;
+                    collidedObject = $(this);
+                }
+            //}
+            me.collider.bottom.val = collision;
         });
         if (!me.jumping) {
-            if (!me.collider.bottom)
+            if (!me.collider.bottom.val)
                 me.obj.css("bottom", "-=" + val + "px");
             else {
                 var newVal = $(window).height()-collidedObject.position().top;
@@ -127,7 +144,7 @@ function Movable (id, solids) {
     };
 
     this.jump = function (val) {
-        if (me.collider.bottom || me.jumping) {
+        if (me.collider.bottom.val || me.jumping) {
             me.jumping = true;
             if (val === 0)
                 me.jumping = false
@@ -216,16 +233,22 @@ function Ticker () {
 var overlaps = (function () {
     function getPositions( elem ) {
         var pos, width, height;
-        pos = $( elem ).offset();
-        width = $( elem ).width();
-        height = $( elem ).height();
+        pos = elem.offset();
+        width = elem.outerWidth();
+        height = elem.outerHeight();
         return [ [ pos.left, pos.left + width ], [ pos.top, pos.top + height ] ];
     }
 
     function comparePositions( p1, p2 ) {
         var r1, r2;
-        r1 = p1[0] < p2[0] ? p1 : p2;
-        r2 = p1[0] < p2[0] ? p2 : p1;
+        if (p1[0] < p2[0]) {
+            r1 = p1;
+            r2 = p2;
+        }
+        else {
+            r1 = p2;
+            r2 = p1;
+        }
         return r1[1] > r2[0] || r1[0] === r2[0];
     }
 
