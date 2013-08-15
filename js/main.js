@@ -1,5 +1,8 @@
 $(document).ready(function() {
-
+    for (i=1; i<=6; i++)
+        for (j=0; j<1; j++)
+            $('body')
+            .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
     var solids = $('.solid');
     var ticker = new Ticker();
     var keyHandler = new KeyHandler();
@@ -7,16 +10,11 @@ $(document).ready(function() {
     var tempJumpDist = null;
     ticker.drawFps();
     ticker.startTicker(function () {
-        var solids = $('.solid');
-        var moveDist = Math.floor(5 * ticker.getFpsRelation());
-        var fallDist = Math.floor(15 * ticker.getFpsRelation());
-        var jumpDist = Math.floor(20 * ticker.getFpsRelation());
-        kobold.fallDown(fallDist);
-        if (keyHandler.keyCodeMap[37]) kobold.moveLeft(moveDist);
-        if (keyHandler.keyCodeMap[39]) kobold.moveRight(moveDist);
-        if (keyHandler.keyCodeMap[32] && !kobold.isJumping())
-            tempJumpDist = kobold.jump(jumpDist);
-        else if (kobold.isJumping()) tempJumpDist = kobold.jump(tempJumpDist);
+        kobold.setDeltaTime(ticker.getDeltaTime() * 0.2);
+        kobold.inAir();
+        if (keyHandler.keyCodeMap[32]) kobold.jump();
+        if (keyHandler.keyCodeMap[37]) kobold.moveLeft();
+        if (keyHandler.keyCodeMap[39]) kobold.moveRight();
     });
 
     $(document).keydown( function (event) {
@@ -35,32 +33,49 @@ function Movable (id, solids) {
     me.obj = $('#' + me.id);
     me.collider = [];
     me.collider.left = [];
-    me.collider.left.val = false;
+    me.collider.left.isColliding = false;
+    me.collider.left.tolerance = 2;
     me.collider.right = [];
-    me.collider.right.val = false;
+    me.collider.right.isColliding = false;
+    me.collider.right.tolerance = 2;
     me.collider.top = [];
-    me.collider.top.val = false;
+    me.collider.top.isColliding = false;
     me.collider.top.obj = null;
     me.collider.bottom = [];
-    me.collider.bottom.val = false;
-    me.jumping = false;
+    me.collider.bottom.isColliding = false;
+    me.speed = [];
+    me.speed.left = -1;
+    me.speed.right = 1;
+    me.speed.jump = 6;
+    me.speed.fall = -6;
+    me.speed.inAir = 0;
+    me.move = [];
+    me.move.x = 0;
+    me.move.y = 0;
+    me.deltaTime = 5;
+    me.deltaDist = -0.1;
 
     $('<div id="' + me.id + '-collider-left" class="collider colliderLeft"></div>')
     .appendTo('#' + me.id)
     .width("10px")
-    .height($('#' + me.id).height() + "px")
+    .height($('#' + me.id).height() - me.collider.left.tolerance + "px")
     .css("left", "-10px");
     me.collider.left.obj = $('#' + me.id + '-collider-left');
 
     $('<div id="' + me.id + '-collider-right" class="collider colliderRight"></div>')
     .appendTo('#' + me.id)
     .width("10px")
-    .height($('#' + me.id).height() + "px")
+    .height($('#' + me.id).height() - me.collider.right.tolerance + "px")
     .css("left", ($('#' + me.id).width()) + "px");
     me.collider.right.obj = $('#' + me.id + '-collider-right');
 
-    $('#' + me.id).append('<div id="' + me.id
-        + '-collider-top" class="collider colliderTop"></div>');
+    $('<div id="' + me.id + '-collider-top" class="collider colliderTop"></div>')
+    .appendTo('#' + me.id)
+    .height("20px")
+    .width($('#' + me.id).width() + "px")
+    .css("top", "-20px");
+    me.collider.top.obj = $('#' + me.id + '-collider-top');
+
     $('<div id="' + me.id + '-collider-bottom" class="collider colliderBottom"></div>')
     .appendTo('#' + me.id)
     .height("10px")
@@ -68,94 +83,95 @@ function Movable (id, solids) {
     .css("top", $('#' + me.id).height() + "px");
     me.collider.bottom.obj = $('#' + me.id + '-collider-bottom');
 
-    this.moveLeft = function (val) {
+    this.setDeltaTime = function (val) {
+        me.deltaTime = val;
+    };
+
+    this.collisionCheck = function (direction) {
         var collision = false;
-        var collidedObject = null;
-        me.collider.left.obj.width((val + 1) + "px");
-        me.collider.left.obj.css("left", "-" + (val + 1) + "px");
+        var collidedObjects = [];
         solids.each(function () {
-            //var distColliderRight = $(this).offset().left + $(this).outerWidth();
-            //var distMeLeft = me.obj.offset().left;
-            //if ((distColliderRight <= distMeLeft) &&
-            //    (distColliderRight > (distMeLeft - val - 1))) {
-                if (overlaps(me.collider.left.obj, $(this))) {
-                    collision = true;
-                    collidedObject = $(this);
-                }
-            //}
-            me.collider.left.val = collision;
+            collisionRes = overlaps(me.collider[direction].obj, $(this));
+            if (collisionRes.isColliding) {
+                collision = true;
+                collidedObjects.push(collisionRes.pos2);
+            }
         });
-        if (!me.collider.left.val)
-            me.obj.css("left", "-=" + val + "px");
+        me.collider[direction].isColliding = collision;
+        return collidedObjects;
+    };
+
+    this.moveLeft = function () {
+        me.move.x = Math.floor(me.speed.left * me.deltaTime);
+        var moveDistCollider = Math.abs(me.move.x) + 1;
+        me.collider.left.obj.width(moveDistCollider + "px");
+        me.collider.left.obj.css("left", "-" + moveDistCollider + "px");
+        var collidedObjects = me.collisionCheck("left");
+        if (!me.collider.left.isColliding)
+            me.obj.css("left", "+=" + me.move.x + "px");
         else {
-            var newVal = collidedObject.position().left + collidedObject.outerWidth();
-            me.obj.css("left", newVal + "px");
+            collidedObjects.sort(function(a,b) {return b[0][1] - a[0][1]});
+            me.obj.css("left", collidedObjects[0][0][1] + "px");
         }
     };
 
-    this.moveRight = function (val) {
-        var collision = false;
-        var collidedObject = null;
-        me.collider.right.obj.width((val + 1) + "px");
-        solids.each(function () {
-            //var distColliderLeft = $(this).offset().left;
-            //var distMeRight = me.obj.offset().left + me.obj.outerWidth();
-            //if ((distColliderLeft >= distMeRight) &&
-            //    (distColliderLeft < (distMeRight + val + 1))) {
-                if (overlaps(me.collider.right.obj, $(this))) {
-                    collision = true;
-                    collidedObject = $(this);
-                }
-            //}
-            me.collider.right.val = collision;
-        });
-        if (!me.collider.right.val)
-            me.obj.css("left", "+=" + val + "px");
+    this.moveRight = function () {
+        me.move.x = Math.floor(me.speed.right * me.deltaTime);
+        var moveDistCollider = me.move.x + 1;
+        me.collider.right.obj.width(moveDistCollider + "px");
+        var collidedObjects = me.collisionCheck("right");
+        if (!me.collider.right.isColliding)
+            me.obj.css("left", "+=" + me.move.x + "px");
         else {
-            var newVal = collidedObject.position().left - me.obj.outerWidth();
-            me.obj.css("left", newVal + "px");
+            collidedObjects.sort(function(a,b) {return a[0][0] - b[0][0]});
+            me.obj.css("left", (collidedObjects[0][0][0] - me.obj.outerWidth()) + "px");
         }
     };
 
-    this.fallDown = function (val) {
-        var collision = false;
-        var collidedObject = null;
-        me.collider.bottom.obj.height((val + 1) + "px");
-        solids.each(function () {
-            //var distColliderTop = $(this).offset().top;
-            //var distMeBottom = me.obj.offset().top + me.obj.outerHeight();
-            //if ((distColliderTop >= distMeBottom) &&
-            //    (distColliderTop < (distMeBottom + val + 1))) {
-                if (overlaps(me.collider.bottom.obj, $(this))) {
-                    collision = true;
-                    collidedObject = $(this);
-                }
-            //}
-            me.collider.bottom.val = collision;
-        });
-        if (!me.jumping) {
-            if (!me.collider.bottom.val)
-                me.obj.css("bottom", "-=" + val + "px");
+    this.inAir = function () {
+        var collidedObjects = null,
+            moveDistCollider = 0;
+        if (me.move.y <= 0) {
+            me.move.y = Math.floor(me.speed.inAir * me.deltaTime);
+            moveDistCollider = Math.abs(me.move.y) + 1;
+            me.collider.bottom.obj.height(moveDistCollider + "px");
+            collidedObjects = me.collisionCheck("bottom");
+            if (!me.collider.bottom.isColliding) {
+                me.obj.css("bottom", "+=" + me.move.y + "px");
+                me.speed.inAir += (me.deltaDist * me.deltaTime);
+                if (me.speed.inAir < me.speed.fall) me.speed.inAir = me.speed.fall;
+            }
             else {
-                var newVal = $(window).height()-collidedObject.position().top;
-                me.obj.css("bottom", newVal + "px");
+                me.speed.inAir = (me.deltaDist * me.deltaTime);
+                collidedObjects.sort(function(a,b) {return a[1][0] - b[1][0]});
+                me.obj.css("bottom",
+                    $(window).height() - collidedObjects[0][1][0] + "px");
+            }
+        }
+        else {
+            me.move.y = Math.floor(me.speed.inAir * me.deltaTime);
+            moveDistCollider = me.move.y + 1;
+            me.collider.top.obj.height(moveDistCollider + "px");
+            me.collider.top.obj.css("top", "-" + moveDistCollider + "px");
+            collidedObjects = me.collisionCheck("top");
+            if (!me.collider.top.isColliding) {
+                me.obj.css("bottom", "+=" + me.move.y + "px");
+                me.speed.inAir += (me.deltaDist * me.deltaTime);
+            }
+            else {
+                me.speed.inAir = 0;
+                collidedObjects.sort(function(a,b) {return b[1][1] - a[1][1]});
+                me.obj.css("bottom", $(window).height() - 
+                    collidedObjects[0][1][1] - me.obj.outerWidth() + "px");
             }
         }
     };
 
-    this.jump = function (val) {
-        if (me.collider.bottom.val || me.jumping) {
-            me.jumping = true;
-            if (val === 0)
-                me.jumping = false
-            me.obj.css("bottom", "+=" + val + "px");
+    this.jump = function () {
+        if (me.collider.bottom.isColliding) {
+            me.speed.inAir = me.speed.jump;
+            me.collider.bottom.isColliding = false;
         }
-        val--;
-        return val;
-    };
-
-    this.isJumping = function () {
-        return me.jumping;
     };
 }
 
@@ -206,16 +222,14 @@ function Ticker () {
             me.tickCnt = 0;
         }
         me.time.diff = $.now() - me.time.start;
-        if (me.time.diff > me.tick.real) {
-            me.tick.real = me.time.diff + 1;
-        }
-        else if (me.time.diff < me.tick.min) {
+        me.tick.real = me.time.diff;
+        if (me.time.diff < me.tick.min) {
             me.tick.real = me.tick.min;
         }
-        me.fps.real = Math.floor(1000 / me.tick.real);
     };
 
     this.drawFps = function () {
+        me.fps.real = Math.floor(1000 / me.tick.real);
         //$('#fps').toggleClass('blink');
         $('#fps').text(me.fps.real + " / " + me.fps.max );
 
@@ -225,14 +239,14 @@ function Ticker () {
         me.timerId = null;
     };
 
-    this.getFpsRelation = function () {
-        return me.fps.max/me.fps.real;
+    this.getDeltaTime = function () {
+        return me.tick.real;
     };
 }
 
 var overlaps = (function () {
     function getPositions( elem ) {
-        var pos, width, height;
+        var pos, width, height, res;
         pos = elem.offset();
         width = elem.outerWidth();
         height = elem.outerHeight();
@@ -254,8 +268,12 @@ var overlaps = (function () {
 
     return function ( a, b ) {
         var pos1 = getPositions( a ),
-            pos2 = getPositions( b );
-        return comparePositions( pos1[0], pos2[0] ) &&
-            comparePositions( pos1[1], pos2[1] );
+            pos2 = getPositions( b ),
+            ret = [];
+        ret.isColliding = (comparePositions(pos1[0], pos2[0]) &&
+            comparePositions(pos1[1], pos2[1]));
+        ret.pos1 = pos1;
+        ret.pos2 = pos2;
+        return ret
     };
 })();
