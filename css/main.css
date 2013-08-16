@@ -60,12 +60,10 @@ body {
 
 .koboldImg.crouch {
     background-image:url("../img/crouch_strip.png");
-    background-position:0px;
 }
 .koboldImg.walk.crouch {
-    background-image:url("../img/crouch_strip.png");
     animation: crouch 0.4s steps(8) infinite;
-    -webkit-animation: walk 0.4s steps(8) infinite;
+    -webkit-animation: crouch 0.4s steps(8) infinite;
 }
 @keyframes crouch {
    from { background-position:    0px; }
