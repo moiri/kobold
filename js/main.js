@@ -230,10 +230,15 @@ function Movable (id, solids) {
             case 3: cssClass += 'jawn'; break;
         };
         $('#' + me.idImg).addClass(cssClass);
-        animationDuration = parseFloat($('#' + me.idImg).css('animation-duration'));
-        animationIterationCount = parseInt(
-            $('#' + me.idImg).css('animation-iteration-count')
-        );
+        animationDuration = $('#' + me.idImg).css('animation-duration');
+        if (animationDuration === null)
+            animationDuration = $('#' + me.idImg).css('-webkit-animation-duration')
+        animationIterationCount = $('#' + me.idImg).css('animation-iteration-count');
+        if (animationIterationCount === null)
+            animationIterationCount = $('#' + me.idImg)
+                .css('-webkit-animation-iteration-count');
+        animationDuration = parseFloat(animationDuration);
+        animationIterationCount = parseInt(animationIterationCount);
         setTimeout(function () {
             $('#' + me.idImg).removeClass(cssClass);
             me.setNextRandVal(frameCnt);
