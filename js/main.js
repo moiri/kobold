@@ -75,8 +75,6 @@ function Movable (id, solids) {
     me.height.crouch = 40;
     me.action = [];
     me.action.crouch = false;
-    me.action.walkLeft = false;
-    me.action.walkRight = false;
 
     $('<div id="' + me.id + '-collider-left" class="collider colliderLeft"></div>')
     .appendTo('#' + me.id);
@@ -113,11 +111,8 @@ function Movable (id, solids) {
     };
 
     this.moveLeft = function () {
-        if (!me.action.walkLeft) {
-            $('#' + me.idImg).removeClass('idle right');
-            $('#' + me.idImg).addClass('walk left');
-            me.action.walkLeft = true;
-        }
+        $('#' + me.idImg).removeClass('idle right');
+        $('#' + me.idImg).addClass('walk left');
         me.move.x = Math.floor(me.speed.left * me.deltaTime);
         var moveDistCollider = Math.abs(me.move.x) + 1;
         me.collider.left.obj.width(moveDistCollider + "px");
@@ -132,11 +127,8 @@ function Movable (id, solids) {
     };
 
     this.moveRight = function () {
-        if (!me.action.walkRight) {
-            $('#' + me.idImg).removeClass('idle left');
-            $('#' + me.idImg).addClass('walk right');
-            me.action.walkRight = true;
-        }
+        $('#' + me.idImg).removeClass('idle left');
+        $('#' + me.idImg).addClass('walk right');
         me.move.x = Math.floor(me.speed.right * me.deltaTime);
         var moveDistCollider = me.move.x + 1;
         me.collider.right.obj.width(moveDistCollider + "px");
@@ -230,11 +222,7 @@ function Movable (id, solids) {
     }
 
     this.stop = function () {
-        if(me.action.walkLeft || me.action.walkRight) {
-            $('#' + me.idImg).removeClass('walk');
-            me.action.walkLeft = false;
-            me.action.walkRight = false;
-        }
+        $('#' + me.idImg).removeClass('walk');
     }
 
     this.updateCollider = function () {
