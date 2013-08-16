@@ -33,7 +33,7 @@ body {
 .koboldImg.idle {
     background-image:url("../img/idle_strip.png");
     animation: idle 0.5s steps(2) infinite;
-    -webkit-animation: idle 1s steps(2) infinite;
+    -webkit-animation: idle 0.5s steps(2) infinite;
 }
 @keyframes idle {
    from { background-position:    0px; }
@@ -47,7 +47,7 @@ body {
 .koboldImg.walk {
     background-image:url("../img/walk_strip.png");
     animation: walk 0.4s steps(9) infinite;
-    -webkit-animation: walk 1s steps(9) infinite;
+    -webkit-animation: walk 0.4s steps(9) infinite;
 }
 @keyframes walk {
    from { background-position:    0px; }
@@ -56,6 +56,24 @@ body {
 @-webkit-keyframes walk {
    from { background-position:    0px; }
      to { background-position: -900px; }
+}
+
+.koboldImg.crouch {
+    background-image:url("../img/crouch_strip.png");
+    background-position:0px;
+}
+.koboldImg.walk.crouch {
+    background-image:url("../img/crouch_strip.png");
+    animation: crouch 0.4s steps(8) infinite;
+    -webkit-animation: walk 0.4s steps(8) infinite;
+}
+@keyframes crouch {
+   from { background-position:    0px; }
+     to { background-position: -800px; }
+}
+@-webkit-keyframes crouch {
+   from { background-position:    0px; }
+     to { background-position: -800px; }
 }
 
 .floor {

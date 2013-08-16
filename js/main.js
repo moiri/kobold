@@ -1,6 +1,6 @@
 $(document).ready(function() {
     for (i=1; i<=6; i++)
-        for (j=0; j<1; j++)
+        for (j=0; j<20; j++)
             $('body')
             .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
     var solids = $('.solid');
@@ -16,7 +16,12 @@ $(document).ready(function() {
         if (keyHandler.keyCodeMap[32]) kobold.jump();
         if (keyHandler.keyCodeMap[37]) kobold.moveLeft();
         if (keyHandler.keyCodeMap[39]) kobold.moveRight();
-        if (!keyHandler.isAnyKeyPressed()) kobold.idle();
+        if (keyHandler.keyCodeMap[17]) kobold.crouch();
+        if (!keyHandler.keyCodeMap[17]) kobold.standUp();
+        if (!keyHandler.keyCodeMap[39] && !keyHandler.keyCodeMap[37]) {
+            kobold.stop();
+            kobold.idle();
+        }
     });
 
     $(document).keydown( function (event) {
@@ -65,33 +70,28 @@ function Movable (id, solids) {
     me.jumpLimiter = [];
     me.jumpLimiter.maxHeight = Math.floor(me.speed.jump * (2.5 + me.deltaDistFactor / 2));
     me.jumpLimiter.startHeight = 0;
+    me.height = [];
+    me.height.stand = 85;
+    me.height.crouch = 40;
+    me.action = [];
+    me.action.crouch = false;
+    me.action.walkLeft = false;
+    me.action.walkRight = false;
 
     $('<div id="' + me.id + '-collider-left" class="collider colliderLeft"></div>')
-    .appendTo('#' + me.id)
-    .width("10px")
-    .height($('#' + me.id).height() - me.collider.left.tolerance + "px")
-    .css("left", "-10px");
+    .appendTo('#' + me.id);
     me.collider.left.obj = $('#' + me.id + '-collider-left');
 
     $('<div id="' + me.id + '-collider-right" class="collider colliderRight"></div>')
-    .appendTo('#' + me.id)
-    .width("10px")
-    .height($('#' + me.id).height() - me.collider.right.tolerance + "px")
-    .css("left", ($('#' + me.id).width()) + "px");
+    .appendTo('#' + me.id);
     me.collider.right.obj = $('#' + me.id + '-collider-right');
 
     $('<div id="' + me.id + '-collider-top" class="collider colliderTop"></div>')
-    .appendTo('#' + me.id)
-    .height("20px")
-    .width($('#' + me.id).width() + "px")
-    .css("top", "-20px");
+    .appendTo('#' + me.id);
     me.collider.top.obj = $('#' + me.id + '-collider-top');
 
     $('<div id="' + me.id + '-collider-bottom" class="collider colliderBottom"></div>')
-    .appendTo('#' + me.id)
-    .height("10px")
-    .width($('#' + me.id).width() + "px")
-    .css("top", $('#' + me.id).height() + "px");
+    .appendTo('#' + me.id);
     me.collider.bottom.obj = $('#' + me.id + '-collider-bottom');
 
     this.setDeltaTime = function (val) {
@@ -113,8 +113,11 @@ function Movable (id, solids) {
     };
 
     this.moveLeft = function () {
-        $('#' + me.idImg).removeClass('idle right');
-        $('#' + me.idImg).addClass('walk left');
+        if (!me.action.walkLeft) {
+            $('#' + me.idImg).removeClass('idle right');
+            $('#' + me.idImg).addClass('walk left');
+            me.action.walkLeft = true;
+        }
         me.move.x = Math.floor(me.speed.left * me.deltaTime);
         var moveDistCollider = Math.abs(me.move.x) + 1;
         me.collider.left.obj.width(moveDistCollider + "px");
@@ -129,8 +132,11 @@ function Movable (id, solids) {
     };
 
     this.moveRight = function () {
-        $('#' + me.idImg).removeClass('idle left');
-        $('#' + me.idImg).addClass('walk right');
+        if (!me.action.walkRight) {
+            $('#' + me.idImg).removeClass('idle left');
+            $('#' + me.idImg).addClass('walk right');
+            me.action.walkRight = true;
+        }
         me.move.x = Math.floor(me.speed.right * me.deltaTime);
         var moveDistCollider = me.move.x + 1;
         me.collider.right.obj.width(moveDistCollider + "px");
@@ -198,9 +204,62 @@ function Movable (id, solids) {
     };
 
     this.idle = function () {
-        $('#' + me.idImg).removeClass('walk');
         $('#' + me.idImg).addClass('idle');
     }
+
+    this.crouch = function () {
+        if (!me.action.crouch) {
+            $('#' + me.idImg).addClass('crouch');
+            $('#' + me.idImg).css('top', '-60px');
+            $('#' + me.id).height(me.height.crouch + 'px');
+            if (!me.collider.bottom.isColliding)
+                $('#' + me.id).css('bottom', '+=' + me.height.crouch + 'px');
+            me.updateCollider();
+            me.action.crouch = true;
+        }
+    }
+
+    this.standUp = function () {
+        if (me.action.crouch) {
+            $('#' + me.idImg).removeClass('crouch');
+            $('#' + me.idImg).removeAttr('style');
+            $('#' + me.id).height(me.height.stand + 'px');
+            me.updateCollider();
+            me.action.crouch = false;
+        }
+    }
+
+    this.stop = function () {
+        if(me.action.walkLeft || me.action.walkRight) {
+            $('#' + me.idImg).removeClass('walk');
+            me.action.walkLeft = false;
+            me.action.walkRight = false;
+        }
+    }
+
+    this.updateCollider = function () {
+        $('#' + me.id + '-collider-left')
+        .width("10px")
+        .height($('#' + me.id).height() - me.collider.left.tolerance + "px")
+        .css("left", "-10px");
+
+        $('#' + me.id + '-collider-right')
+        .width("10px")
+        .height($('#' + me.id).height() - me.collider.right.tolerance + "px")
+        .css("left", ($('#' + me.id).width()) + "px");
+
+        $('#' + me.id + '-collider-top')
+        .height("20px")
+        .width($('#' + me.id).width() + "px")
+        .css("top", "-20px");
+
+        $('#' + me.id + '-collider-bottom')
+        .height("10px")
+        .width($('#' + me.id).width() + "px")
+        .css("top", $('#' + me.id).height() + "px");
+    }
+
+    this.updateCollider();
 }
 
 function KeyHandler () {
