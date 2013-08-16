@@ -44,6 +44,48 @@ body {
      to { background-position: -200px; }
 }
 
+.koboldImg.idle.rand.jawn {
+    background-image:url("../img/jawn_strip.png");
+    animation: jawn 3s steps(10) 1;
+    -webkit-animation: jawn 2s steps(10) 1;
+}
+@keyframes jawn {
+   from { background-position:     0px; }
+     to { background-position: -1000px; }
+}
+@-webkit-keyframes jawn {
+   from { background-position:     0px; }
+     to { background-position: -1000px; }
+}
+
+.koboldImg.idle.rand.wink {
+    background-image:url("../img/wink_strip.png");
+    animation: wink 0.5s steps(4) 2;
+    -webkit-animation: wink 0.5s steps(4) 2;
+}
+@keyframes wink {
+   from { background-position:    0px; }
+     to { background-position: -400px; }
+}
+@-webkit-keyframes wink {
+   from { background-position:    0px; }
+     to { background-position: -400px; }
+}
+
+.koboldImg.idle.rand.wave {
+    background-image:url("../img/wave_strip.png");
+    animation: wave 1s steps(8) 1;
+    -webkit-animation: wave 1s steps(8) 1;
+}
+@keyframes wave {
+   from { background-position:    0px; }
+     to { background-position: -800px; }
+}
+@-webkit-keyframes wave {
+   from { background-position:    0px; }
+     to { background-position: -800px; }
+}
+
 .koboldImg.walk {
     background-image:url("../img/walk_strip.png");
     animation: walk 0.4s steps(9) infinite;

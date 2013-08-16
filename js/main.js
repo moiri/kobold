@@ -1,6 +1,6 @@
 $(document).ready(function() {
     for (i=1; i<=6; i++)
-        for (j=0; j<20; j++)
+        for (j=0; j<1; j++)
             $('body')
             .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
     var solids = $('.solid');
@@ -20,8 +20,9 @@ $(document).ready(function() {
         if (!keyHandler.keyCodeMap[17]) kobold.standUp();
         if (!keyHandler.keyCodeMap[39] && !keyHandler.keyCodeMap[37]) {
             kobold.stop();
-            kobold.idle();
+            kobold.idle(Math.floor(1000/ticker.getDeltaTime()));
         }
+        if (keyHandler.isAnyKeyPressed()) kobold.active();
     });
 
     $(document).keydown( function (event) {
@@ -75,6 +76,14 @@ function Movable (id, solids) {
     me.height.crouch = 40;
     me.action = [];
     me.action.crouch = false;
+    me.action.wink = false;
+    me.action.wave = false;
+    me.action.jawn = false;
+    me.rand = [];
+    me.rand.count = 0;
+    me.rand.minVal = 4;     // seconds
+    me.rand.maxVal = 10;    // seconds
+    me.rand.nextVal = -1;
 
     $('<div id="' + me.id + '-collider-left" class="collider colliderLeft"></div>')
     .appendTo('#' + me.id);
@@ -195,8 +204,47 @@ function Movable (id, solids) {
         }
     };
 
-    this.idle = function () {
+    this.idle = function (frameCnt) {
+        if (me.rand.nextVal < 0)
+            this.setNextRandVal(frameCnt);
         $('#' + me.idImg).addClass('idle');
+        if (me.rand.count === me.rand.nextVal) {
+            me.randAnimation(frameCnt);
+        }
+        me.rand.count++;
+    };
+
+    this.active = function () {
+        $('#' + me.idImg).removeClass('rand');
+        me.rand.count = 0;
+    };
+
+    this.randAnimation = function (frameCnt) {
+        var animationDuration = 0,
+            animationIterationCount = 0,
+            cssClass = 'rand ',
+            tempRand = Math.floor((Math.random()*3)+1);
+        switch(tempRand) {
+            case 1: cssClass += 'wave'; break;
+            case 2: cssClass += 'wink'; break;
+            case 3: cssClass += 'jawn'; break;
+        };
+        $('#' + me.idImg).addClass(cssClass);
+        animationDuration = parseFloat($('#' + me.idImg).css('animation-duration'));
+        animationIterationCount = parseInt(
+            $('#' + me.idImg).css('animation-iteration-count')
+        );
+        setTimeout(function () {
+            $('#' + me.idImg).removeClass(cssClass);
+            me.setNextRandVal(frameCnt);
+        }, animationDuration * animationIterationCount * 1000);
+    };
+
+    this.setNextRandVal = function (frameCnt) {
+        me.rand.count = 0;
+        me.rand.nextVal = Math.floor(
+            (Math.random() * frameCnt * me.rand.maxVal) + frameCnt * me.rand.minVal
+        );
     }
 
     this.crouch = function () {
@@ -209,7 +257,7 @@ function Movable (id, solids) {
             me.updateCollider();
             me.action.crouch = true;
         }
-    }
+    };
 
     this.standUp = function () {
         if (me.action.crouch) {
