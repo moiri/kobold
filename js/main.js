@@ -16,6 +16,7 @@ $(document).ready(function() {
         if (keyHandler.keyCodeMap[32]) kobold.jump();
         if (keyHandler.keyCodeMap[37]) kobold.moveLeft();
         if (keyHandler.keyCodeMap[39]) kobold.moveRight();
+        if (!keyHandler.isAnyKeyPressed()) kobold.idle();
     });
 
     $(document).keydown( function (event) {
@@ -26,11 +27,16 @@ $(document).ready(function() {
     $(document).keyup( function (event) {
         keyHandler.setKey(event.keyCode, false);
     });
+
+    $(document).blur( function (event) {
+        keyHandler.clearKeyCodeMap();
+    });
 });
 
 function Movable (id, solids) {
     var me = this;
     me.id = id;
+    me.idImg = me.id + "-img";
     me.obj = $('#' + me.id);
     me.collider = [];
     me.collider.left = [];
@@ -45,8 +51,8 @@ function Movable (id, solids) {
     me.collider.bottom = [];
     me.collider.bottom.isColliding = false;
     me.speed = [];
-    me.speed.right = 2;
-    me.speed.left = -2;
+    me.speed.right = 1;
+    me.speed.left = -1;
     me.speed.jump = 6;
     me.speed.fall = -6;
     me.speed.inAir = 0;
@@ -107,6 +113,8 @@ function Movable (id, solids) {
     };
 
     this.moveLeft = function () {
+        $('#' + me.idImg).removeClass('idle right');
+        $('#' + me.idImg).addClass('walk left');
         me.move.x = Math.floor(me.speed.left * me.deltaTime);
         var moveDistCollider = Math.abs(me.move.x) + 1;
         me.collider.left.obj.width(moveDistCollider + "px");
@@ -121,6 +129,8 @@ function Movable (id, solids) {
     };
 
     this.moveRight = function () {
+        $('#' + me.idImg).removeClass('idle left');
+        $('#' + me.idImg).addClass('walk right');
         me.move.x = Math.floor(me.speed.right * me.deltaTime);
         var moveDistCollider = me.move.x + 1;
         me.collider.right.obj.width(moveDistCollider + "px");
@@ -174,7 +184,7 @@ function Movable (id, solids) {
                 me.collider.top.obj.css("top", "0px");
                 collidedObjects.sort(function(a,b) {return b[1][1] - a[1][1]});
                 me.obj.css("bottom", $(window).height() - 
-                    collidedObjects[0][1][1] - me.obj.outerWidth() + "px");
+                    collidedObjects[0][1][1] - me.obj.outerHeight() + "px");
             }
         }
     };
@@ -186,6 +196,11 @@ function Movable (id, solids) {
             me.collider.bottom.isColliding = false;
         }
     };
+
+    this.idle = function () {
+        $('#' + me.idImg).removeClass('walk');
+        $('#' + me.idImg).addClass('idle');
+    }
 }
 
 function KeyHandler () {
@@ -201,6 +216,20 @@ function KeyHandler () {
     this.setKey = function (keyCode, val) {
         me.keyCodeMap[keyCode] = val;
     };
+
+    this.clearKeyCodeMap = function () {
+        var val;
+        for (val in me.keyCodeMap)
+            me.keyCodeMap[val] = false;
+    }
+
+    this.isAnyKeyPressed = function () {
+        var val;
+        for (val in me.keyCodeMap)
+            if (me.keyCodeMap[val])
+                return true
+        return false;
+    }
 }
 
 function Ticker () {
