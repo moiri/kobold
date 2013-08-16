@@ -47,7 +47,7 @@ body {
 .koboldImg.idle.rand.jawn {
     background-image:url("../img/jawn_strip.png");
     animation: jawn 3s steps(10) 1;
-    -webkit-animation: jawn 2s steps(10) 1;
+    -webkit-animation: jawn 3s steps(10) 1;
 }
 @keyframes jawn {
    from { background-position:     0px; }
@@ -98,6 +98,20 @@ body {
 @-webkit-keyframes walk {
    from { background-position:    0px; }
      to { background-position: -900px; }
+}
+
+.koboldImg.run {
+    background-image:url("../img/run_strip.png");
+    animation: run 0.6s steps(6) infinite;
+    -webkit-animation: run 0.6s steps(6) infinite;
+}
+@keyframes run {
+   from { background-position:    0px; }
+     to { background-position: -600px; }
+}
+@-webkit-keyframes run {
+   from { background-position:    0px; }
+     to { background-position: -600px; }
 }
 
 .koboldImg.crouch {

@@ -14,8 +14,26 @@ $(document).ready(function() {
         kobold.setDeltaTime(ticker.getDeltaTime() * 0.2);
         kobold.inAir();
         if (keyHandler.keyCodeMap[32]) kobold.jump();
-        if (keyHandler.keyCodeMap[37]) kobold.moveLeft();
-        if (keyHandler.keyCodeMap[39]) kobold.moveRight();
+        if (keyHandler.keyCodeMap[37]) {
+            if (keyHandler.keyCodeMap[16]) {
+                kobold.run();
+                kobold.moveLeft(true);
+            }
+            else {
+                kobold.walk();
+                kobold.moveLeft(false);
+            }
+        }
+        if (keyHandler.keyCodeMap[39]) {
+            if (keyHandler.keyCodeMap[16]) {
+                kobold.run();
+                kobold.moveRight(true);
+            }
+            else {
+                kobold.walk();
+                kobold.moveRight(false);
+            }
+        }
         if (keyHandler.keyCodeMap[17]) kobold.crouch();
         if (!keyHandler.keyCodeMap[17]) kobold.standUp();
         if (!keyHandler.keyCodeMap[39] && !keyHandler.keyCodeMap[37]) {
@@ -58,7 +76,9 @@ function Movable (id, solids) {
     me.collider.bottom.isColliding = false;
     me.speed = [];
     me.speed.right = 1;
+    me.speed.rightRun = 1.5;
     me.speed.left = -1;
+    me.speed.leftRun = -1.5;
     me.speed.jump = 6;
     me.speed.fall = -6;
     me.speed.inAir = 0;
@@ -119,10 +139,11 @@ function Movable (id, solids) {
         return collidedObjects;
     };
 
-    this.moveLeft = function () {
+    this.moveLeft = function (run) {
+        var speed = (run) ? me.speed.leftRun : me.speed.left;
         $('#' + me.idImg).removeClass('idle right');
-        $('#' + me.idImg).addClass('walk left');
-        me.move.x = Math.floor(me.speed.left * me.deltaTime);
+        $('#' + me.idImg).addClass('left');
+        me.move.x = Math.floor(speed * me.deltaTime);
         var moveDistCollider = Math.abs(me.move.x) + 1;
         me.collider.left.obj.width(moveDistCollider + "px");
         me.collider.left.obj.css("left", "-" + moveDistCollider + "px");
@@ -135,10 +156,11 @@ function Movable (id, solids) {
         }
     };
 
-    this.moveRight = function () {
+    this.moveRight = function (run) {
+        var speed = (run) ? me.speed.rightRun : me.speed.right;
         $('#' + me.idImg).removeClass('idle left');
-        $('#' + me.idImg).addClass('walk right');
-        me.move.x = Math.floor(me.speed.right * me.deltaTime);
+        $('#' + me.idImg).addClass('right');
+        me.move.x = Math.floor(speed * me.deltaTime);
         var moveDistCollider = me.move.x + 1;
         me.collider.right.obj.width(moveDistCollider + "px");
         var collidedObjects = me.collisionCheck("right");
@@ -148,6 +170,16 @@ function Movable (id, solids) {
             collidedObjects.sort(function(a,b) {return a[0][0] - b[0][0]});
             me.obj.css("left", (collidedObjects[0][0][0] - me.obj.outerWidth()) + "px");
         }
+    };
+
+    this.walk = function () {
+        $('#' + me.idImg).removeClass('run');
+        $('#' + me.idImg).addClass('walk');
+    };
+
+    this.run = function () {
+        $('#' + me.idImg).removeClass('walk');
+        $('#' + me.idImg).addClass('run');
     };
 
     this.inAir = function () {
@@ -275,7 +307,7 @@ function Movable (id, solids) {
     }
 
     this.stop = function () {
-        $('#' + me.idImg).removeClass('walk');
+        $('#' + me.idImg).removeClass('walk run');
     }
 
     this.updateCollider = function () {
