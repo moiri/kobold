@@ -3,20 +3,11 @@ body {
     padding:0px;
 }
 
-.kobold2
-{
-width:100px;
-height:100px;
-background:red;
-position:relative;
-}
-
-
 .kobold {
     position:absolute;
     bottom:500px;
     left:30px;
-    height:90px;
+    height:85px;
     width:53px;
     /*background-color:blue;*/
 }
@@ -25,12 +16,14 @@ position:relative;
     position:absolute;
     height:100px;
     width:100px;
-    top:-10px;
+    top:-15px;
     z-index:10;
 }
 
 .koboldImg.left {
     left:-15px;
+    transform:scaleX(-1);
+    -webkit-transform:scaleX(-1);
 }
 
 .koboldImg.right {
@@ -41,10 +34,6 @@ position:relative;
     background-image:url("../img/idle_strip.png");
     animation: idle 0.5s steps(2) infinite;
     -webkit-animation: idle 1s steps(2) infinite;
-}
-.koboldImg.idle.left {
-    transform:scaleX(-1);
-    -webkit-transform:scaleX(-1);
 }
 @keyframes idle {
    from { background-position:    0px; }
@@ -57,12 +46,8 @@ position:relative;
 
 .koboldImg.walk {
     background-image:url("../img/walk_strip.png");
-    animation: walk 0.5s steps(9) infinite;
+    animation: walk 0.4s steps(9) infinite;
     -webkit-animation: walk 1s steps(9) infinite;
-}
-.koboldImg.walk.left {
-    transform:scaleX(-1);
-    -webkit-transform:scaleX(-1);
 }
 @keyframes walk {
    from { background-position:    0px; }
