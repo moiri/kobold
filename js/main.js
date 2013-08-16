@@ -1,6 +1,6 @@
 $(document).ready(function() {
     for (i=1; i<=6; i++)
-        for (j=0; j<20; j++)
+        for (j=0; j<1; j++)
             $('body')
             .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
     var solids = $('.solid');
