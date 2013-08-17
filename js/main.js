@@ -188,8 +188,11 @@ function Movable (id, solids) {
         me.move.y = Math.floor(me.speed.inAir * me.deltaTime);
         if (me.move.y <= 0) {
             moveDistCollider = Math.abs(me.move.y) + 1;
-            me.collider.bottom.obj.height(moveDistCollider + "px");
+            me.collider.bottom.obj.height(
+                (moveDistCollider + me.height.crouch) + "px"
+            );
             collidedObjects = me.collisionCheck("bottom");
+            me.collisionCheck("top");
             if (!me.collider.bottom.isColliding) {
                 me.obj.css("bottom", "+=" + me.move.y + "px");
                 me.speed.inAir += (me.deltaDist * me.deltaTime);
@@ -204,7 +207,7 @@ function Movable (id, solids) {
         }
         else {
             moveDistCollider = me.move.y + 1;
-            me.collider.top.obj.height(moveDistCollider + "px");
+            me.collider.top.obj.height((moveDistCollider + me.height.crouch) + "px");
             me.collider.top.obj.css("top", "-" + moveDistCollider + "px");
             collidedObjects = me.collisionCheck("top");
             if (!me.collider.top.isColliding) {
@@ -219,8 +222,6 @@ function Movable (id, solids) {
             }
             else {
                 me.speed.inAir = 0;
-                me.collider.top.obj.height("0px");
-                me.collider.top.obj.css("top", "0px");
                 collidedObjects.sort(function(a,b) {return b[1][1] - a[1][1]});
                 me.obj.css("bottom", $(window).height() - 
                     collidedObjects[0][1][1] - me.obj.outerHeight() + "px");
@@ -300,6 +301,10 @@ function Movable (id, solids) {
         if (me.action.crouch) {
             $('#' + me.idImg).removeClass('crouch');
             $('#' + me.idImg).removeAttr('style');
+            if (me.collider.top.isColliding)
+                $('#' + me.id).css(
+                    'bottom', '-=' + (me.height.stand - me.height.crouch) + 'px'
+                );
             $('#' + me.id).height(me.height.stand + 'px');
             me.updateCollider();
             me.action.crouch = false;
@@ -322,14 +327,14 @@ function Movable (id, solids) {
         .css("left", ($('#' + me.id).width()) + "px");
 
         $('#' + me.id + '-collider-top')
-        .height("20px")
+        .height((20 + me.height.crouch) + "px")
         .width($('#' + me.id).width() + "px")
         .css("top", "-20px");
 
         $('#' + me.id + '-collider-bottom')
-        .height("10px")
+        .height((20 + me.height.crouch) + "px")
         .width($('#' + me.id).width() + "px")
-        .css("top", $('#' + me.id).height() + "px");
+        .css("top", ($('#' + me.id).height() - me.height.crouch) + "px");
     }
 
     this.updateCollider();
