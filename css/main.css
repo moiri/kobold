@@ -7,10 +7,19 @@ body {
     position:absolute;
     bottom:500px;
     left:30px;
+    /*background-color:blue;*/
+}
+
+.colliderContainer {
     height:85px;
     width:53px;
     overflow:hidden;
-    /*background-color:blue;*/
+    position:relative;
+}
+
+.collider {
+    position:absolute;
+    background-color:red;
 }
 
 .koboldImg {
@@ -203,7 +212,3 @@ body {
     right:10px;
 }
 
-.collider {
-    position:absolute;
-    /*background-color:red;*/
-}

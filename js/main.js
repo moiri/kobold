@@ -61,6 +61,7 @@ function Movable (id, solids) {
     var me = this;
     me.id = id;
     me.idImg = me.id + "-img";
+    me.idCollider = me.id + "-collider";
     me.obj = $('#' + me.id);
     me.collider = [];
     me.collider.left = [];
@@ -105,21 +106,16 @@ function Movable (id, solids) {
     me.rand.maxVal = 10;    // seconds
     me.rand.nextVal = -1;
 
-    $('<div id="' + me.id + '-collider-left" class="collider colliderLeft"></div>')
-    .appendTo('#' + me.id);
-    me.collider.left.obj = $('#' + me.id + '-collider-left');
-
-    $('<div id="' + me.id + '-collider-right" class="collider colliderRight"></div>')
-    .appendTo('#' + me.id);
-    me.collider.right.obj = $('#' + me.id + '-collider-right');
-
-    $('<div id="' + me.id + '-collider-top" class="collider colliderTop"></div>')
-    .appendTo('#' + me.id);
-    me.collider.top.obj = $('#' + me.id + '-collider-top');
-
-    $('<div id="' + me.id + '-collider-bottom" class="collider colliderBottom"></div>')
-    .appendTo('#' + me.id);
-    me.collider.bottom.obj = $('#' + me.id + '-collider-bottom');
+    $('#' + me.id).append('<div id="' + me.idCollider + '" class="colliderContainer">' +
+        '<div id="' + me.idCollider + '-left" class="collider colliderLeft"></div>' +
+        '<div id="' + me.idCollider + '-right" class="collider colliderRight"></div>' +
+        '<div id="' + me.idCollider + '-top" class="collider colliderTop"></div>' +
+        '<div id="' + me.idCollider + '-bottom" class="collider colliderBottom"></div>' +
+    '</div>');
+    me.collider.left.obj = $('#' + me.idCollider + '-left');
+    me.collider.right.obj = $('#' + me.idCollider + '-right');
+    me.collider.top.obj = $('#' + me.idCollider + '-top');
+    me.collider.bottom.obj = $('#' + me.idCollider + '-bottom');
 
     this.setDeltaTime = function (val) {
         me.deltaTime = val;
@@ -280,7 +276,7 @@ function Movable (id, solids) {
         if (!me.action.crouch) {
             $('#' + me.idImg).addClass('crouch');
             $('#' + me.idImg).css('top', '-60px');
-            $('#' + me.id).height(me.height.crouch + 'px');
+            $('#' + me.idCollider).height(me.height.crouch + 'px');
             if (!me.collider.bottom.isColliding)
                 $('#' + me.id).css('bottom', '+=' + me.height.crouch + 'px');
             me.updateCollider();
@@ -296,7 +292,7 @@ function Movable (id, solids) {
                 $('#' + me.id).css(
                     'bottom', '-=' + (me.height.stand - me.height.crouch) + 'px'
                 );
-            $('#' + me.id).height(me.height.stand + 'px');
+            $('#' + me.idCollider).height(me.height.stand + 'px');
             me.updateCollider();
             me.action.crouch = false;
         }
@@ -316,7 +312,7 @@ function Movable (id, solids) {
                 toleranceLeft = me.collider.left.tolerance;
             $('#' + me.id + '-collider-left')
             .width(colliderSize  + "px")
-            .height($('#' + me.id).height() - toleranceLeft + "px")
+            .height($('#' + me.idCollider).height() - toleranceLeft + "px")
             .css("left", "-" + colliderSize + "px");
         }
 
@@ -327,8 +323,8 @@ function Movable (id, solids) {
                 toleranceRight = me.collider.right.tolerance;
             $('#' + me.id + '-collider-right')
             .width(colliderSize + "px")
-            .height($('#' + me.id).height() - toleranceRight + "px")
-            .css("left", ($('#' + me.id).width()) + "px");
+            .height($('#' + me.idCollider).height() - toleranceRight + "px")
+            .css("left", ($('#' + me.idCollider).width()) + "px");
         }
 
         if ((direction === undefined) || (direction === 'top')) {
@@ -336,7 +332,7 @@ function Movable (id, solids) {
                 colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.jump));
             $('#' + me.id + '-collider-top')
             .height((colliderSize + me.height.crouch) + "px")
-            .width($('#' + me.id).width() + "px")
+            .width($('#' + me.idCollider).width() + "px")
             .css("top", "-" + colliderSize + "px");
         }
 
@@ -345,8 +341,8 @@ function Movable (id, solids) {
                 colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.fall));
             $('#' + me.id + '-collider-bottom')
             .height((colliderSize + me.height.crouch) + "px")
-            .width($('#' + me.id).width() + "px")
-            .css("top", ($('#' + me.id).height() - me.height.crouch) + "px");
+            .width($('#' + me.idCollider).width() + "px")
+            .css("top", ($('#' + me.idCollider).height() - me.height.crouch) + "px");
         }
     }
 
