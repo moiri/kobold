@@ -65,10 +65,10 @@ function Movable (id, solids) {
     me.collider = [];
     me.collider.left = [];
     me.collider.left.isColliding = false;
-    me.collider.left.tolerance = 2;
+    me.collider.left.tolerance = 10;
     me.collider.right = [];
     me.collider.right.isColliding = false;
-    me.collider.right.tolerance = 2;
+    me.collider.right.tolerance = 10;
     me.collider.top = [];
     me.collider.top.isColliding = false;
     me.collider.top.obj = null;
@@ -144,9 +144,7 @@ function Movable (id, solids) {
         $('#' + me.idImg).removeClass('idle right');
         $('#' + me.idImg).addClass('left');
         me.move.x = Math.floor(speed * me.deltaTime);
-        var moveDistCollider = Math.abs(me.move.x) + 1;
-        me.collider.left.obj.width(moveDistCollider + "px");
-        me.collider.left.obj.css("left", "-" + moveDistCollider + "px");
+        me.updateCollider("left", Math.abs(me.move.x) + 1);
         var collidedObjects = me.collisionCheck("left");
         if (!me.collider.left.isColliding)
             me.obj.css("left", "+=" + me.move.x + "px");
@@ -161,8 +159,7 @@ function Movable (id, solids) {
         $('#' + me.idImg).removeClass('idle left');
         $('#' + me.idImg).addClass('right');
         me.move.x = Math.floor(speed * me.deltaTime);
-        var moveDistCollider = me.move.x + 1;
-        me.collider.right.obj.width(moveDistCollider + "px");
+        me.updateCollider("right", me.move.x + 1);
         var collidedObjects = me.collisionCheck("right");
         if (!me.collider.right.isColliding)
             me.obj.css("left", "+=" + me.move.x + "px");
@@ -183,14 +180,10 @@ function Movable (id, solids) {
     };
 
     this.inAir = function () {
-        var collidedObjects = null,
-            moveDistCollider = 0;
+        var collidedObjects = null;
         me.move.y = Math.floor(me.speed.inAir * me.deltaTime);
         if (me.move.y <= 0) {
-            moveDistCollider = Math.abs(me.move.y) + 1;
-            me.collider.bottom.obj.height(
-                (moveDistCollider + me.height.crouch) + "px"
-            );
+            me.updateCollider("bottom", Math.abs(me.move.y) + 1);
             collidedObjects = me.collisionCheck("bottom");
             me.collisionCheck("top");
             if (!me.collider.bottom.isColliding) {
@@ -206,9 +199,7 @@ function Movable (id, solids) {
             }
         }
         else {
-            moveDistCollider = me.move.y + 1;
-            me.collider.top.obj.height((moveDistCollider + me.height.crouch) + "px");
-            me.collider.top.obj.css("top", "-" + moveDistCollider + "px");
+            me.updateCollider("top", me.move.y + 1);
             collidedObjects = me.collisionCheck("top");
             if (!me.collider.top.isColliding) {
                 var jumpOffset = me.jumpLimiter.maxHeight -
@@ -315,26 +306,48 @@ function Movable (id, solids) {
         $('#' + me.idImg).removeClass('walk run');
     }
 
-    this.updateCollider = function () {
-        $('#' + me.id + '-collider-left')
-        .width("10px")
-        .height($('#' + me.id).height() - me.collider.left.tolerance + "px")
-        .css("left", "-10px");
+    this.updateCollider = function (direction, colliderSize) {
+        var toleranceLeft = 0,
+            toleranceRight = 0;
+        if ((direction === undefined) || (direction === 'left')) {
+            if (colliderSize === undefined)
+                colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.left));
+            if (me.collider.bottom.isColliding)
+                toleranceLeft = me.collider.left.tolerance;
+            $('#' + me.id + '-collider-left')
+            .width(colliderSize  + "px")
+            .height($('#' + me.id).height() - toleranceLeft + "px")
+            .css("left", "-" + colliderSize + "px");
+        }
 
-        $('#' + me.id + '-collider-right')
-        .width("10px")
-        .height($('#' + me.id).height() - me.collider.right.tolerance + "px")
-        .css("left", ($('#' + me.id).width()) + "px");
+        if ((direction === undefined) || (direction === 'left')) {
+            if (colliderSize === undefined)
+                colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.right));
+            if (me.collider.bottom.isColliding)
+                toleranceRight = me.collider.right.tolerance;
+            $('#' + me.id + '-collider-right')
+            .width(colliderSize + "px")
+            .height($('#' + me.id).height() - toleranceRight + "px")
+            .css("left", ($('#' + me.id).width()) + "px");
+        }
 
-        $('#' + me.id + '-collider-top')
-        .height((20 + me.height.crouch) + "px")
-        .width($('#' + me.id).width() + "px")
-        .css("top", "-20px");
+        if ((direction === undefined) || (direction === 'top')) {
+            if (colliderSize === undefined)
+                colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.jump));
+            $('#' + me.id + '-collider-top')
+            .height((colliderSize + me.height.crouch) + "px")
+            .width($('#' + me.id).width() + "px")
+            .css("top", "-" + colliderSize + "px");
+        }
 
-        $('#' + me.id + '-collider-bottom')
-        .height((20 + me.height.crouch) + "px")
-        .width($('#' + me.id).width() + "px")
-        .css("top", ($('#' + me.id).height() - me.height.crouch) + "px");
+        if ((direction === undefined) || (direction === 'bottom')) {
+            if (colliderSize === undefined)
+                colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.fall));
+            $('#' + me.id + '-collider-bottom')
+            .height((colliderSize + me.height.crouch) + "px")
+            .width($('#' + me.id).width() + "px")
+            .css("top", ($('#' + me.id).height() - me.height.crouch) + "px");
+        }
     }
 
     this.updateCollider();
