@@ -9,6 +9,7 @@ body {
     left:30px;
     height:85px;
     width:53px;
+    overflow:hidden;
     /*background-color:blue;*/
 }
 
@@ -138,7 +139,7 @@ body {
     position:absolute;
     bottom:10px;
     height:10px;
-    width:100%;
+    width:1900px;
     border:solid black 1px;
 }
 
