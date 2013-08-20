@@ -86,12 +86,15 @@ function Movable (id, solids) {
     me.move = [];
     me.move.x = 0;
     me.move.y = 0;
-    me.deltaTime = 0.025;
-    me.deltaDistFactor = 0.25;
-    me.deltaDist = me.speed.fall/me.deltaDistFactor;
     me.jumpLimiter = [];
-    me.jumpLimiter.maxHeight = Math.floor(me.speed.jump * (2.5 + me.deltaDistFactor / 2));
+    me.jumpLimiter.maxHeight = 160; // pixel
     me.jumpLimiter.startHeight = 0;
+    me.jumpHeight = 0;
+    me.deltaTimeMin = 0.025
+    me.deltaTime = me.deltaTimeMin;
+    me.deltaDist = me.speed.fall /
+        (me.jumpLimiter.maxHeight / (me.speed.jump * me.deltaTime) * 2 + 1);
+    me.jumpLut = [];
     me.height = [];
     me.height.stand = 85;
     me.height.crouch = 40;
@@ -100,6 +103,7 @@ function Movable (id, solids) {
     me.action.wink = false;
     me.action.wave = false;
     me.action.jawn = false;
+    me.action.jump = false;
     me.rand = [];
     me.rand.count = 0;
     me.rand.minVal = 4;     // seconds
@@ -119,6 +123,19 @@ function Movable (id, solids) {
 
     this.setDeltaTime = function (val) {
         me.deltaTime = val;
+    };
+
+    this.setJumpLut = function () {
+        var pos = 0,
+            speed = me.speed.jump,
+            i = 1;
+        me.jumpLut[0] = 0;
+        while (pos < me.jumpLimiter.maxHeight) {
+            speed += me.deltaDist;
+            pos += speed*me.deltaTime;;
+            me.jumpLut[i] = Math.ceil(pos);
+            i++;
+        }
     };
 
     this.collisionCheck = function (direction) {
@@ -177,48 +194,60 @@ function Movable (id, solids) {
 
     this.inAir = function () {
         var collidedObjects = null;
-        me.move.y = Math.floor(me.speed.inAir * me.deltaTime);
-        if (me.move.y <= 0) {
+        if (!me.action.jump) {
+            me.speed.inAir += me.deltaDist * me.deltaTime / me.deltaTimeMin;
+            me.move.y = Math.round(me.speed.inAir * me.deltaTime);
             me.updateCollider("bottom", Math.abs(me.move.y) + 1);
             collidedObjects = me.collisionCheck("bottom");
             me.collisionCheck("top");
             if (!me.collider.bottom.isColliding) {
                 me.obj.css("bottom", "+=" + me.move.y + "px");
-                me.speed.inAir += (me.deltaDist * me.deltaTime);
                 if (me.speed.inAir < me.speed.fall) me.speed.inAir = me.speed.fall;
             }
             else {
-                me.speed.inAir = (me.deltaDist * me.deltaTime);
+                me.speed.inAir = me.deltaDist;
                 collidedObjects.sort(function(a,b) {return a[1][0] - b[1][0]});
                 me.obj.css("bottom",
                     $(window).height() - collidedObjects[0][1][0] + "px");
             }
         }
         else {
+            me.jumpCnt += Math.round(me.deltaTime / me.deltaTimeMin);
+            var lastElem = false;
+            if (me.jumpCnt > (me.jumpLut.length - 1)) {
+                me.jumpCnt = me.jumpLut.length - 1;
+                lastElem = true;
+            }
+            me.move.y = me.jumpLut[me.jumpCnt] - me.jumpLut[me.jumpCntLast];
+            me.jumpHeight += me.move.y;
+            if (lastElem) {
+                var jumpDiff = me.jumpLimiter.maxHeight - me.jumpHeight;
+                if (jumpDiff != 0)
+                    me.move.y += jumpDiff;
+                me.jumpHeight = 0;
+                me.action.jump = false;
+            }
+            me.jumpCntLast = me.jumpCnt;
             me.updateCollider("top", me.move.y + 1);
             collidedObjects = me.collisionCheck("top");
             if (!me.collider.top.isColliding) {
-                var jumpOffset = me.jumpLimiter.maxHeight -
-                        (me.jumpLimiter.startHeight - (me.obj.offset().top - me.move.y));
-                if (jumpOffset < 0) {
-                    me.speed.inAir = 0;
-                    me.move.y += jumpOffset;
-                }
                 me.obj.css("bottom", "+=" + me.move.y + "px");
-                me.speed.inAir += (me.deltaDist * me.deltaTime);
             }
             else {
-                me.speed.inAir = 0;
+                me.action.jump = false;
                 collidedObjects.sort(function(a,b) {return b[1][1] - a[1][1]});
                 me.obj.css("bottom", $(window).height() - 
                     collidedObjects[0][1][1] - me.obj.outerHeight() + "px");
             }
+            console.log(me.jumpLimiter.startHeight - me.obj.offset().top)
         }
     };
 
     this.jump = function () {
-        if (me.collider.bottom.isColliding) {
-            me.speed.inAir = me.speed.jump;
+        if (me.collider.bottom.isColliding && !me.action.jump) {
+            me.action.jump = true;
+            me.jumpCnt = 0;
+            me.jumpCntLast = 0;
             me.jumpLimiter.startHeight = me.obj.offset().top;
             me.collider.bottom.isColliding = false;
         }
@@ -349,6 +378,7 @@ function Movable (id, solids) {
     }
 
     this.updateCollider();
+    this.setJumpLut();
 }
 
 function KeyHandler () {
