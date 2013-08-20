@@ -11,7 +11,7 @@ $(document).ready(function() {
     $('#solidCnt').text(solids.length);
     ticker.drawFps();
     ticker.startTicker(function () {
-        kobold.setDeltaTime(ticker.getDeltaTime() * 0.2);
+        kobold.setDeltaTime(ticker.getDeltaTime());
         kobold.inAir();
         if (keyHandler.keyCodeMap[32]) kobold.jump();
         if (keyHandler.keyCodeMap[37]) {
@@ -38,7 +38,7 @@ $(document).ready(function() {
         if (!keyHandler.keyCodeMap[17]) kobold.standUp();
         if (!keyHandler.keyCodeMap[39] && !keyHandler.keyCodeMap[37]) {
             kobold.stop();
-            kobold.idle(Math.floor(1000/ticker.getDeltaTime()));
+            kobold.idle();
         }
         if (keyHandler.isAnyKeyPressed()) kobold.active();
     });
@@ -76,18 +76,18 @@ function Movable (id, solids) {
     me.collider.bottom = [];
     me.collider.bottom.isColliding = false;
     me.speed = [];
-    me.speed.right = 1;
-    me.speed.rightRun = 1.5;
-    me.speed.left = -1;
-    me.speed.leftRun = -1.5;
-    me.speed.jump = 6;
-    me.speed.fall = -6;
+    me.speed.right = 200;
+    me.speed.rightRun = 300;
+    me.speed.left = -200;
+    me.speed.leftRun = -300;
+    me.speed.jump = 1200;
+    me.speed.fall = -1200;
     me.speed.inAir = 0;
     me.move = [];
     me.move.x = 0;
     me.move.y = 0;
-    me.deltaTime = 5;
-    me.deltaDistFactor = 50;
+    me.deltaTime = 0.025;
+    me.deltaDistFactor = 0.25;
     me.deltaDist = me.speed.fall/me.deltaDistFactor;
     me.jumpLimiter = [];
     me.jumpLimiter.maxHeight = Math.floor(me.speed.jump * (2.5 + me.deltaDistFactor / 2));
@@ -224,12 +224,12 @@ function Movable (id, solids) {
         }
     };
 
-    this.idle = function (frameCnt) {
+    this.idle = function () {
         if (me.rand.nextVal < 0)
-            this.setNextRandVal(frameCnt);
+            this.setNextRandVal();
         $('#' + me.idImg).addClass('idle');
         if (me.rand.count === me.rand.nextVal) {
-            me.randAnimation(frameCnt);
+            me.singleAnimation('rand');
         }
         me.rand.count++;
     };
@@ -239,16 +239,18 @@ function Movable (id, solids) {
         me.rand.count = 0;
     };
 
-    this.randAnimation = function (frameCnt) {
+    this.singleAnimation = function (cssClass) {
         var animationDuration = 0,
             animationIterationCount = 0,
-            cssClass = 'rand ',
-            tempRand = Math.floor((Math.random()*3)+1);
-        switch(tempRand) {
-            case 1: cssClass += 'wave'; break;
-            case 2: cssClass += 'wink'; break;
-            case 3: cssClass += 'jawn'; break;
-        };
+            randClassNb = 0;
+        if (cssClass === 'rand') {
+            randClassNb = Math.floor((Math.random()*3)+1);
+            switch(randClassNb) {
+                case 1: cssClass += ' wave'; break;
+                case 2: cssClass += ' wink'; break;
+                case 3: cssClass += ' jawn'; break;
+            };
+        }
         $('#' + me.idImg).addClass(cssClass);
         animationDuration = $('#' + me.idImg).css('animation-duration');
         if (animationDuration === null)
@@ -261,14 +263,14 @@ function Movable (id, solids) {
         animationIterationCount = parseInt(animationIterationCount);
         setTimeout(function () {
             $('#' + me.idImg).removeClass(cssClass);
-            me.setNextRandVal(frameCnt);
+            if (randClassNb > 0) me.setNextRandVal();
         }, animationDuration * animationIterationCount * 1000);
     };
 
-    this.setNextRandVal = function (frameCnt) {
+    this.setNextRandVal = function () {
         me.rand.count = 0;
         me.rand.nextVal = Math.floor(
-            (Math.random() * frameCnt * me.rand.maxVal) + frameCnt * me.rand.minVal
+            (1 / me.deltaTime) * ((Math.random() * me.rand.maxVal) + me.rand.minVal)
         );
     }
 
@@ -426,7 +428,7 @@ function Ticker () {
     };
 
     this.getDeltaTime = function () {
-        return me.tick.real;
+        return (me.tick.real / 1000);
     };
 }
 
