@@ -86,15 +86,19 @@ function Movable (id, solids) {
     me.move = [];
     me.move.x = 0;
     me.move.y = 0;
-    me.jumpLimiter = [];
-    me.jumpLimiter.maxHeight = 160; // pixel
-    me.jumpLimiter.startHeight = 0;
-    me.jumpHeight = 0;
+    me.jumpAttr = [];
+    me.jumpAttr.lut = [];
+    me.jumpAttr.height = [];
+    me.jumpAttr.height.start = 0;
+    me.jumpAttr.height.max = 160;
+    me.jumpAttr.height.actual = 0;
+    me.jumpAttr.count = [];
+    me.jumpAttr.count.actual = 0;
+    me.jumpAttr.count.last = 0;
     me.deltaTimeMin = 0.025
     me.deltaTime = me.deltaTimeMin;
     me.deltaDist = me.speed.fall /
-        (me.jumpLimiter.maxHeight / (me.speed.jump * me.deltaTime) * 2 + 1);
-    me.jumpLut = [];
+        (me.jumpAttr.height.max / (me.speed.jump * me.deltaTime) * 2 + 1);
     me.height = [];
     me.height.stand = 85;
     me.height.crouch = 40;
@@ -129,11 +133,11 @@ function Movable (id, solids) {
         var pos = 0,
             speed = me.speed.jump,
             i = 1;
-        me.jumpLut[0] = 0;
-        while (pos < me.jumpLimiter.maxHeight) {
+        me.jumpAttr.lut[0] = 0;
+        while (pos < me.jumpAttr.height.max) {
             speed += me.deltaDist;
             pos += speed*me.deltaTime;;
-            me.jumpLut[i] = Math.ceil(pos);
+            me.jumpAttr.lut[i] = Math.ceil(pos);
             i++;
         }
     };
@@ -212,22 +216,23 @@ function Movable (id, solids) {
             }
         }
         else {
-            me.jumpCnt += Math.round(me.deltaTime / me.deltaTimeMin);
+            me.jumpAttr.count.actual += Math.round(me.deltaTime / me.deltaTimeMin);
             var lastElem = false;
-            if (me.jumpCnt > (me.jumpLut.length - 1)) {
-                me.jumpCnt = me.jumpLut.length - 1;
+            if (me.jumpAttr.count.actual > (me.jumpAttr.lut.length - 1)) {
+                me.jumpAttr.count.actual = me.jumpAttr.lut.length - 1;
                 lastElem = true;
             }
-            me.move.y = me.jumpLut[me.jumpCnt] - me.jumpLut[me.jumpCntLast];
-            me.jumpHeight += me.move.y;
-            if (lastElem) {
-                var jumpDiff = me.jumpLimiter.maxHeight - me.jumpHeight;
+            me.move.y = me.jumpAttr.lut[me.jumpAttr.count.actual] -
+                me.jumpAttr.lut[me.jumpAttr.count.last];
+            me.jumpAttr.height.actual += me.move.y;
+            if (lastElem || me.jumpAttr.height.actual > me.jumpAttr.height.max) {
+                var jumpDiff = me.jumpAttr.height.max - me.jumpAttr.height.actual;
                 if (jumpDiff != 0)
                     me.move.y += jumpDiff;
-                me.jumpHeight = 0;
+                me.jumpAttr.height.actual = 0;
                 me.action.jump = false;
             }
-            me.jumpCntLast = me.jumpCnt;
+            me.jumpAttr.count.last = me.jumpAttr.count.actual;
             me.updateCollider("top", me.move.y + 1);
             collidedObjects = me.collisionCheck("top");
             if (!me.collider.top.isColliding) {
@@ -239,16 +244,16 @@ function Movable (id, solids) {
                 me.obj.css("bottom", $(window).height() - 
                     collidedObjects[0][1][1] - me.obj.outerHeight() + "px");
             }
-            console.log(me.jumpLimiter.startHeight - me.obj.offset().top)
+            console.log(me.jumpAttr.height.start - me.obj.offset().top)
         }
     };
 
     this.jump = function () {
         if (me.collider.bottom.isColliding && !me.action.jump) {
             me.action.jump = true;
-            me.jumpCnt = 0;
-            me.jumpCntLast = 0;
-            me.jumpLimiter.startHeight = me.obj.offset().top;
+            me.jumpAttr.count.actual = 0;
+            me.jumpAttr.count.last = 0;
+            me.jumpAttr.height.start = me.obj.offset().top;
             me.collider.bottom.isColliding = false;
         }
     };
