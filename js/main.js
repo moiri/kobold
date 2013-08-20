@@ -95,10 +95,19 @@ function Movable (id, solids) {
     me.jumpAttr.count = [];
     me.jumpAttr.count.actual = 0;
     me.jumpAttr.count.last = 0;
-    me.deltaTimeMin = 0.025
-    me.deltaTime = me.deltaTimeMin;
-    me.deltaDist = me.speed.fall /
-        (me.jumpAttr.height.max / (me.speed.jump * me.deltaTime) * 2 + 1);
+    me.delta = [];
+    me.delta.time = [];
+    me.delta.time.min = 0.025;
+    me.delta.time.actual = me.delta.time.min;
+    me.delta.dist = [];
+    me.delta.dist.up = me.speed.jump / 
+        (me.jumpAttr.height.max /
+            (me.speed.jump * me.delta.time.actual)
+        * 2 + 1);
+    me.delta.dist.down = me.speed.fall /
+        (me.jumpAttr.height.max /
+            (Math.abs(me.speed.fall) * me.delta.time.actual)
+        * 2 + 1);
     me.height = [];
     me.height.stand = 85;
     me.height.crouch = 40;
@@ -126,7 +135,7 @@ function Movable (id, solids) {
     me.collider.bottom.obj = $('#' + me.idCollider + '-bottom');
 
     this.setDeltaTime = function (val) {
-        me.deltaTime = val;
+        me.delta.time.actual = val;
     };
 
     this.setJumpLut = function () {
@@ -135,9 +144,9 @@ function Movable (id, solids) {
             i = 1;
         me.jumpAttr.lut[0] = 0;
         while (pos < me.jumpAttr.height.max) {
-            speed += me.deltaDist;
-            pos += speed*me.deltaTime;;
-            me.jumpAttr.lut[i] = Math.ceil(pos);
+            speed -= me.delta.dist.up;
+            pos += speed*me.delta.time.actual;;
+            me.jumpAttr.lut[i] = pos;
             i++;
         }
     };
@@ -160,7 +169,7 @@ function Movable (id, solids) {
         var speed = (run) ? me.speed.leftRun : me.speed.left;
         $('#' + me.idImg).removeClass('idle right');
         $('#' + me.idImg).addClass('left');
-        me.move.x = Math.floor(speed * me.deltaTime);
+        me.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("left", Math.abs(me.move.x) + 1);
         var collidedObjects = me.collisionCheck("left");
         if (!me.collider.left.isColliding)
@@ -175,7 +184,7 @@ function Movable (id, solids) {
         var speed = (run) ? me.speed.rightRun : me.speed.right;
         $('#' + me.idImg).removeClass('idle left');
         $('#' + me.idImg).addClass('right');
-        me.move.x = Math.floor(speed * me.deltaTime);
+        me.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("right", me.move.x + 1);
         var collidedObjects = me.collisionCheck("right");
         if (!me.collider.right.isColliding)
@@ -199,8 +208,9 @@ function Movable (id, solids) {
     this.inAir = function () {
         var collidedObjects = null;
         if (!me.action.jump) {
-            me.speed.inAir += me.deltaDist * me.deltaTime / me.deltaTimeMin;
-            me.move.y = Math.round(me.speed.inAir * me.deltaTime);
+            me.speed.inAir += me.delta.dist.down *
+                me.delta.time.actual / me.delta.time.min;
+            me.move.y = Math.round(me.speed.inAir * me.delta.time.actual);
             me.updateCollider("bottom", Math.abs(me.move.y) + 1);
             collidedObjects = me.collisionCheck("bottom");
             me.collisionCheck("top");
@@ -209,14 +219,15 @@ function Movable (id, solids) {
                 if (me.speed.inAir < me.speed.fall) me.speed.inAir = me.speed.fall;
             }
             else {
-                me.speed.inAir = me.deltaDist;
+                me.speed.inAir = me.delta.dist.down;
                 collidedObjects.sort(function(a,b) {return a[1][0] - b[1][0]});
                 me.obj.css("bottom",
                     $(window).height() - collidedObjects[0][1][0] + "px");
             }
         }
         else {
-            me.jumpAttr.count.actual += Math.round(me.deltaTime / me.deltaTimeMin);
+            me.jumpAttr.count.actual += Math.round(
+                me.delta.time.actual / me.delta.time.min);
             var lastElem = false;
             if (me.jumpAttr.count.actual > (me.jumpAttr.lut.length - 1)) {
                 me.jumpAttr.count.actual = me.jumpAttr.lut.length - 1;
@@ -304,7 +315,8 @@ function Movable (id, solids) {
     this.setNextRandVal = function () {
         me.rand.count = 0;
         me.rand.nextVal = Math.floor(
-            (1 / me.deltaTime) * ((Math.random() * me.rand.maxVal) + me.rand.minVal)
+            (1 / me.delta.time.actual) *
+                ((Math.random() * me.rand.maxVal) + me.rand.minVal)
         );
     }
 
@@ -343,7 +355,7 @@ function Movable (id, solids) {
             toleranceRight = 0;
         if ((direction === undefined) || (direction === 'left')) {
             if (colliderSize === undefined)
-                colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.left));
+                colliderSize = Math.abs(Math.floor(me.delta.time.actual * me.speed.left));
             if (me.collider.bottom.isColliding)
                 toleranceLeft = me.collider.left.tolerance;
             $('#' + me.id + '-collider-left')
@@ -352,9 +364,10 @@ function Movable (id, solids) {
             .css("left", "-" + colliderSize + "px");
         }
 
-        if ((direction === undefined) || (direction === 'left')) {
+        if ((direction === undefined) || (direction === 'right')) {
             if (colliderSize === undefined)
-                colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.right));
+                colliderSize = Math.abs(
+                    Math.floor(me.delta.time.actual * me.speed.right));
             if (me.collider.bottom.isColliding)
                 toleranceRight = me.collider.right.tolerance;
             $('#' + me.id + '-collider-right')
@@ -365,7 +378,7 @@ function Movable (id, solids) {
 
         if ((direction === undefined) || (direction === 'top')) {
             if (colliderSize === undefined)
-                colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.jump));
+                colliderSize = Math.abs(Math.floor(me.delta.time.actual * me.speed.jump));
             $('#' + me.id + '-collider-top')
             .height((colliderSize + me.height.crouch) + "px")
             .width($('#' + me.idCollider).width() + "px")
@@ -374,7 +387,7 @@ function Movable (id, solids) {
 
         if ((direction === undefined) || (direction === 'bottom')) {
             if (colliderSize === undefined)
-                colliderSize = Math.abs(Math.floor(me.deltaTime * me.speed.fall));
+                colliderSize = Math.abs(Math.floor(me.delta.time.actual * me.speed.fall));
             $('#' + me.id + '-collider-bottom')
             .height((colliderSize + me.height.crouch) + "px")
             .width($('#' + me.idCollider).width() + "px")
