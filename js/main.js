@@ -146,7 +146,7 @@ function Movable (id, solids) {
         while (pos < me.jumpAttr.height.max) {
             speed -= me.delta.dist.up;
             pos += speed*me.delta.time.actual;;
-            me.jumpAttr.lut[i] = pos;
+            me.jumpAttr.lut[i] = Math.ceil(pos);
             i++;
         }
     };
@@ -251,6 +251,7 @@ function Movable (id, solids) {
             }
             else {
                 me.action.jump = false;
+                me.jumpAttr.height.actual = 0;
                 collidedObjects.sort(function(a,b) {return b[1][1] - a[1][1]});
                 me.obj.css("bottom", $(window).height() - 
                     collidedObjects[0][1][1] - me.obj.outerHeight() + "px");
