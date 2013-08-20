@@ -46,12 +46,12 @@ body {
     -webkit-animation: idle 0.5s steps(2) infinite;
 }
 @keyframes idle {
-   from { background-position:    0px -100px; }
-     to { background-position: -200px -100px; }
+   from { background-position:    0px 0px; }
+     to { background-position: -200px 0px; }
 }
 @-webkit-keyframes idle {
-   from { background-position:    0px -100px; }
-     to { background-position: -200px -100px; }
+   from { background-position:    0px 0px; }
+     to { background-position: -200px 0px; }
 }
 
 .koboldImg.idle.rand.jawn {
@@ -124,24 +124,24 @@ body {
     -webkit-animation: idleCrouch 0.5s steps(2) infinite;
 }
 @keyframes idleCrouch {
-   from { background-position:    0px 0px; }
-     to { background-position: -200px 0px; }
+   from { background-position:    0px -100px; }
+     to { background-position: -200px -100px; }
 }
 @-webkit-keyframes idleCrouch {
-   from { background-position:    0px 0px; }
-     to { background-position: -200px 0px; }
+   from { background-position:    0px -100px; }
+     to { background-position: -200px -100px; }
 }
 .koboldImg.walk.crouch {
     animation: crouch 0.4s steps(8) infinite;
     -webkit-animation: crouch 0.4s steps(8) infinite;
 }
 @keyframes crouch {
-   from { background-position:    0px 0px; }
-     to { background-position: -800px 0px; }
+   from { background-position:    0px -100px; }
+     to { background-position: -800px -100px; }
 }
 @-webkit-keyframes crouch {
-   from { background-position:    0px 0px; }
-     to { background-position: -800px 0px; }
+   from { background-position:    0px -100px; }
+     to { background-position: -800px -100px; }
 }
 
 .floor {
