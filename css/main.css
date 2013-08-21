@@ -144,6 +144,19 @@ body {
      to { background-position: -800px -100px; }
 }
 
+.koboldImg.appear {
+    animation: appear 1s steps(6) 1;
+    -webkit-animation: appear 1s steps(6) 1;
+}
+@keyframes appear {
+   from { background-position:    0px -700px; }
+     to { background-position: -600px -700px; }
+}
+@-webkit-keyframes appear {
+   from { background-position:    0px -700px; }
+     to { background-position: -600px -700px; }
+}
+
 .floor {
     position:absolute;
     bottom:10px;

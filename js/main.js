@@ -3,44 +3,52 @@ $(document).ready(function() {
         for (j=0; j<1; j++)
             $('body')
             .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
+    var globalVar = [];
+    globalVar.enable = true;
+    setEnable = function (val) {
+        globalVar.enable = val
+    };
     var solids = $('.solid');
     var ticker = new Ticker();
     var keyHandler = new KeyHandler();
-    var kobold = new Movable('kobold', solids);
+    var kobold = new Movable('kobold', solids, setEnable);
     var tempJumpDist = null;
     $('#solidCnt').text(solids.length);
     ticker.drawFps();
     ticker.startTicker(function () {
-        kobold.setDeltaTime(ticker.getDeltaTime());
-        kobold.inAir();
-        if (keyHandler.keyCodeMap[32]) kobold.jump();
-        if (keyHandler.keyCodeMap[37]) {
-            if (keyHandler.keyCodeMap[16]) {
-                kobold.run();
-                kobold.moveLeft(true);
+        if (globalVar.enable) {
+            kobold.setDeltaTime(ticker.getDeltaTime());
+            kobold.checkPosition();
+            kobold.inAir();
+            if (keyHandler.keyCodeMap[32]) kobold.jump();
+            if (keyHandler.keyCodeMap[37]) {
+                if (keyHandler.keyCodeMap[16]) {
+                    kobold.run();
+                    kobold.moveLeft(true);
+                }
+                else {
+                    kobold.walk();
+                    kobold.moveLeft(false);
+                }
             }
-            else {
-                kobold.walk();
-                kobold.moveLeft(false);
+            if (keyHandler.keyCodeMap[39]) {
+                if (keyHandler.keyCodeMap[16]) {
+                    kobold.run();
+                    kobold.moveRight(true);
+                }
+                else {
+                    kobold.walk();
+                    kobold.moveRight(false);
+                }
             }
+            if (keyHandler.keyCodeMap[17]) kobold.crouch();
+            if (!keyHandler.keyCodeMap[17]) kobold.standUp();
+            if (!keyHandler.keyCodeMap[39] && !keyHandler.keyCodeMap[37]) {
+                kobold.stop();
+                kobold.idle();
+            }
+            if (keyHandler.isAnyKeyPressed()) kobold.active();
         }
-        if (keyHandler.keyCodeMap[39]) {
-            if (keyHandler.keyCodeMap[16]) {
-                kobold.run();
-                kobold.moveRight(true);
-            }
-            else {
-                kobold.walk();
-                kobold.moveRight(false);
-            }
-        }
-        if (keyHandler.keyCodeMap[17]) kobold.crouch();
-        if (!keyHandler.keyCodeMap[17]) kobold.standUp();
-        if (!keyHandler.keyCodeMap[39] && !keyHandler.keyCodeMap[37]) {
-            kobold.stop();
-            kobold.idle();
-        }
-        if (keyHandler.isAnyKeyPressed()) kobold.active();
     });
 
     $(document).keydown( function (event) {
@@ -57,7 +65,7 @@ $(document).ready(function() {
     });
 });
 
-function Movable (id, solids) {
+function Movable (id, solids, setEnable) {
     var me = this;
     me.id = id;
     me.idImg = me.id + "-img";
@@ -122,6 +130,9 @@ function Movable (id, solids) {
     me.rand.minVal = 4;     // seconds
     me.rand.maxVal = 10;    // seconds
     me.rand.nextVal = -1;
+    me.pos = [];
+    me.pos.x = 0;
+    me.pos.y = 0;
 
     $('#' + me.id).append('<div id="' + me.idCollider + '" class="colliderContainer">' +
         '<div id="' + me.idCollider + '-left" class="collider colliderLeft"></div>' +
@@ -138,7 +149,7 @@ function Movable (id, solids) {
         me.delta.time.actual = val;
     };
 
-    this.setJumpLut = function () {
+    this.genJumpLut = function () {
         var pos = 0,
             speed = me.speed.jump,
             i = 1;
@@ -148,6 +159,20 @@ function Movable (id, solids) {
             pos += speed*me.delta.time.actual;;
             me.jumpAttr.lut[i] = Math.ceil(pos);
             i++;
+        }
+    };
+
+    this.checkPosition = function () {
+        if ((me.obj.offset().left < 0) || (parseInt(me.obj.css('right')) < 0)) {
+            me.obj.css('left', me.pos.x);
+        }
+        else if ((parseInt(me.obj.css('bottom')) + me.obj.height()) < 0) {
+            setEnable(false);
+            me.singleAnimation('appear');
+            $('#' + me.idImg).removeClass('walk run');
+            $('#' + me.idImg).addClass('idle');
+            me.obj.css('bottom', parseInt(me.pos.y));
+            me.obj.css('left', me.pos.x);
         }
     };
 
@@ -172,8 +197,11 @@ function Movable (id, solids) {
         me.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("left", Math.abs(me.move.x) + 1);
         var collidedObjects = me.collisionCheck("left");
-        if (!me.collider.left.isColliding)
+        if (!me.collider.left.isColliding) {
             me.obj.css("left", "+=" + me.move.x + "px");
+            if (me.collider.bottom.isColliding)
+                me.pos.x = me.obj.offset().left + me.obj.width();
+        }
         else {
             collidedObjects.sort(function(a,b) {return b[0][1] - a[0][1]});
             me.obj.css("left", collidedObjects[0][0][1] + "px");
@@ -187,8 +215,11 @@ function Movable (id, solids) {
         me.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("right", me.move.x + 1);
         var collidedObjects = me.collisionCheck("right");
-        if (!me.collider.right.isColliding)
+        if (!me.collider.right.isColliding) {
             me.obj.css("left", "+=" + me.move.x + "px");
+            if (me.collider.bottom.isColliding)
+                me.pos.x = me.obj.offset().left - me.obj.width();
+        }
         else {
             collidedObjects.sort(function(a,b) {return a[0][0] - b[0][0]});
             me.obj.css("left", (collidedObjects[0][0][0] - me.obj.outerWidth()) + "px");
@@ -223,6 +254,7 @@ function Movable (id, solids) {
                 collidedObjects.sort(function(a,b) {return a[1][0] - b[1][0]});
                 me.obj.css("bottom",
                     $(window).height() - collidedObjects[0][1][0] + "px");
+                me.pos.y = me.obj.css("bottom");
             }
         }
         else {
@@ -256,7 +288,6 @@ function Movable (id, solids) {
                 me.obj.css("bottom", $(window).height() - 
                     collidedObjects[0][1][1] - me.obj.outerHeight() + "px");
             }
-            console.log(me.jumpAttr.height.start - me.obj.offset().top)
         }
     };
 
@@ -310,6 +341,7 @@ function Movable (id, solids) {
         setTimeout(function () {
             $('#' + me.idImg).removeClass(cssClass);
             if (randClassNb > 0) me.setNextRandVal();
+            setEnable(true);
         }, animationDuration * animationIterationCount * 1000);
     };
 
@@ -397,7 +429,7 @@ function Movable (id, solids) {
     }
 
     this.updateCollider();
-    this.setJumpLut();
+    this.genJumpLut();
 }
 
 function KeyHandler () {
