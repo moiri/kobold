@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    for (i=1; i<=6; i++)
+    for (i=1; i<=8; i++)
         for (j=0; j<1; j++)
             $('body')
             .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
@@ -164,16 +164,19 @@ function Movable (id, solids, setEnable) {
     };
 
     this.checkPosition = function () {
-        if ((me.obj.offset().left < 0) || (parseInt(me.obj.css('right')) < 0)) {
-            me.obj.css('left', me.pos.x);
-        }
-        else if ((parseInt(me.obj.css('bottom')) + me.obj.height()) < 0) {
+        if ((parseInt(me.obj.css('bottom')) + me.obj.height()) < 0) {
             setEnable(false);
             me.singleAnimation('appear');
             $('#' + me.idImg).removeClass('walk run');
             $('#' + me.idImg).addClass('idle');
             me.obj.css('bottom', parseInt(me.pos.y));
             me.obj.css('left', me.pos.x);
+        }
+        else if (me.obj.offset().left < 0) {
+            me.obj.css('left', 0);
+        }
+        else if (parseInt(me.obj.css('right')) < 0) {
+            me.obj.css('left', $(window).width() - me.obj.width());
         }
     };
 

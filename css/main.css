@@ -157,14 +157,6 @@ body {
      to { background-position: -600px -700px; }
 }
 
-.floor {
-    position:absolute;
-    bottom:10px;
-    height:10px;
-    width:1900px;
-    border:solid black 1px;
-}
-
 .stone1 {
     position:absolute;
     bottom:20px;
@@ -216,6 +208,23 @@ body {
     left:400px;
     height:31px;
     width:50px;
+    border:solid black 1px;
+}
+
+.stone7 {
+    position:absolute;
+    bottom:10px;
+    left:1750px;
+    height:10px;
+    width:150px;
+    border:solid black 1px;
+}
+
+.stone8 {
+    position:absolute;
+    bottom:10px;
+    height:10px;
+    width:1600px;
     border:solid black 1px;
 }
 
