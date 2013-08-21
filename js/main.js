@@ -21,28 +21,26 @@ $(document).ready(function() {
             kobold.checkPosition();
             kobold.inAir();
             if (keyHandler.keyCodeMap[32]) kobold.jump();
-            if (keyHandler.keyCodeMap[37]) {
-                if (keyHandler.keyCodeMap[16]) {
-                    kobold.run();
+            if (keyHandler.keyCodeMap[16]) {
+                kobold.run();
+                if (keyHandler.keyCodeMap[37]) {
                     kobold.moveLeft(true);
                 }
-                else {
-                    kobold.walk();
-                    kobold.moveLeft(false);
-                }
-            }
-            if (keyHandler.keyCodeMap[39]) {
-                if (keyHandler.keyCodeMap[16]) {
-                    kobold.run();
+                else if (keyHandler.keyCodeMap[39]) {
                     kobold.moveRight(true);
                 }
-                else {
-                    kobold.walk();
+            }
+            else {
+                kobold.walk();
+                if (keyHandler.keyCodeMap[37]) {
+                    kobold.moveLeft(false);
+                }
+                else if (keyHandler.keyCodeMap[39]) {
                     kobold.moveRight(false);
                 }
+                if (keyHandler.keyCodeMap[17]) kobold.crouch();
+                if (!keyHandler.keyCodeMap[17]) kobold.standUp();
             }
-            if (keyHandler.keyCodeMap[17]) kobold.crouch();
-            if (!keyHandler.keyCodeMap[17]) kobold.standUp();
             if (!keyHandler.keyCodeMap[39] && !keyHandler.keyCodeMap[37]) {
                 kobold.stop();
                 kobold.idle();
