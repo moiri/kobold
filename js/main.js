@@ -1,75 +1,101 @@
-$(document).ready(function() {
-    for (i=1; i<=8; i++)
-        for (j=0; j<1; j++)
-            $('body')
-            .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
-    var globalVar = [];
-    globalVar.enable = true;
-    setEnable = function (val) {
-        globalVar.enable = val
+function Engine() {
+    var me = this;
+    me.enable = [];
+    me.enable.run = true;
+    me.enable.jump = true;
+    me.enable.crouch = true;
+    me.enable.appear = true;
+    me.enable.all = true;
+    me.keyCode = [];;
+    me.keyCode.jump = 32;
+    me.keyCode.run = 16;
+    me.keyCode.left = 37;
+    me.keyCode.right = 39;
+    me.keyCode.crouch = 17;
+    me.ticker = null;
+    me.movable = null;
+    me.keyHandler = null;
+    me.solids = $('.solid');
+
+    this.registerKeyEvents = function () {
+        $(document).keydown( function (event) {
+            if ((event.keyCode === 37) || (event.keyCode === 39) || (event.keyCode === 32))
+                event.preventDefault();
+            me.keyHandler.setKey(event.keyCode, true);
+        });
+
+        $(document).keyup( function (event) {
+            me.keyHandler.setKey(event.keyCode, false);
+        });
+
+        $(document).blur( function (event) {
+            me.keyHandler.clearKeyCodeMap();
+        });
     };
-    var solids = $('.solid');
-    var ticker = new Ticker();
-    var keyHandler = new KeyHandler();
-    var kobold = new Movable('kobold', solids, setEnable);
-    var tempJumpDist = null;
-    $('#solidCnt').text(solids.length);
-    ticker.drawFps();
-    ticker.startTicker(function () {
-        if (globalVar.enable) {
-            kobold.setDeltaTime(ticker.getDeltaTime());
-            kobold.checkPosition();
-            kobold.inAir();
-            if (keyHandler.keyCodeMap[32]) kobold.jump();
-            if (keyHandler.keyCodeMap[16]) {
-                kobold.run();
-                if (keyHandler.keyCodeMap[37]) {
-                    kobold.moveLeft(true);
-                }
-                else if (keyHandler.keyCodeMap[39]) {
-                    kobold.moveRight(true);
-                }
-            }
-            else {
-                kobold.walk();
-                if (keyHandler.keyCodeMap[37]) {
-                    kobold.moveLeft(false);
-                }
-                else if (keyHandler.keyCodeMap[39]) {
-                    kobold.moveRight(false);
-                }
-                if (keyHandler.keyCodeMap[17]) kobold.crouch();
-                if (!keyHandler.keyCodeMap[17]) kobold.standUp();
-            }
-            if (!keyHandler.keyCodeMap[39] && !keyHandler.keyCodeMap[37]) {
-                kobold.stop();
-                kobold.idle();
-            }
-            if (keyHandler.isAnyKeyPressed()) kobold.active();
+
+    this.setEnableAll = function (val) {
+        me.enable.all = val;
+    };
+
+    this.start = function () {
+        me.ticker = new Ticker();
+        me.keyHandler = new KeyHandler();
+        me.movable = new Movable('kobold', me.solids, me.setEnableAll);
+        me.registerKeyEvents();
+        me.ticker.startTicker(function () {
+            if (me.enable.all) me.movableHandler();
+        });
+        me.ticker.drawFps();
+        $('#solidCnt').text(me.solids.length);
+    };
+
+    this.movableHandler = function () {
+        me.movable.setDeltaTime(me.ticker.getDeltaTime());
+        if (me.enable.appear) me.movable.checkPosition();
+        me.movable.inAir();
+        if (me.enable.jump && me.keyHandler.keyCodeMap[me.keyCode.jump]) {
+            me.movable.jump();
         }
-    });
+        if (me.enable.run && me.keyHandler.keyCodeMap[me.keyCode.run]) {
+            me.movable.run();
+            if (me.keyHandler.keyCodeMap[me.keyCode.left]) {
+                me.movable.moveLeft(true);
+            }
+            else if (me.keyHandler.keyCodeMap[me.keyCode.right]) {
+                me.movable.moveRight(true);
+            }
+        }
+        else {
+            me.movable.walk();
+            if (me.keyHandler.keyCodeMap[me.keyCode.left]) {
+                me.movable.moveLeft(false);
+            }
+            else if (me.keyHandler.keyCodeMap[me.keyCode.right]) {
+                me.movable.moveRight(false);
+            }
+            if (me.enable.crouch && me.keyHandler.keyCodeMap[me.keyCode.crouch]) {
+                me.movable.crouch();
+            }
+            if (me.enable.crouch && !me.keyHandler.keyCodeMap[me.keyCode.crouch])  {
+                me.movable.standUp();
+            }
+        }
+        if (!me.keyHandler.keyCodeMap[me.keyCode.left] &&
+            !me.keyHandler.keyCodeMap[me.keyCode.right]) {
+            me.movable.stop();
+            me.movable.idle();
+        }
+        if (me.keyHandler.isAnyKeyPressed()) me.movable.active();
+    };
+};
 
-    $(document).keydown( function (event) {
-        if ((event.keyCode === 37) || (event.keyCode === 39) || (event.keyCode === 32))
-            event.preventDefault();
-        keyHandler.setKey(event.keyCode, true);
-    });
-
-    $(document).keyup( function (event) {
-        keyHandler.setKey(event.keyCode, false);
-    });
-
-    $(document).blur( function (event) {
-        keyHandler.clearKeyCodeMap();
-    });
-});
-
-function Movable (id, solids, setEnable) {
+function Movable(id, solids, setEnable) {
     var me = this;
     me.id = id;
     me.idImg = me.id + "-img";
     me.idCollider = me.id + "-collider";
     me.obj = $('#' + me.id);
+    me.solids = solids;
     me.collider = [];
     me.collider.left = [];
     me.collider.left.isColliding = false;
@@ -181,7 +207,7 @@ function Movable (id, solids, setEnable) {
     this.collisionCheck = function (direction) {
         var collision = false;
         var collidedObjects = [];
-        solids.each(function () {
+        me.solids.each(function () {
             collisionRes = overlaps(me.collider[direction].obj, $(this));
             if (collisionRes.isColliding) {
                 collision = true;

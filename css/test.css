@@ -1,0 +1,82 @@
+.test * .colliderContainer {
+    overflow:visible;
+}
+
+.test * .collider {
+    background-color:red;
+}
+
+.test > .config {
+    visibility:visible;
+}
+
+.stone1 {
+    position:absolute;
+    bottom:20px;
+    left:0px;
+    height:50px;
+    width:50px;
+    border:solid black 1px;
+}
+
+.stone2 {
+    position:absolute;
+    bottom:20px;
+    left:500px;
+    height:150px;
+    width:300px;
+    border:solid black 1px;
+}
+
+.stone3 {
+    position:absolute;
+    bottom:320px;
+    left:200px;
+    height:20px;
+    width:500px;
+    border:solid black 1px;
+}
+
+.stone4 {
+    position:absolute;
+    bottom:70px;
+    left:0px;
+    height:10px;
+    width:51px;
+    border:solid black 1px;
+}
+
+.stone5 {
+    position:absolute;
+    bottom:23px;
+    left:499px;
+    height:10px;
+    width:302px;
+    border:solid black 1px;
+}
+
+.stone6 {
+    position:absolute;
+    bottom:319px;
+    left:400px;
+    height:31px;
+    width:50px;
+    border:solid black 1px;
+}
+
+.stone7 {
+    position:absolute;
+    bottom:10px;
+    left:1750px;
+    height:10px;
+    width:150px;
+    border:solid black 1px;
+}
+
+.stone8 {
+    position:absolute;
+    bottom:10px;
+    height:10px;
+    width:1600px;
+    border:solid black 1px;
+}
