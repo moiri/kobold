@@ -4,6 +4,7 @@ function Engine() {
     me.enable.run = true;
     me.enable.jump = true;
     me.enable.crouch = true;
+    me.enable.crouchJump = true;
     me.enable.appear = true;
     me.enable.all = true;
     me.keyCode = [];;
@@ -40,7 +41,7 @@ function Engine() {
     this.start = function () {
         me.ticker = new Ticker();
         me.keyHandler = new KeyHandler();
-        me.movable = new Movable('kobold', me.solids, me.setEnableAll);
+        me.movable = new Movable('kobold', me.solids, me.setEnableAll, me.enable);
         me.registerKeyEvents();
         me.ticker.startTicker(function () {
             if (me.enable.all) me.movableHandler();
@@ -89,13 +90,14 @@ function Engine() {
     };
 };
 
-function Movable(id, solids, setEnable) {
+function Movable(id, solids, setEnable, enable) {
     var me = this;
     me.id = id;
     me.idImg = me.id + "-img";
     me.idCollider = me.id + "-collider";
     me.obj = $('#' + me.id);
     me.solids = solids;
+    me.enable = enable;
     me.collider = [];
     me.collider.left = [];
     me.collider.left.isColliding = false;
@@ -386,7 +388,7 @@ function Movable(id, solids, setEnable) {
             $('#' + me.idImg).addClass('crouch');
             $('#' + me.idImg).css('top', '-60px');
             $('#' + me.idCollider).height(me.height.crouch + 'px');
-            if (!me.collider.bottom.isColliding)
+            if (me.enable.crouchJump && !me.collider.bottom.isColliding)
                 $('#' + me.id).css('bottom', '+=' + me.height.crouch + 'px');
             me.updateCollider();
             me.action.crouch = true;
