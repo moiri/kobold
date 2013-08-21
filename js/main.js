@@ -52,7 +52,8 @@ $(document).ready(function() {
     });
 
     $(document).keydown( function (event) {
-        event.preventDefault();
+        if ((event.keyCode === 37) || (event.keyCode === 39) || (event.keyCode === 32))
+            event.preventDefault();
         keyHandler.setKey(event.keyCode, true);
     });
 
