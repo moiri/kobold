@@ -337,6 +337,7 @@ function Movable(config, setEnable) {
     me.action.wave = false;
     me.action.jawn = false;
     me.action.jump = false;
+    me.action.pickUp = false;
     me.rand = [];
     me.rand.count = 0;
     me.rand.minVal = config.randIdle.min;
@@ -380,7 +381,9 @@ function Movable(config, setEnable) {
     this.checkPosition = function () {
         if ((parseInt(me.obj.css('bottom')) + me.obj.height()) < 0) {
             setEnable(false);
-            me.singleAnimation('appear');
+            me.singleAnimation($('#' + me.idImg), 'appear', function () {
+                setEnable(true);
+            });
             $('#' + me.idImg).removeClass('walk run');
             $('#' + me.idImg).addClass('idle');
             me.obj.css('bottom', parseInt(me.pos.y));
@@ -424,7 +427,9 @@ function Movable(config, setEnable) {
             this.setNextRandVal();
         $('#' + me.idImg).addClass('idle');
         if (me.rand.count === me.rand.nextVal) {
-            me.singleAnimation('rand');
+            me.singleAnimation($('#' + me.idImg), 'rand', function () {
+                me.setNextRandVal();
+            });
         }
         me.rand.count++;
     };
@@ -541,9 +546,12 @@ function Movable(config, setEnable) {
         me.pickUps.each(function () {
             collisionRes = overlaps(me.obj, $(this));
             if (collisionRes.isColliding) {
+                $(this).removeClass(me.pickUpClass);
                 me.pickUpCounter++;
-                $(this).remove();
                 $('#' + me.idPickUpCnt).text(me.pickUpCounter);
+                me.singleAnimation($(this), me.pickUpClass + 'Success', function () {
+                    $(this).remove();
+                });
             }
         });
     };
@@ -579,7 +587,7 @@ function Movable(config, setEnable) {
         );
     }
 
-    this.singleAnimation = function (cssClass) {
+    this.singleAnimation = function (obj, cssClass, cb) {
         var animationDuration = 0,
             animationIterationCount = 0,
             randClassNb = 0;
@@ -591,20 +599,18 @@ function Movable(config, setEnable) {
                 case 3: cssClass += ' jawn'; break;
             };
         }
-        $('#' + me.idImg).addClass(cssClass);
-        animationDuration = $('#' + me.idImg).css('animation-duration');
+        obj.addClass(cssClass);
+        animationDuration = obj.css('animation-duration');
         if (animationDuration === null)
-            animationDuration = $('#' + me.idImg).css('-webkit-animation-duration')
-        animationIterationCount = $('#' + me.idImg).css('animation-iteration-count');
+            animationDuration = obj.css('-webkit-animation-duration')
+        animationIterationCount = obj.css('animation-iteration-count');
         if (animationIterationCount === null)
-            animationIterationCount = $('#' + me.idImg)
-                .css('-webkit-animation-iteration-count');
+            animationIterationCount = obj.css('-webkit-animation-iteration-count');
         animationDuration = parseFloat(animationDuration);
         animationIterationCount = parseInt(animationIterationCount);
         setTimeout(function () {
-            $('#' + me.idImg).removeClass(cssClass);
-            if (randClassNb > 0) me.setNextRandVal();
-            setEnable(true);
+            obj.removeClass(cssClass);
+            cb();
         }, animationDuration * animationIterationCount * 1000);
     };
 
