@@ -1,5 +1,6 @@
 function Configurator() {
     var me = this;
+    me.maxFps = 40;
     me.enable = [];
     me.enable.run = true;
     me.enable.jump = true;
@@ -54,6 +55,7 @@ function Engine(config) {
     me.keyHandler = null;
     me.configMovable = config.movable;
     me.configMovable.enableCrouchJump = me.enable.crouchJump;
+    me.configMovable.minDeltaTime = 1 / config.maxFps;
 
     this.registerKeyEvents = function () {
         $(document).keydown( function (event) {
@@ -76,7 +78,7 @@ function Engine(config) {
     };
 
     this.start = function () {
-        me.ticker = new Ticker();
+        me.ticker = new Ticker(config.maxFps);
         me.keyHandler = new KeyHandler();
         me.movable = new Movable(me.configMovable, me.setEnableAll);
         me.registerKeyEvents();
@@ -168,7 +170,7 @@ function Movable(config, setEnable) {
     me.jumpAttr.count.last = 0;
     me.delta = [];
     me.delta.time = [];
-    me.delta.time.min = 0.025;
+    me.delta.time.min = config.minDeltaTime;
     me.delta.time.actual = me.delta.time.min;
     me.delta.dist = [];
     me.delta.dist.up = me.speed.jump / 
@@ -527,13 +529,12 @@ function KeyHandler () {
     }
 }
 
-function Ticker () {
+function Ticker (maxFps) {
     var me = this;
     me.timerId = null;
     me.fps = [];
-    me.fps.max = 40;
+    me.fps.max = maxFps;
     me.fps.real = me.fps.max;
-    me.fps.min = 10;
     me.time = [];
     me.time.start = 0;
     me.time.diff = 0;
