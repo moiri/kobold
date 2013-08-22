@@ -109,6 +109,13 @@ function Configurator() {
     me.movable.solidClass = 'solid';
     this.setMovableSolidClass = function (val) {me.movable.solidClass = val;};
 
+    /* Id of element where the pick up count should appear. The corresponding 
+     * element must exist on he webpage.
+     * If me.enable.pickUp is turned off, this parameter has no effect.
+     */
+    me.movable.idPickUpCnt = 'pickUpCnt';
+    this.setMovablePickUpClass = function (val) {me.movable.pickUpClass = val;};
+
     /* Class name definig which elements the character can pick up by moving
      * over them. All elements on the web page intended to be objects that
      * can be picked up must have this css class.
@@ -271,6 +278,7 @@ function Movable(config, setEnable) {
     me.id = config.id;
     me.idImg = me.id + "-img";
     me.idCollider = me.id + "-collider";
+    me.idPickUpCnt = config.idPickUpCnt;
     me.obj = $('#' + me.id);
     me.solids = $('.' + config.solidClass);
     me.pickUps = $('.' + config.pickUpClass);
@@ -535,7 +543,7 @@ function Movable(config, setEnable) {
             if (collisionRes.isColliding) {
                 me.pickUpCounter++;
                 $(this).remove();
-                $('#pickUpCnt').text(me.pickUpCounter);
+                $('#' + me.idPickUpCnt).text(me.pickUpCounter);
             }
         });
     };
