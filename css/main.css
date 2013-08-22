@@ -166,6 +166,32 @@ body {
    from { background-position:    0px -700px; }
      to { background-position: -600px -700px; }
 }
+
+.koboldImg.vanish {
+    animation: vanish 1s steps(9) 1;
+    -webkit-animation: vanish 1s steps(9) 1;
+}
+@keyframes vanish {
+   from { background-position:    0px -800px; }
+     to { background-position: -900px -800px; }
+}
+@-webkit-keyframes vanish {
+   from { background-position:    0px -800px; }
+     to { background-position: -900px -800px; }
+}
+
+.koboldImg.cry {
+    animation: cry 1.5s steps(2) 3;
+    -webkit-animation: cry 0.5s steps(2) 3;
+}
+@keyframes cry {
+   from { background-position:    0px -900px; }
+     to { background-position: -200px -900px; }
+}
+@-webkit-keyframes cry {
+   from { background-position:    0px -900px; }
+     to { background-position: -200px -900px; }
+}
 /*
 .koboldImg.jump {
     animation: jump 0.5s steps(2) infinite;
