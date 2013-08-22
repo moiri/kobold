@@ -166,7 +166,7 @@ body {
    from { background-position:    0px -700px; }
      to { background-position: -600px -700px; }
 }
-
+/*
 .koboldImg.jump {
     animation: jump 0.5s steps(2) infinite;
     -webkit-animation: jump 0.5s steps(2) infinte;
@@ -191,7 +191,7 @@ body {
    from { background-position:    0px -100px; }
      to { background-position: -200px -100px; }
 }
-
+*/
 .config {
     position:absolute;
     top:10px;
