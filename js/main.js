@@ -549,7 +549,7 @@ function Movable(config, setEnable) {
                 $(this).removeClass(me.pickUpClass);
                 me.pickUpCounter++;
                 $('#' + me.idPickUpCnt).text(me.pickUpCounter);
-                me.singleAnimation($(this), me.pickUpClass + 'Success', function () {
+                me.singleAnimation($(this), 'success', function () {
                     $(this).remove();
                 });
             }
