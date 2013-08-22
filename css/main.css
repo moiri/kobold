@@ -10,8 +10,6 @@ body {
 }
 
 .colliderContainer {
-    height:85px;
-    width:53px;
     overflow:hidden;
     position:relative;
 }

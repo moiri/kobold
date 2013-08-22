@@ -156,11 +156,20 @@ function Configurator() {
     me.movable.maxJumpHeight = 160;
     this.setMovableMaxJumpHeight = function (val) {me.movable.maxJumpHeight = val;};
 
-    /* Define the height (in pixel) of the character (standing / crouching)
-     * -> i thing this should be moved to css
+    /* Define the height (in pixel) of the character in either standing or
+     * crouching position. Keep in mind that these values depend directly on
+     * the animation of the movable
      */ 
     me.movable.height.stand = 85;
     me.movable.height.crouch = 40;
+    this.setMovableHeight = function (type, val) {me.movable.height[type] = val;};
+
+    /* Define the width (in pixel) of the character in either standing or
+     * crouching position. Keep in mind that these values depend directly on
+     * the animation of the movable
+     */ 
+    me.movable.width = 53
+    this.setMovableWidth = function (val) {me.movable.width = val;};
 
     /* Define the intervall of random idle animations (in seconds). After
      * completion of an animation, The next random animation well tart in
@@ -331,6 +340,7 @@ function Movable(config, setEnable) {
     me.height = [];
     me.height.stand = config.height.stand;
     me.height.crouch = config.height.crouch;
+    me.width = config.width;
     me.action = [];
     me.action.crouch = false;
     me.action.wink = false;
@@ -358,6 +368,8 @@ function Movable(config, setEnable) {
     me.collider.right.obj = $('#' + me.idCollider + '-right');
     me.collider.top.obj = $('#' + me.idCollider + '-top');
     me.collider.bottom.obj = $('#' + me.idCollider + '-bottom');
+    $('#' + me.idCollider).width(me.width);
+    $('#' + me.idCollider).height(me.height.stand);
 
     this.active = function () {
         $('#' + me.idImg).removeClass('rand');
