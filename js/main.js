@@ -1,4 +1,4 @@
-function Engine() {
+function Configurator() {
     var me = this;
     me.enable = [];
     me.enable.run = true;
@@ -6,17 +6,54 @@ function Engine() {
     me.enable.crouch = true;
     me.enable.crouchJump = true;
     me.enable.appear = true;
-    me.enable.all = true;
     me.keyCode = [];;
     me.keyCode.jump = 32;
     me.keyCode.run = 16;
     me.keyCode.left = 37;
     me.keyCode.right = 39;
     me.keyCode.crouch = 17;
+    me.movable = [];
+    me.movable.id = 'kobold';
+    me.movable.solidClass = 'solid';
+    me.movable.colliderTolerance = [];
+    me.movable.colliderTolerance.left = 10;  // pixel
+    me.movable.colliderTolerance.right = 10; // pixel
+    me.movable.speed = [];
+    me.movable.speed.right = 200;
+    me.movable.speed.rightRun = 300;
+    me.movable.speed.left = -200;
+    me.movable.speed.leftRun = -300;
+    me.movable.speed.jump = 1200;
+    me.movable.speed.fall = -1200;
+    me.movable.maxJumpHeight = 160;          // pixel
+    me.movable.height = [];
+    me.movable.height.stand = 85;            // pixel
+    me.movable.height.crouch = 40;           // pixel
+    me.movable.randIdle = [];
+    me.movable.randIdle.minVal = 4;          // seconds
+    me.movable.randIdle.maxVal = 10;         // seconds
+};
+
+function Engine(config) {
+    var me = this;
+    me.enable = [];
+    me.enable.run = config.enable.run;
+    me.enable.jump = config.enable.jump;
+    me.enable.crouch = config.enable.crouch;
+    me.enable.crouchJump = config.enable.crouchJump;
+    me.enable.appear = config.enable.appear;
+    me.enable.all = true;
+    me.keyCode = [];
+    me.keyCode.jump = config.keyCode.jump;
+    me.keyCode.run = config.keyCode.run;
+    me.keyCode.left = config.keyCode.left;
+    me.keyCode.right = config.keyCode.right;
+    me.keyCode.crouch = config.keyCode.crouch;
     me.ticker = null;
     me.movable = null;
     me.keyHandler = null;
-    me.solids = $('.solid');
+    me.configMovable = config.movable;
+    me.configMovable.enableCrouchJump = me.enable.crouchJump;
 
     this.registerKeyEvents = function () {
         $(document).keydown( function (event) {
@@ -41,13 +78,12 @@ function Engine() {
     this.start = function () {
         me.ticker = new Ticker();
         me.keyHandler = new KeyHandler();
-        me.movable = new Movable('kobold', me.solids, me.setEnableAll, me.enable);
+        me.movable = new Movable(me.configMovable, me.setEnableAll);
         me.registerKeyEvents();
         me.ticker.startTicker(function () {
             if (me.enable.all) me.movableHandler();
         });
         me.ticker.drawFps();
-        $('#solidCnt').text(me.solids.length);
     };
 
     this.movableHandler = function () {
@@ -90,33 +126,33 @@ function Engine() {
     };
 };
 
-function Movable(id, solids, setEnable, enable) {
+function Movable(config, setEnable) {
     var me = this;
-    me.id = id;
+    me.id = config.id;
     me.idImg = me.id + "-img";
     me.idCollider = me.id + "-collider";
     me.obj = $('#' + me.id);
-    me.solids = solids;
-    me.enable = enable;
+    me.solids = $('.' + config.solidClass);
+    me.enableCrouchJump = config.enableCrouchJump;
     me.collider = [];
     me.collider.left = [];
     me.collider.left.isColliding = false;
-    me.collider.left.tolerance = 10;
+    me.collider.left.tolerance = config.colliderTolerance.left;
     me.collider.right = [];
     me.collider.right.isColliding = false;
-    me.collider.right.tolerance = 10;
+    me.collider.right.tolerance = config.colliderTolerance.right;
     me.collider.top = [];
     me.collider.top.isColliding = false;
     me.collider.top.obj = null;
     me.collider.bottom = [];
     me.collider.bottom.isColliding = false;
     me.speed = [];
-    me.speed.right = 200;
-    me.speed.rightRun = 300;
-    me.speed.left = -200;
-    me.speed.leftRun = -300;
-    me.speed.jump = 1200;
-    me.speed.fall = -1200;
+    me.speed.right = config.speed.right;
+    me.speed.rightRun = config.speed.rightRun;
+    me.speed.left = config.speed.left;
+    me.speed.leftRun = config.speed.leftRun;
+    me.speed.jump = config.speed.jump;
+    me.speed.fall = config.speed.fall;
     me.speed.inAir = 0;
     me.move = [];
     me.move.x = 0;
@@ -125,7 +161,7 @@ function Movable(id, solids, setEnable, enable) {
     me.jumpAttr.lut = [];
     me.jumpAttr.height = [];
     me.jumpAttr.height.start = 0;
-    me.jumpAttr.height.max = 160;
+    me.jumpAttr.height.max = config.maxJumpHeight;
     me.jumpAttr.height.actual = 0;
     me.jumpAttr.count = [];
     me.jumpAttr.count.actual = 0;
@@ -144,8 +180,8 @@ function Movable(id, solids, setEnable, enable) {
             (Math.abs(me.speed.fall) * me.delta.time.actual)
         * 2 + 1);
     me.height = [];
-    me.height.stand = 85;
-    me.height.crouch = 40;
+    me.height.stand = config.height.stand;
+    me.height.crouch = config.height.crouch;
     me.action = [];
     me.action.crouch = false;
     me.action.wink = false;
@@ -154,8 +190,8 @@ function Movable(id, solids, setEnable, enable) {
     me.action.jump = false;
     me.rand = [];
     me.rand.count = 0;
-    me.rand.minVal = 4;     // seconds
-    me.rand.maxVal = 10;    // seconds
+    me.rand.minVal = config.randIdle.minVal;
+    me.rand.maxVal = config.randIdle.maxVal;
     me.rand.nextVal = -1;
     me.pos = [];
     me.pos.x = 0;
@@ -388,7 +424,7 @@ function Movable(id, solids, setEnable, enable) {
             $('#' + me.idImg).addClass('crouch');
             $('#' + me.idImg).css('top', '-60px');
             $('#' + me.idCollider).height(me.height.crouch + 'px');
-            if (me.enable.crouchJump && !me.collider.bottom.isColliding)
+            if (me.enableCrouchJump && !me.collider.bottom.isColliding)
                 $('#' + me.id).css('bottom', '+=' + me.height.crouch + 'px');
             me.updateCollider();
             me.action.crouch = true;
