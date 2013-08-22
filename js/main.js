@@ -1,41 +1,125 @@
+// Use this class to configure your caracter abilites
 function Configurator() {
     var me = this;
-    me.maxFps = 40;
     me.enable = [];
-    me.enable.run = true;
-    me.enable.jump = true;
     me.enable.crouch = [];
-    me.enable.crouch.walk = true;
+    me.keyCode = [];
+    me.movable = [];
+    me.movable.colliderTolerance = [];
+    me.movable.speed = [];
+    me.movable.height = [];
+    me.movable.randIdle = [];
+
+    /* frame cap */
+    me.maxFps = 40;
+
+    /* Enables the character to wlak faster, hence run
+     * the speed can be set with me.movable.speed.rightRun
+     * and me.movable.speed.leftRun.
+     * The character is always able to walk. The walk speed can be
+     * set with me.movable.speed.left and me.movable.speed.right.
+     */
+    me.enable.run = true;
+
+    /* Enables character to jump. The character can only jump
+     * if he is standing on a solid. The jump height can be set
+     * with me.movable.maxJumpHeight.
+     */
+    me.enable.jump = true;
+
+    /* Enables the character to crouch. The crouch height of the
+     * character is set with me.movable.height.crouch. Keep in mind
+     * that this depends on the size of the crouch animation.
+     */
+    me.enable.crouch.all = true;
+
+    /* Enables the character to crouch when running. If this is turned
+     * off, the character stands up as soon the run button is pressed.
+     * If me.enable.crouch.all is turned off, this parameter has no effect.
+     */
     me.enable.crouch.run = false;
+
+    /* Enables the character to crouch when jumping. If this is turned
+     * off, the character stands up as soon the character is in the air.
+     * If me.enable.crouch.all is turned off, this parameter has no effect.
+     */
     me.enable.crouch.jump = true;
+
+    /* Enables the character to jump higher when crouch is pressed while
+     * jumping (me.movable.maxJumpHeight + me.movable.height.stand
+     * - me.movable.height.crouch). If this is turned off, the character
+     * jumps only to me.movable.maxJumpHeight.
+     * If me.enable.crouch.all is turned off, this parameter has no effect.
+     * If me.enable.crouch.jump is turned off, this parameter has no effect.
+     */
     me.enable.crouch.jumpHigh = true;
+
+    /* Whis this enabled, the character cannot leave the visible screen and
+     * teleported back near to the last valid position if he drops beow the
+     * screen.
+     */
     me.enable.appear = true;
-    me.keyCode = [];;
+
+    /* Define keyCodes to use the character abilities by pressing the keys.
+     * Keep in mind, that this will prevent the default browser behavior
+     * of the keys
+     */ 
     me.keyCode.jump = 32;
     me.keyCode.run = 16;
     me.keyCode.left = 37;
     me.keyCode.right = 39;
     me.keyCode.crouch = 17;
-    me.movable = [];
+
+    /* Id of the character the corresponding div element must exist on the
+     * web page.
+     */
     me.movable.id = 'kobold';
+
+    /* Class name definig which elements are solid, i.e. with which elements
+     * the character is colliding (lets call them collidables). All elements
+     * on the web page intended to be a collidable must have this css class.
+     */
     me.movable.solidClass = 'solid';
-    me.movable.colliderTolerance = [];
-    me.movable.colliderTolerance.left = 10;  // pixel
-    me.movable.colliderTolerance.right = 10; // pixel
-    me.movable.speed = [];
+
+    /* These parameters allow the character to move over objects of small
+     * heights, without colliding (move up stairs without jumping). The value
+     * is the maxium height (in pixel) of an objet in order to be ignored by
+     * right and left collision. This can be turned off by setting both
+     * values to zero.
+     */
+    me.movable.colliderTolerance.left = 10;
+    me.movable.colliderTolerance.right = 10;
+
+    /* Define the speed of the character. Please pay attention to the minus
+     * sign.
+     */
     me.movable.speed.right = 200;
     me.movable.speed.rightRun = 300;
     me.movable.speed.left = -200;
     me.movable.speed.leftRun = -300;
     me.movable.speed.jump = 1200;
     me.movable.speed.fall = -1200;
-    me.movable.maxJumpHeight = 160;          // pixel
-    me.movable.height = [];
-    me.movable.height.stand = 85;            // pixel
-    me.movable.height.crouch = 40;           // pixel
-    me.movable.randIdle = [];
-    me.movable.randIdle.minVal = 4;          // seconds
-    me.movable.randIdle.maxVal = 10;         // seconds
+
+    /* Define the maximal height (in pixel) the character can jump. One
+     * exception to surpass this height is by enabling
+     * me.enable.crouch.jumpHeight. Please check the comments there to get
+     * more information.
+     */
+    me.movable.maxJumpHeight = 160;
+
+    /* Define the height (in pixel) of the character (standing / crouching)
+     * -> i thing this should be moved to css
+     */ 
+    me.movable.height.stand = 85;
+    me.movable.height.crouch = 40;
+
+    /* Define the intervall of random idle animations (in seconds). After
+     * completion of an animation, The next random animation well tart in
+     * me.movable.randIdle.minVal seconds at the erliest and in
+     * me.movable.randIdle.maxVal seconds at the latest.
+     */
+    me.movable.randIdle.minVal = 4;
+    me.movable.randIdle.maxVal = 10;
 };
 
 function Engine(config) {
@@ -61,8 +145,9 @@ function Engine(config) {
 
     this.registerKeyEvents = function () {
         $(document).keydown( function (event) {
-            if ((event.keyCode === 37) || (event.keyCode === 39) || (event.keyCode === 32))
-                event.preventDefault();
+            for (action in me.keyCode)
+                if (event.keyCode === me.keyCode[action])
+                    event.preventDefault();
             me.keyHandler.setKey(event.keyCode, true);
         });
         $(document).keyup( function (event) {
@@ -115,7 +200,7 @@ function Engine(config) {
                 me.movable.moveRight(false);
             }
         }
-        if (me.enable.crouch.walk && (!inAir || (inAir && me.enable.crouch.jump))) {
+        if (me.enable.crouch.all && (!inAir || (inAir && me.enable.crouch.jump))) {
             if (me.keyHandler.keyCodeMap[me.keyCode.crouch] &&
                 (!me.keyHandler.keyCodeMap[me.keyCode.run] ||
                 (me.enable.crouch.run && me.keyHandler.keyCodeMap[me.keyCode.run]))) {
