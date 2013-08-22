@@ -90,6 +90,15 @@
     border:solid black 1px;
 }
 
+.elevator2 {
+    position:absolute;
+    left:1300px;
+    bottom:500px;
+    height:10px;
+    width:600px;
+    border:solid black 1px;
+}
+
 .pickUp {
     position:absolute;
     width:10px;
