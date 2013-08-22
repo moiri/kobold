@@ -347,7 +347,6 @@ function Movable(config, setEnable) {
     me.action.wave = false;
     me.action.jawn = false;
     me.action.jump = false;
-    me.action.pickUp = false;
     me.rand = [];
     me.rand.count = 0;
     me.rand.minVal = config.randIdle.min;
@@ -555,9 +554,10 @@ function Movable(config, setEnable) {
 
     this.pickUp = function () {
         var collisionRes = null;
-        me.pickUps.each(function () {
+        me.pickUps.each(function (idx) {
             collisionRes = overlaps(me.obj, $(this));
             if (collisionRes.isColliding) {
+                me.pickUps.splice(idx, 1);
                 $(this).removeClass(me.pickUpClass);
                 me.pickUpCounter++;
                 $('#' + me.idPickUpCnt).text(me.pickUpCounter);
