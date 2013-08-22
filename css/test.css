@@ -1,8 +1,8 @@
-.test * .colliderContainer {
+.debug * .colliderContainer {
     overflow:visible;
 }
 
-.test * .collider {
+.debug * .collider {
     background-color:red;
 }
 
@@ -79,4 +79,30 @@
     height:10px;
     width:1600px;
     border:solid black 1px;
+}
+
+.elevator1 {
+    position:absolute;
+    left:1600px;
+    bottom:10px;
+    height:10px;
+    width:150px;
+    border:solid black 1px;
+}
+
+.pickUp {
+    position:absolute;
+    width:10px;
+    height:10px;
+    background-color:green;
+}
+
+.pickUp1 {
+    left:1600px;
+    bottom:30px;
+}
+
+.pickUp2 {
+    left:1100px;
+    bottom:150px;
 }

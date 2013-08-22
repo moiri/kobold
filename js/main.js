@@ -70,13 +70,20 @@ function Configurator() {
     this.enableCrouchJumpHigh = function () {me.enable.crouch.jumpHigh = true;};
     this.disableCrouchJumpHigh = function () {me.enable.crouch.jumpHigh = false;};
 
-    /* Whit this enabled, the character cannot leave the visible screen and
+    /* With this enabled, the character cannot leave the visible screen and
      * teleported back near to the last valid position if he drops beow the
      * screen.
      */
     me.enable.appear = true;
     this.enableAppear = function () {me.enable.appear = true;};
     this.disableAppear = function () {me.enable.appear = false;};
+
+    /* With this enabled, the character is able to pick up elements marked with
+     * the me.movable.pickUpClass class.
+     */
+    me.enable.pickUp = true;
+    this.enablePickUp = function () {me.enable.pickUp = true;};
+    this.disablePickUp = function () {me.enable.pickUp = false;};
 
     /* Define keyCodes to use the character abilities by pressing the keys.
      * Keep in mind, that this will prevent the default browser behavior
@@ -101,6 +108,14 @@ function Configurator() {
      */
     me.movable.solidClass = 'solid';
     this.setMovableSolidClass = function (val) {me.movable.solidClass = val;};
+
+    /* Class name definig which elements the character can pick up by moving
+     * over them. All elements on the web page intended to be objects that
+     * can be picked up must have this css class.
+     * If me.enable.pickUp is turned off, this parameter has no effect.
+     */
+    me.movable.pickUpClass = 'pickUp';
+    this.setMovablePickUpClass = function (val) {me.movable.pickUpClass = val;};
 
     /* These parameters allow the character to move over objects of small
      * heights, without colliding (move up stairs without jumping). The value
@@ -129,6 +144,7 @@ function Configurator() {
      * exception to surpass this height is by enabling
      * me.enable.crouch.jumpHeight. Please check the comments there to get
      * more information.
+     * If me.enable.jump is turned off, this parameter has no effect.
      */
     me.movable.maxJumpHeight = 160;
     this.setMovableMaxJumpHeight = function (val) {me.movable.maxJumpHeight = val;};
@@ -156,6 +172,7 @@ function Engine(config) {
     me.enable.jump = config.enable.jump;
     me.enable.crouch = config.enable.crouch;
     me.enable.appear = config.enable.appear;
+    me.enable.pickUp = config.enable.pickUp;
     me.enable.all = true;
     me.keyCode = [];
     me.keyCode.jump = config.keyCode.jump;
@@ -175,6 +192,7 @@ function Engine(config) {
         me.movable.setDeltaTime(me.ticker.getDeltaTime());
         if (me.enable.appear) me.movable.checkPosition();
         inAir = me.movable.inAir();
+        if (me.enable.pickUp) me.movable.pickUp();
         if (me.enable.jump && me.keyHandler.keyCodeMap[me.keyCode.jump]) {
             me.movable.jump();
             if (!me.enable.crouch.jump) me.movable.standUp();
@@ -255,6 +273,7 @@ function Movable(config, setEnable) {
     me.idCollider = me.id + "-collider";
     me.obj = $('#' + me.id);
     me.solids = $('.' + config.solidClass);
+    me.pickUps = $('.' + config.pickUpClass);
     me.enableCrouchJumpHigh = config.enableCrouchJumpHigh;
     me.collider = [];
     me.collider.left = [];
@@ -318,6 +337,7 @@ function Movable(config, setEnable) {
     me.pos = [];
     me.pos.x = 0;
     me.pos.y = 0;
+    me.pickUpCounter = 0;
 
     $('#' + me.id).append('<div id="' + me.idCollider + '" class="colliderContainer">' +
         '<div id="' + me.idCollider + '-left" class="collider colliderLeft"></div>' +
@@ -506,6 +526,18 @@ function Movable(config, setEnable) {
             collidedObjects.sort(function(a,b) {return a[0][0] - b[0][0]});
             me.obj.css("left", (collidedObjects[0][0][0] - me.obj.outerWidth()) + "px");
         }
+    };
+
+    this.pickUp = function () {
+        var collisionRes = null;
+        me.pickUps.each(function () {
+            collisionRes = overlaps(me.obj, $(this));
+            if (collisionRes.isColliding) {
+                me.pickUpCounter++;
+                $(this).remove();
+                $('#pickUpCnt').text(me.pickUpCounter);
+            }
+        });
     };
 
     this.run = function () {
