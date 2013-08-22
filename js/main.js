@@ -36,12 +36,14 @@ function Configurator() {
     /* Enables the character to crouch when running. If this is turned
      * off, the character stands up as soon the run button is pressed.
      * If me.enable.crouch.all is turned off, this parameter has no effect.
+     * If me.enable.run is turned off, this parameter has no effect.
      */
     me.enable.crouch.run = false;
 
     /* Enables the character to crouch when jumping. If this is turned
      * off, the character stands up as soon the character is in the air.
      * If me.enable.crouch.all is turned off, this parameter has no effect.
+     * If me.enable.jump is turned off, this parameter has no effect.
      */
     me.enable.crouch.jump = true;
 
@@ -50,11 +52,12 @@ function Configurator() {
      * - me.movable.height.crouch). If this is turned off, the character
      * jumps only to me.movable.maxJumpHeight.
      * If me.enable.crouch.all is turned off, this parameter has no effect.
+     * If me.enable.jump is turned off, this parameter has no effect.
      * If me.enable.crouch.jump is turned off, this parameter has no effect.
      */
     me.enable.crouch.jumpHigh = true;
 
-    /* Whis this enabled, the character cannot leave the visible screen and
+    /* Whit this enabled, the character cannot leave the visible screen and
      * teleported back near to the last valid position if he drops beow the
      * screen.
      */
@@ -62,7 +65,7 @@ function Configurator() {
 
     /* Define keyCodes to use the character abilities by pressing the keys.
      * Keep in mind, that this will prevent the default browser behavior
-     * of the keys
+     * of the keys.
      */ 
     me.keyCode.jump = 32;
     me.keyCode.run = 16;
