@@ -181,8 +181,8 @@ body {
 }
 
 .koboldImg.cry {
-    animation: cry 1.5s steps(2) 3;
-    -webkit-animation: cry 0.5s steps(2) 3;
+    animation: cry 0.3s steps(2) 3;
+    -webkit-animation: cry 0.3s steps(2) 3;
 }
 @keyframes cry {
    from { background-position:    0px -900px; }
