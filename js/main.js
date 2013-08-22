@@ -4,8 +4,11 @@ function Configurator() {
     me.enable = [];
     me.enable.run = true;
     me.enable.jump = true;
-    me.enable.crouch = true;
-    me.enable.crouchJump = true;
+    me.enable.crouch = [];
+    me.enable.crouch.walk = true;
+    me.enable.crouch.run = false;
+    me.enable.crouch.jump = true;
+    me.enable.crouch.jumpHigh = true;
     me.enable.appear = true;
     me.keyCode = [];;
     me.keyCode.jump = 32;
@@ -41,7 +44,6 @@ function Engine(config) {
     me.enable.run = config.enable.run;
     me.enable.jump = config.enable.jump;
     me.enable.crouch = config.enable.crouch;
-    me.enable.crouchJump = config.enable.crouchJump;
     me.enable.appear = config.enable.appear;
     me.enable.all = true;
     me.keyCode = [];
@@ -54,7 +56,7 @@ function Engine(config) {
     me.movable = null;
     me.keyHandler = null;
     me.configMovable = config.movable;
-    me.configMovable.enableCrouchJump = me.enable.crouchJump;
+    me.configMovable.enableCrouchJumpHigh = me.enable.crouch.jumpHigh;
     me.configMovable.minDeltaTime = 1 / config.maxFps;
 
     this.registerKeyEvents = function () {
@@ -63,11 +65,9 @@ function Engine(config) {
                 event.preventDefault();
             me.keyHandler.setKey(event.keyCode, true);
         });
-
         $(document).keyup( function (event) {
             me.keyHandler.setKey(event.keyCode, false);
         });
-
         $(document).blur( function (event) {
             me.keyHandler.clearKeyCodeMap();
         });
@@ -89,11 +89,13 @@ function Engine(config) {
     };
 
     this.movableHandler = function () {
+        var inAir = false;
         me.movable.setDeltaTime(me.ticker.getDeltaTime());
         if (me.enable.appear) me.movable.checkPosition();
-        me.movable.inAir();
+        inAir = me.movable.inAir();
         if (me.enable.jump && me.keyHandler.keyCodeMap[me.keyCode.jump]) {
             me.movable.jump();
+            if (!me.enable.crouch.jump) me.movable.standUp();
         }
         if (me.enable.run && me.keyHandler.keyCodeMap[me.keyCode.run]) {
             me.movable.run();
@@ -112,10 +114,16 @@ function Engine(config) {
             else if (me.keyHandler.keyCodeMap[me.keyCode.right]) {
                 me.movable.moveRight(false);
             }
-            if (me.enable.crouch && me.keyHandler.keyCodeMap[me.keyCode.crouch]) {
+        }
+        if (me.enable.crouch.walk && (!inAir || (inAir && me.enable.crouch.jump))) {
+            if (me.keyHandler.keyCodeMap[me.keyCode.crouch] &&
+                (!me.keyHandler.keyCodeMap[me.keyCode.run] ||
+                (me.enable.crouch.run && me.keyHandler.keyCodeMap[me.keyCode.run]))) {
                 me.movable.crouch();
             }
-            if (me.enable.crouch && !me.keyHandler.keyCodeMap[me.keyCode.crouch])  {
+            if (!me.keyHandler.keyCodeMap[me.keyCode.crouch] ||
+                (me.keyHandler.keyCodeMap[me.keyCode.crouch] &&
+                me.keyHandler.keyCodeMap[me.keyCode.run] && !me.enable.crouch.run)) {
                 me.movable.standUp();
             }
         }
@@ -135,7 +143,7 @@ function Movable(config, setEnable) {
     me.idCollider = me.id + "-collider";
     me.obj = $('#' + me.id);
     me.solids = $('.' + config.solidClass);
-    me.enableCrouchJump = config.enableCrouchJump;
+    me.enableCrouchJumpHigh = config.enableCrouchJumpHigh;
     me.collider = [];
     me.collider.left = [];
     me.collider.left.isColliding = false;
@@ -322,6 +330,7 @@ function Movable(config, setEnable) {
                 collidedObjects.sort(function(a,b) {return a[1][0] - b[1][0]});
                 me.obj.css("bottom",
                     $(window).height() - collidedObjects[0][1][0] + "px");
+                $('#' + me.idImg).removeClass('jump');
                 me.pos.y = me.obj.css("bottom");
             }
         }
@@ -357,6 +366,7 @@ function Movable(config, setEnable) {
                     collidedObjects[0][1][1] - me.obj.outerHeight() + "px");
             }
         }
+        return !me.collider.bottom.isColliding;
     };
 
     this.jump = function () {
@@ -366,6 +376,7 @@ function Movable(config, setEnable) {
             me.jumpAttr.count.last = 0;
             me.jumpAttr.height.start = me.obj.offset().top;
             me.collider.bottom.isColliding = false;
+            $('#' + me.idImg).addClass('jump');
         }
     };
 
@@ -426,7 +437,7 @@ function Movable(config, setEnable) {
             $('#' + me.idImg).addClass('crouch');
             $('#' + me.idImg).css('top', '-60px');
             $('#' + me.idCollider).height(me.height.crouch + 'px');
-            if (me.enableCrouchJump && !me.collider.bottom.isColliding)
+            if (me.enableCrouchJumpHigh && !me.collider.bottom.isColliding)
                 $('#' + me.id).css('bottom', '+=' + me.height.crouch + 'px');
             me.updateCollider();
             me.action.crouch = true;
