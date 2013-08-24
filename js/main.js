@@ -288,7 +288,6 @@ function Movable(config, setEnable) {
     me.idImg = me.id + "-img";
     me.idCollider = me.id + "-collider";
     me.idPickUpCnt = config.idPickUpCnt;
-    me.obj = $('#' + me.id);
     me.solids = $('.' + config.solidClass);
     me.pickUps = $('.' + config.pickUpClass);
     me.enableCrouchJumpHigh = config.enableCrouchJumpHigh;
@@ -390,22 +389,50 @@ function Movable(config, setEnable) {
     };
 
     this.checkPosition = function () {
-        if ((parseInt(me.obj.css('bottom')) + me.obj.height()) < 0) {
+        if ((parseInt($('#' + me.id).css('bottom')) + $('#' + me.id).height()) < 0) {
             setEnable(false);
             me.singleAnimation($('#' + me.idImg), 'appear', function () {
                 setEnable(true);
             });
             $('#' + me.idImg).removeClass('walk run');
             $('#' + me.idImg).addClass('idle');
-            me.obj.css('bottom', parseInt(me.pos.y));
-            me.obj.css('left', me.pos.x);
+            $('#' + me.id).css('bottom', parseInt(me.pos.y));
+            $('#' + me.id).css('left', me.pos.x);
         }
-        else if (me.obj.offset().left < 0) {
-            me.obj.css('left', 0);
+        else if ($('#' + me.id).offset().left < 0) {
+            $('#' + me.id).css('left', 0);
         }
-        else if (parseInt(me.obj.css('right')) < 0) {
-            me.obj.css('left', $(window).width() - me.obj.width());
+        else if (parseInt($('#' + me.id).css('right')) < 0) {
+            $('#' + me.id).css('left', $(window).width() - $('#' + me.id).width());
         }
+    };
+
+    this.crouch = function () {
+        if (!me.action.crouch) {
+            $('#' + me.idImg).addClass('crouch');
+            $('#' + me.idImg).css('top', '-60px');
+            $('#' + me.idCollider).height(me.height.crouch + 'px');
+            if (me.enableCrouchJumpHigh && !me.collider.bottom.isColliding)
+                me.cssMoveY(me.height.crouch);
+            me.updateCollider();
+            me.action.crouch = true;
+        }
+    };
+
+    this.cssMoveX = function (val) {
+        $('#' + me.id).css("left", "+=" + val + "px");
+    };
+
+    this.cssSetX = function (val) {
+        $('#' + me.id).css("left", val + "px");
+    };
+
+    this.cssMoveY = function (val) {
+        $('#' + me.id).css("bottom", "+=" + val + "px");
+    };
+
+    this.cssSetY = function (val) {
+        $('#' + me.id).css("bottom", val + "px");
     };
 
     this.genJumpLut = function () {
@@ -418,18 +445,6 @@ function Movable(config, setEnable) {
             pos += speed*me.delta.time.actual;;
             me.jumpAttr.lut[i] = Math.ceil(pos);
             i++;
-        }
-    };
-
-    this.crouch = function () {
-        if (!me.action.crouch) {
-            $('#' + me.idImg).addClass('crouch');
-            $('#' + me.idImg).css('top', '-60px');
-            $('#' + me.idCollider).height(me.height.crouch + 'px');
-            if (me.enableCrouchJumpHigh && !me.collider.bottom.isColliding)
-                $('#' + me.id).css('bottom', '+=' + me.height.crouch + 'px');
-            me.updateCollider();
-            me.action.crouch = true;
         }
     };
 
@@ -457,16 +472,15 @@ function Movable(config, setEnable) {
             collidedObjects = me.checkCollision("bottom");
             me.checkCollision("top");
             if (!me.collider.bottom.isColliding) {
-                me.obj.css("bottom", "+=" + me.move.y + "px");
+                me.cssMoveY(me.move.y);
                 if (me.speed.inAir < me.speed.fall) me.speed.inAir = me.speed.fall;
             }
             else {
                 me.speed.inAir = me.delta.dist.down;
                 collidedObjects.sort(function(a,b) {return a[1][0] - b[1][0]});
-                me.obj.css("bottom",
-                    $(window).height() - collidedObjects[0][1][0] + "px");
+                me.cssSetY($(window).height() - collidedObjects[0][1][0]);
                 $('#' + me.idImg).removeClass('jump');
-                me.pos.y = me.obj.css("bottom");
+                me.pos.y = $('#' + me.id).css("bottom");
             }
         }
         else {
@@ -490,14 +504,14 @@ function Movable(config, setEnable) {
             me.updateCollider("top", me.move.y + 1);
             collidedObjects = me.checkCollision("top");
             if (!me.collider.top.isColliding) {
-                me.obj.css("bottom", "+=" + me.move.y + "px");
+                me.cssMoveY(me.move.y);
             }
             else {
                 me.action.jump = false;
                 me.jumpAttr.height.actual = 0;
                 collidedObjects.sort(function(a,b) {return b[1][1] - a[1][1]});
-                me.obj.css("bottom", $(window).height() - 
-                    collidedObjects[0][1][1] - me.obj.outerHeight() + "px");
+                me.cssSetY($(window).height() -
+                    collidedObjects[0][1][1] - $('#' + me.id).outerHeight());
             }
         }
         return !me.collider.bottom.isColliding;
@@ -508,7 +522,7 @@ function Movable(config, setEnable) {
             me.action.jump = true;
             me.jumpAttr.count.actual = 0;
             me.jumpAttr.count.last = 0;
-            me.jumpAttr.height.start = me.obj.offset().top;
+            me.jumpAttr.height.start = $('#' + me.id).offset().top;
             me.collider.bottom.isColliding = false;
             $('#' + me.idImg).addClass('jump');
         }
@@ -523,13 +537,13 @@ function Movable(config, setEnable) {
         me.updateCollider("left", Math.abs(me.move.x) + 1);
         collidedObjects = me.checkCollision("left");
         if (!me.collider.left.isColliding) {
-            me.obj.css("left", "+=" + me.move.x + "px");
+            me.cssMoveX(me.move.x);
             if (me.collider.bottom.isColliding)
-                me.pos.x = me.obj.offset().left + me.obj.width();
+                me.pos.x = $('#' + me.id).offset().left + $('#' + me.id).width();
         }
         else {
             collidedObjects.sort(function(a,b) {return b[0][1] - a[0][1]});
-            me.obj.css("left", collidedObjects[0][0][1] + "px");
+            me.cssSetX(collidedObjects[0][0][1]);
         }
     };
 
@@ -542,20 +556,20 @@ function Movable(config, setEnable) {
         me.updateCollider("right", me.move.x + 1);
         collidedObjects = me.checkCollision("right");
         if (!me.collider.right.isColliding) {
-            me.obj.css("left", "+=" + me.move.x + "px");
+            me.cssMoveX(me.move.x);
             if (me.collider.bottom.isColliding)
-                me.pos.x = me.obj.offset().left - me.obj.width();
+                me.pos.x = $('#' + me.id).offset().left - $('#' + me.id).width();
         }
         else {
             collidedObjects.sort(function(a,b) {return a[0][0] - b[0][0]});
-            me.obj.css("left", (collidedObjects[0][0][0] - me.obj.outerWidth()) + "px");
+            me.cssSetX(collidedObjects[0][0][0] - $('#' + me.id).outerWidth());
         }
     };
 
     this.pickUp = function () {
         var collisionRes = null;
         me.pickUps.each(function (idx) {
-            collisionRes = overlaps(me.obj, $(this));
+            collisionRes = overlaps($('#' + me.id), $(this));
             if (collisionRes.isColliding) {
                 me.pickUps.splice(idx, 1);
                 $(this).removeClass(me.pickUpClass);
@@ -578,14 +592,12 @@ function Movable(config, setEnable) {
             $('#' + me.idImg).removeClass('crouch');
             $('#' + me.idImg).removeAttr('style');
             if (me.collider.top.isColliding)
-                $('#' + me.id).css(
-                    'bottom', '-=' + (me.height.stand - me.height.crouch) + 'px'
-                );
+                me.cssMoveY(me.height.crouch - me.height.stand);
             $('#' + me.idCollider).height(me.height.stand + 'px');
             me.updateCollider();
             me.action.crouch = false;
         }
-    }
+    };
 
     this.setDeltaTime = function (val) {
         me.delta.time.actual = val;
@@ -597,7 +609,7 @@ function Movable(config, setEnable) {
             (1 / me.delta.time.actual) *
                 ((Math.random() * me.rand.maxVal) + me.rand.minVal)
         );
-    }
+    };
 
     this.singleAnimation = function (obj, cssClass, cb) {
         var animationDuration = 0,
