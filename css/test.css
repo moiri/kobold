@@ -2,8 +2,12 @@
     overflow:visible;
 }
 
-.debug * .collider {
+.debug * .solidCollider {
     background-color:red;
+}
+
+.debug * .collider {
+    background-color:blue;
 }
 
 .test > .config {
@@ -92,11 +96,15 @@
 
 .elevator2 {
     position:absolute;
-    left:1300px;
+    left:1100px;
     bottom:500px;
     height:10px;
     width:600px;
     border:solid black 1px;
+}
+
+.elevatorCollider {
+    background-color:red;
 }
 
 .pickUp {

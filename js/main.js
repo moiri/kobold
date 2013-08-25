@@ -96,18 +96,18 @@ function Configurator() {
     me.keyCode.crouch = 17;
     this.setKeyCode = function (type, val) {me.keyCode[type] = val;};
 
+    /* Class name definig which elements are solid, i.e. with which elements
+     * the character is colliding (lets call them collidables). All elements
+     * on the web page intended to be a collidable must have this css class.
+     */
+    me.solidClass = 'solid';
+    this.setSolidClass = function (val) {me.movable.solidClass = val;};
+
     /* Id of the character the corresponding div element must exist on the
      * web page.
      */
     me.movable.id = 'kobold';
     this.setMovableId = function (val) {me.movable.id = val;};
-
-    /* Class name definig which elements are solid, i.e. with which elements
-     * the character is colliding (lets call them collidables). All elements
-     * on the web page intended to be a collidable must have this css class.
-     */
-    me.movable.solidClass = 'solid';
-    this.setMovableSolidClass = function (val) {me.movable.solidClass = val;};
 
     /* Id of element where the pick up count should appear. The corresponding 
      * element must exist on he webpage.
@@ -199,6 +199,7 @@ function Engine(config) {
     me.ticker = null;
     me.movable = null;
     me.keyHandler = null;
+    me.solidClass = config.solidClass;
     me.configMovable = config.movable;
     me.configMovable.enableCrouchJumpHigh = me.enable.crouch.jumpHigh;
     me.configMovable.minDeltaTime = 1 / config.maxFps;
@@ -270,6 +271,46 @@ function Engine(config) {
         me.enable.all = val;
     };
 
+    this.setPosMovableSolid = function (elem, prop, val) {
+        var deltaSize = val - parseFloat($(elem).css(prop));
+        if (deltaSize < 0) {
+            $(elem).children().first().css(prop, deltaSize + 'px');
+            deltaSize = Math.abs(deltaSize);
+        }
+        else {
+            $(elem).children().first().css(prop, '0px');
+        }
+        if (prop === 'bottom') {
+            $(elem).children().first().height($(elem).outerHeight() + deltaSize);
+        }
+        else if (prop === 'left') {
+            $(elem).children().first().width($(elem).outerWidth() + deltaSize);
+        }
+    };
+
+    this.setup = function () {
+        jQuery.extend(jQuery.fx, {
+            step: {
+                _default: function( fx ) {
+                    if (fx.prop === 'left' || fx.prop === 'bottom') {
+                        me.setPosMovableSolid(fx.elem, fx.prop, fx.now);
+                    }
+                    if ( fx.elem.style && fx.elem.style[ fx.prop ] != null ) {
+                        fx.elem.style[ fx.prop ] = fx.now + fx.unit;
+                    } else {
+                        fx.elem[ fx.prop ] = fx.now;
+                    }
+                }
+            }
+        });
+        $('.' + me.solidClass)
+            .append('<div class="solidCollider"></div>')
+            .each(function () {
+            $(this).children().first().width($(this).width());
+            $(this).children().first().height($(this).height());
+        });
+    };
+
     this.start = function () {
         me.ticker = new Ticker(config.maxFps);
         me.keyHandler = new KeyHandler();
@@ -280,6 +321,8 @@ function Engine(config) {
         });
         me.ticker.drawFps();
     };
+
+    me.setup();
 };
 
 function Movable(config, setEnable) {
@@ -288,7 +331,7 @@ function Movable(config, setEnable) {
     me.idImg = me.id + "-img";
     me.idCollider = me.id + "-collider";
     me.idPickUpCnt = config.idPickUpCnt;
-    me.solids = $('.' + config.solidClass);
+    me.solids = $('.solidCollider');
     me.pickUps = $('.' + config.pickUpClass);
     me.enableCrouchJumpHigh = config.enableCrouchJumpHigh;
     me.collider = [];
@@ -356,19 +399,6 @@ function Movable(config, setEnable) {
     me.pos.y = 0;
     me.pickUpCounter = 0;
 
-    $('#' + me.id).append('<div id="' + me.idCollider + '" class="colliderContainer">' +
-        '<div id="' + me.idCollider + '-left" class="collider colliderLeft"></div>' +
-        '<div id="' + me.idCollider + '-right" class="collider colliderRight"></div>' +
-        '<div id="' + me.idCollider + '-top" class="collider colliderTop"></div>' +
-        '<div id="' + me.idCollider + '-bottom" class="collider colliderBottom"></div>' +
-    '</div>');
-    me.collider.left.obj = $('#' + me.idCollider + '-left');
-    me.collider.right.obj = $('#' + me.idCollider + '-right');
-    me.collider.top.obj = $('#' + me.idCollider + '-top');
-    me.collider.bottom.obj = $('#' + me.idCollider + '-bottom');
-    $('#' + me.idCollider).width(me.width);
-    $('#' + me.idCollider).height(me.height.stand);
-
     this.active = function () {
         $('#' + me.idImg).removeClass('rand');
         me.rand.count = 0;
@@ -378,10 +408,10 @@ function Movable(config, setEnable) {
         var collision = false,
             collidedObjects = [];
         me.solids.each(function () {
-            collisionRes = overlaps(me.collider[direction].obj, $(this));
-            if (collisionRes.isColliding) {
+            if (me.overlaps(me.collider[direction].obj, $(this))) {
                 collision = true;
-                collidedObjects.push(collisionRes.pos2);
+                // add not the collider but the effective element
+                collidedObjects.push(me.positionsGet($(this).parent()));
             }
         });
         me.collider[direction].isColliding = collision;
@@ -569,8 +599,7 @@ function Movable(config, setEnable) {
     this.pickUp = function () {
         var collisionRes = null;
         me.pickUps.each(function (idx) {
-            collisionRes = overlaps($('#' + me.id), $(this));
-            if (collisionRes.isColliding) {
+            if (me.overlaps($('#' + me.id), $(this))) {
                 me.pickUps.splice(idx, 1);
                 $(this).removeClass(me.pickUpClass);
                 me.pickUpCounter++;
@@ -580,6 +609,34 @@ function Movable(config, setEnable) {
                 });
             }
         });
+    };
+
+    this.overlaps = function (a, b) {
+        var pos1 = me.positionsGet(a),
+            pos2 = me.positionsGet(b);
+        return (me.positionsCompare(pos1[0], pos2[0]) &&
+            me.positionsCompare(pos1[1], pos2[1]));
+    };
+    
+    this.positionsCompare = function (p1, p2) {
+        var r1, r2;
+        if (p1[0] < p2[0]) {
+            r1 = p1;
+            r2 = p2;
+        }
+        else {
+            r1 = p2;
+            r2 = p1;
+        }
+        return r1[1] > r2[0] || r1[0] === r2[0];
+    };
+    
+    this.positionsGet = function (elem) {
+        var pos, width, height, res;
+        pos = elem.offset();
+        width = elem.outerWidth();
+        height = elem.outerHeight();
+        return [ [ pos.left, pos.left + width ], [ pos.top, pos.top + height ] ];
     };
 
     this.run = function () {
@@ -609,6 +666,26 @@ function Movable(config, setEnable) {
             (1 / me.delta.time.actual) *
                 ((Math.random() * me.rand.maxVal) + me.rand.minVal)
         );
+    };
+
+    this.setup = function () {
+        $('#' + me.id)
+            .append('<div id="' + me.idCollider + '" class="colliderContainer">' +
+                '<div id="' + me.idCollider +
+                    '-left" class="collider colliderLeft"></div>' +
+                '<div id="' + me.idCollider +
+                    '-right" class="collider colliderRight"></div>' +
+                '<div id="' + me.idCollider +
+                    '-top" class="collider colliderTop"></div>' +
+                '<div id="' + me.idCollider +
+                    '-bottom" class="collider colliderBottom"></div>' +
+            '</div>');
+        me.collider.left.obj = $('#' + me.idCollider + '-left');
+        me.collider.right.obj = $('#' + me.idCollider + '-right');
+        me.collider.top.obj = $('#' + me.idCollider + '-top');
+        me.collider.bottom.obj = $('#' + me.idCollider + '-bottom');
+        $('#' + me.idCollider).width(me.width);
+        $('#' + me.idCollider).height(me.height.stand);
     };
 
     this.singleAnimation = function (obj, cssClass, cb) {
@@ -685,13 +762,20 @@ function Movable(config, setEnable) {
             .width($('#' + me.idCollider).width() + "px")
             .css("top", ($('#' + me.idCollider).height() - me.height.crouch) + "px");
         }
-    }
+    };
+
+    this.updateSolidCollider = function () {
+        $('.' + me.solidClass + '.' + me.movingSolidClass).each(function () {
+
+        });
+    };
 
     this.walk = function () {
         $('#' + me.idImg).removeClass('run');
         $('#' + me.idImg).addClass('walk');
     };
 
+    this.setup();
     this.updateCollider();
     this.genJumpLut();
 }
@@ -776,36 +860,3 @@ function Ticker (maxFps) {
     };
 }
 
-var overlaps = (function () {
-    function getPositions( elem ) {
-        var pos, width, height, res;
-        pos = elem.offset();
-        width = elem.outerWidth();
-        height = elem.outerHeight();
-        return [ [ pos.left, pos.left + width ], [ pos.top, pos.top + height ] ];
-    }
-
-    function comparePositions( p1, p2 ) {
-        var r1, r2;
-        if (p1[0] < p2[0]) {
-            r1 = p1;
-            r2 = p2;
-        }
-        else {
-            r1 = p2;
-            r2 = p1;
-        }
-        return r1[1] > r2[0] || r1[0] === r2[0];
-    }
-
-    return function ( a, b ) {
-        var pos1 = getPositions( a ),
-            pos2 = getPositions( b ),
-            ret = [];
-        ret.isColliding = (comparePositions(pos1[0], pos2[0]) &&
-            comparePositions(pos1[1], pos2[1]));
-        ret.pos1 = pos1;
-        ret.pos2 = pos2;
-        return ret
-    };
-})();
