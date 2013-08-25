@@ -6,8 +6,12 @@
     background-color:red;
 }
 
-.debug * .collider {
+.debug * .solidCollider.solidColliderGhost {
     background-color:blue;
+}
+
+.debug * .collider {
+    background-color:green;
 }
 
 .test > .config {

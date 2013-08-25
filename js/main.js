@@ -101,7 +101,27 @@ function Configurator() {
      * on the web page intended to be a collidable must have this css class.
      */
     me.solidClass = 'solid';
-    this.setSolidClass = function (val) {me.movable.solidClass = val;};
+    this.setSolidClass = function (val) {me.solidClass = val;};
+
+    /* Class name defining which elements are moving. Only elements using the
+     * animate function of jquery to change to position work properly. the
+     * animation must be already defined. A moving element with this class will
+     * collide with the character from all sides. If it should only collide
+     * when the character is jumping/falling on top of it, please use
+     * me.solidMovingGhostClass.
+     */
+    me.solidMovingClass = 'solidMoving';
+    this.setSolidMovingClass = function (val) {me.solidMovingClass = val;};
+
+    /* Class name defining which elements are moving. Only elements using the
+     * animate function of jquery to change to position work properly. The
+     * animation must be already defined. A moving element with this class will
+     * collide with the character only if the character falls/jummps on to of it.
+     * If it should collide with the character from all sides, please use
+     * me.solidMovingClass.
+     */
+    me.solidMovingGhostClass = 'solidMovingGhost';
+    this.setSolidMovingGhostClass = function (val) {me.solidMovingGhostClass = val;};
 
     /* Id of the character the corresponding div element must exist on the
      * web page.
@@ -179,7 +199,7 @@ function Configurator() {
     me.movable.randIdle.min = 4;
     me.movable.randIdle.max = 10;
     this.setMovableRandIdle = function (type, val) {me.movable.randIdle[type] = val};
-};
+}
 
 function Engine(config) {
     var me = this;
@@ -200,7 +220,17 @@ function Engine(config) {
     me.movable = null;
     me.keyHandler = null;
     me.solidClass = config.solidClass;
+    me.solidMovingClass = config.solidMovingClass;
+    me.solidMovingGhostClass = config.solidMovingGhostClass;
+    me.solidColliderClass = "solidCollider";
+    me.solidColliderGhostClass = me.solidColliderClass + "Ghost";
+    me.solidColliderXClass = me.solidColliderClass + "left";
+    me.solidColliderYClass = me.solidColliderClass + "bottom";
     me.configMovable = config.movable;
+    me.configMovable.solidColliderClass = me.solidColliderClass;
+    me.configMovable.solidColliderGhostClass = me.solidColliderGhostClass;
+    me.configMovable.solidColliderXClass = me.solidColliderXClass;
+    me.configMovable.solidColliderYClass = me.solidColliderYClass;
     me.configMovable.enableCrouchJumpHigh = me.enable.crouch.jumpHigh;
     me.configMovable.minDeltaTime = 1 / config.maxFps;
 
@@ -273,18 +303,32 @@ function Engine(config) {
 
     this.setPosMovableSolid = function (elem, prop, val) {
         var deltaSize = val - parseFloat($(elem).css(prop));
-        if (deltaSize < 0) {
-            $(elem).children().first().css(prop, deltaSize + 'px');
-            deltaSize = Math.abs(deltaSize);
+        if ($(elem).hasClass(me.solidMovingGhostClass)) {
+            if (prop === 'bottom') {
+                if (deltaSize > 0) {
+                    $(elem).children().first().css(prop, '0px');
+                    $(elem).children().first().height($(elem).height() + deltaSize);
+                }
+            }
         }
         else {
-            $(elem).children().first().css(prop, '0px');
-        }
-        if (prop === 'bottom') {
-            $(elem).children().first().height($(elem).outerHeight() + deltaSize);
-        }
-        else if (prop === 'left') {
-            $(elem).children().first().width($(elem).outerWidth() + deltaSize);
+            if (deltaSize < 0) {
+                $(elem).children('.' + me.solidColliderClass + prop)
+                    .css(prop, deltaSize + 'px');
+                deltaSize = Math.abs(deltaSize);
+            }
+            else {
+                $(elem).children('.' + me.solidColliderClass + prop)
+                    .css(prop, '0px');
+            }
+            if (prop === 'bottom') {
+                $(elem).children('.' + me.solidColliderClass + prop)
+                    .height($(elem).height() + deltaSize);
+            }
+            else if (prop === 'left') {
+                $(elem).children('.' + me.solidColliderClass + prop)
+                    .width($(elem).width() + deltaSize);
+            }
         }
     };
 
@@ -303,11 +347,24 @@ function Engine(config) {
                 }
             }
         });
-        $('.' + me.solidClass)
-            .append('<div class="solidCollider"></div>')
-            .each(function () {
-            $(this).children().first().width($(this).width());
-            $(this).children().first().height($(this).height());
+        $('.' + me.solidClass).each(function () {
+            var width = $(this).width(),
+                height = $(this).height();
+            if ($(this).hasClass(me.solidMovingClass)) {
+                $(this).append('<div class="' + me.solidColliderClass + ' ' +
+                    me.solidColliderXClass + '"></div>');
+                $(this).append('<div class="' + me.solidColliderClass + ' ' +
+                    me.solidColliderYClass + '"></div>');
+            }
+            else if ($(this).hasClass(me.solidMovingGhostClass)) {
+                $(this).append('<div class="' + me.solidColliderClass + ' ' +
+                    me.solidColliderGhostClass + '"></div>');
+            }
+            else {
+                $(this).append('<div class="' + me.solidColliderClass + '"</div>');
+            }
+            $(this).children().each(function () { $(this).width(width); });
+            $(this).children().each(function () { $(this).height(height); });
         });
     };
 
@@ -323,7 +380,7 @@ function Engine(config) {
     };
 
     me.setup();
-};
+}
 
 function Movable(config, setEnable) {
     var me = this;
@@ -331,7 +388,11 @@ function Movable(config, setEnable) {
     me.idImg = me.id + "-img";
     me.idCollider = me.id + "-collider";
     me.idPickUpCnt = config.idPickUpCnt;
-    me.solids = $('.solidCollider');
+    me.solidColliderClass = config.solidColliderClass
+    me.solidColliderGhostClass = config.solidColliderGhostClass
+    me.solidColliderXClass = config.solidColliderXClass
+    me.solidColliderYClass = config.solidColliderYClass
+    me.solids = $('.' + me.solidColliderClass);
     me.pickUps = $('.' + config.pickUpClass);
     me.enableCrouchJumpHigh = config.enableCrouchJumpHigh;
     me.collider = [];
@@ -408,10 +469,21 @@ function Movable(config, setEnable) {
         var collision = false,
             collidedObjects = [];
         me.solids.each(function () {
-            if (me.overlaps(me.collider[direction].obj, $(this))) {
-                collision = true;
-                // add not the collider but the effective element
-                collidedObjects.push(me.positionsGet($(this).parent()));
+            var checkGhost = ($(this).hasClass(me.solidColliderGhostClass) &&
+                    (direction === 'bottom')),
+                checkX = ($(this).hasClass(me.solidColliderXClass) &&
+                    ((direction === 'left') || (direction === 'right'))),
+                checkY = ($(this).hasClass(me.solidColliderYClass) &&
+                    ((direction === 'top') || (direction === 'bottom'))),
+                checkNormal = (!$(this).hasClass(me.solidColliderXClass) &&
+                    !$(this).hasClass(me.solidColliderYClass) &&
+                    !$(this).hasClass(me.solidColliderGhostClass));
+            if (checkGhost || checkX || checkY || checkNormal) {
+                if (me.overlaps(me.collider[direction].obj, $(this))) {
+                    collision = true;
+                    // add not the collider but the effective element
+                    collidedObjects.push(me.positionsGet($(this).parent()));
+                }
             }
         });
         me.collider[direction].isColliding = collision;
