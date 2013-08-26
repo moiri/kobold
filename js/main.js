@@ -306,20 +306,21 @@ function Engine(config) {
         if ($(elem).hasClass(me.solidMovingGhostClass)) {
             if (prop === 'bottom') {
                 if (deltaSize > 0) {
-                    $(elem).children().first().css(prop, '0px');
-                    $(elem).children().first().height($(elem).height() + deltaSize);
+                    $(elem).children().first()
+                        .height($(elem).outerHeight + deltaSize);
                 }
             }
         }
         else {
             if (deltaSize < 0) {
                 $(elem).children('.' + me.solidColliderClass + prop)
-                    .css(prop, deltaSize + 'px');
+                    .css(prop, (deltaSize - parseInt($(elem)
+                                    .css('border-' + prop + '-width'))) + 'px');
                 deltaSize = Math.abs(deltaSize);
             }
             else {
                 $(elem).children('.' + me.solidColliderClass + prop)
-                    .css(prop, '0px');
+                    .css(prop, '-' + $(elem).css('border-' + prop + '-width'));
             }
             if (prop === 'bottom') {
                 $(elem).children('.' + me.solidColliderClass + prop)
@@ -327,7 +328,7 @@ function Engine(config) {
             }
             else if (prop === 'left') {
                 $(elem).children('.' + me.solidColliderClass + prop)
-                    .width($(elem).width() + deltaSize);
+                    .width($(elem).outerWidth() + deltaSize);
             }
         }
     };
@@ -348,8 +349,10 @@ function Engine(config) {
             }
         });
         $('.' + me.solidClass).each(function () {
-            var width = $(this).width(),
-                height = $(this).height();
+            var width = $(this).outerWidth(),
+                height = $(this).outerHeight(),
+                borderLeftWidth = $(this).css('border-left-width'),
+                borderBottomWidth = $(this).css('border-bottom-width');
             if ($(this).hasClass(me.solidMovingClass)) {
                 $(this).append('<div class="' + me.solidColliderClass + ' ' +
                     me.solidColliderXClass + '"></div>');
@@ -361,10 +364,14 @@ function Engine(config) {
                     me.solidColliderGhostClass + '"></div>');
             }
             else {
-                $(this).append('<div class="' + me.solidColliderClass + '"</div>');
+                $(this).append('<div class="' + me.solidColliderClass + '"></div>');
             }
-            $(this).children().each(function () { $(this).width(width); });
-            $(this).children().each(function () { $(this).height(height); });
+            $(this).children().each(function () {
+                $(this).width(width);
+                $(this).height(height);
+                $(this).css('left', '-' + borderLeftWidth);
+                $(this).css('bottom', '-' + borderBottomWidth);
+            });
         });
     };
 
