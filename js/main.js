@@ -306,8 +306,8 @@ function Engine(config) {
     };
 
     this.setPosMovableSolid = function (elem, prop, val) {
-        var deltaSize = (val - parseFloat($(elem).css(prop))) *
-                me.ticker.getDeltaTime() / me.configMovable.minDeltaTime;
+        var deltaSize = Math.round((val - parseFloat($(elem).css(prop))) *
+                me.ticker.getDeltaTime() / me.configMovable.minDeltaTime);
         if ($(elem).hasClass(me.solidMovingGhostClass)) {
             $(elem).attr('data-position', 'relative');
             if (prop === 'bottom') {
