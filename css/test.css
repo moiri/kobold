@@ -5,14 +5,17 @@
 
 .debug * .solidCollider {
     background-color:red;
+    opacity:0.2;
 }
 
 .debug * .solidCollider.solidColliderGhost {
     background-color:blue;
+    opacity:0.2;
 }
 
 .debug * .collider {
     background-color:green;
+    opacity:0.2;
 }
 
 .test > .config {
