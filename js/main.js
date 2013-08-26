@@ -786,6 +786,7 @@ function Movable(config, setEnable) {
                 me.singleAnimation($(this), 'success', function () {
                     $(this).remove();
                 });
+                return false;
             }
         });
     };
@@ -816,7 +817,7 @@ function Movable(config, setEnable) {
         width = elem.outerWidth();
         height = elem.outerHeight();
         if (pos === null) {
-            var test = true;
+            console.log(elem);
         }
         return [ [ pos.left, pos.left + width ], [ pos.top, pos.top + height ] ];
     };
