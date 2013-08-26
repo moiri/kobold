@@ -459,10 +459,31 @@ function Movable(config, setEnable) {
     me.pos.x = 0;
     me.pos.y = 0;
     me.pickUpCounter = 0;
+    me.positionAbsolute = true;
+    me.positionAbsoluteObj = null;
+    me.positionRelativeObj = null;
 
     this.active = function () {
         $('#' + me.idImg).removeClass('rand');
         me.rand.count = 0;
+    };
+
+    this.changeToAbsolutePosition = function () {
+        var obj = me.positionRelativeObj;
+        me.cssSetX($('#' + me.id).offset().left, true);
+        me.cssSetY($(window).height() - $('#' + me.id).offset().top -
+                $('#' + me.id).height(), true);
+        $('#' + me.id).appendTo(me.positionAbsoluteObj);
+        me.positionAbsolute = true;
+    };
+
+    this.changeToRelativePosition = function (obj) {
+        me.positionAbsolute = false;
+        me.positionRelativeObj = obj;
+        me.positionAbsoluteObj = $('#' + me.id).parent();
+        me.cssSetX($('#' + me.id).offset().left - obj.offset().left, true);
+        me.cssSetY(parseInt(obj.height()), true);
+        $('#' + me.id).appendTo(obj);
     };
 
     this.checkCollision = function (direction) {
@@ -475,12 +496,15 @@ function Movable(config, setEnable) {
                     ((direction === 'left') || (direction === 'right'))),
                 checkY = ($(this).hasClass(me.solidColliderYClass) &&
                     ((direction === 'top') || (direction === 'bottom'))),
-                checkNormal = (!$(this).hasClass(me.solidColliderXClass) &&
+                checkStatic = (!$(this).hasClass(me.solidColliderXClass) &&
                     !$(this).hasClass(me.solidColliderYClass) &&
                     !$(this).hasClass(me.solidColliderGhostClass));
-            if (checkGhost || checkX || checkY || checkNormal) {
+            if (checkGhost || checkX || checkY || checkStatic) {
                 if (me.overlaps(me.collider[direction].obj, $(this))) {
                     collision = true;
+                    if (!checkStatic && me.positionAbsolute && direction === 'bottom') {
+                        me.changeToRelativePosition($(this).parent());
+                    }
                     // add not the collider but the effective element
                     collidedObjects.push(me.positionsGet($(this).parent()));
                 }
@@ -502,10 +526,10 @@ function Movable(config, setEnable) {
             $('#' + me.id).css('left', me.pos.x);
         }
         else if ($('#' + me.id).offset().left < 0) {
-            $('#' + me.id).css('left', 0);
+            me.cssSetX(0);
         }
         else if (parseInt($('#' + me.id).css('right')) < 0) {
-            $('#' + me.id).css('left', $(window).width() - $('#' + me.id).width());
+            me.cssSetX($(window).width() - $('#' + me.id).width());
         }
     };
 
@@ -525,16 +549,18 @@ function Movable(config, setEnable) {
         $('#' + me.id).css("left", "+=" + val + "px");
     };
 
-    this.cssSetX = function (val) {
-        $('#' + me.id).css("left", val + "px");
+    this.cssSetX = function (val, force) {
+        if (me.positionAbsolute || force)
+            $('#' + me.id).css("left", val + "px");
     };
 
     this.cssMoveY = function (val) {
         $('#' + me.id).css("bottom", "+=" + val + "px");
     };
 
-    this.cssSetY = function (val) {
-        $('#' + me.id).css("bottom", val + "px");
+    this.cssSetY = function (val, force) {
+        if (me.positionAbsolute || force)
+            $('#' + me.id).css("bottom", val + "px");
     };
 
     this.genJumpLut = function () {
@@ -574,6 +600,9 @@ function Movable(config, setEnable) {
             collidedObjects = me.checkCollision("bottom");
             me.checkCollision("top");
             if (!me.collider.bottom.isColliding) {
+                if (!me.positionAbsolute) {
+                    me.changeToAbsolutePosition();
+                }
                 me.cssMoveY(me.move.y);
                 if (me.speed.inAir < me.speed.fall) me.speed.inAir = me.speed.fall;
             }
