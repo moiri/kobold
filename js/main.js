@@ -521,7 +521,8 @@ function Movable(config, setEnable) {
         me.positionRelativeObj = obj;
         me.positionAbsoluteObj = $('#' + me.id).parent();
         me.cssSetX($('#' + me.id).offset().left - obj.offset().left, true);
-        me.cssSetY(parseInt(obj.height()), true);
+        me.cssSetY(parseInt(obj.height()) +
+                parseInt(obj.css('border-top-width')), true);
         $('#' + me.id).appendTo(obj);
     };
 
@@ -629,7 +630,8 @@ function Movable(config, setEnable) {
     this.crouch = function () {
         if (!me.action.crouch) {
             $('#' + me.idImg).addClass('crouch');
-            $('#' + me.idImg).css('top', '-60px');
+            $('#' + me.idImg).css('top', (parseInt($('#' + me.idImg).css('top')) -
+                    (me.height.stand - me.height.crouch)) + 'px');
             $('#' + me.idCollider).height(me.height.crouch + 'px');
             if (me.enableCrouchJumpHigh && !me.collider.bottom.isColliding)
                 me.cssMoveY(me.height.crouch);
