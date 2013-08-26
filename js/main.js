@@ -958,12 +958,6 @@ function Movable(config, setEnable) {
         }
     };
 
-    this.updateSolidCollider = function () {
-        $('.' + me.solidClass + '.' + me.movingSolidClass).each(function () {
-
-        });
-    };
-
     this.walk = function () {
         $('#' + me.idImg).removeClass('run');
         $('#' + me.idImg).addClass('walk');
