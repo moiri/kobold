@@ -830,13 +830,12 @@ function Movable(config, setEnable) {
     this.updateCollider = function (direction, colliderSize) {
         var toleranceLeft = 0,
             toleranceRight = 0;
-        if (me.collider.bottom.isColliding) {
-            toleranceLeft = me.collider.left.tolerance;
-            toleranceRight = me.collider.right.tolerance;
-        }
         if ((direction === undefined) || (direction === 'left')) {
             if (colliderSize === undefined)
                 colliderSize = Math.abs(Math.floor(me.delta.time.actual * me.speed.left));
+            if (me.collider.bottom.isColliding) {
+                toleranceLeft = me.collider.left.tolerance;
+            }
             $('#' + me.id + '-collider-left')
             .width(colliderSize  + "px")
             .height($('#' + me.idCollider).height() - toleranceLeft + "px")
@@ -847,6 +846,9 @@ function Movable(config, setEnable) {
             if (colliderSize === undefined)
                 colliderSize = Math.abs(
                     Math.floor(me.delta.time.actual * me.speed.right));
+            if (me.collider.bottom.isColliding) {
+                toleranceRight = me.collider.right.tolerance;
+            }
             $('#' + me.id + '-collider-right')
             .width(colliderSize + "px")
             .height($('#' + me.idCollider).height() - toleranceRight + "px")
@@ -866,10 +868,9 @@ function Movable(config, setEnable) {
             if (colliderSize === undefined)
                 colliderSize = Math.abs(Math.floor(me.delta.time.actual * me.speed.fall));
             $('#' + me.id + '-collider-bottom')
-            .height((colliderSize + Math.max(toleranceLeft, toleranceRight)) + "px")
+            .height(colliderSize + "px")
             .width($('#' + me.idCollider).width() + "px")
-            .css("top", ($('#' + me.idCollider).height() -
-                        Math.max(toleranceLeft, toleranceRight)) + "px");
+            .css("top", $('#' + me.idCollider).height() + "px");
         }
     };
 
