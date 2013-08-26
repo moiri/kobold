@@ -1,5 +1,6 @@
 .debug * .colliderContainer {
     overflow:visible;
+    z-index:9;
 }
 
 .debug * .solidCollider {
