@@ -241,7 +241,6 @@ function Engine(config) {
         var inAir = false;
         me.movable.setDeltaTime(me.ticker.getDeltaTime());
         if (me.enable.appear) me.movable.checkPosition();
-        me.movable.checkCollision();
         inAir = me.movable.inAir();
         if (me.enable.pickUp) me.movable.pickUp();
         if (me.enable.jump && me.keyHandler.keyCodeMap[me.keyCode.jump]) {
@@ -370,14 +369,11 @@ function Engine(config) {
                 borderLeftWidth = $(this).css('border-left-width'),
                 borderBottomWidth = $(this).css('border-bottom-width');
             if ($(this).hasClass(me.solidMovingClass)) {
-                $(this).append('<div class="' + me.solidColliderClass + ' ' +
-                    me.solidColliderXClass + '"></div>');
-                $(this).append('<div class="' + me.solidColliderClass + ' ' +
-                    me.solidColliderYClass + '"></div>');
+                $(this).append('<div class="' + me.solidColliderXClass + '"></div>');
+                $(this).append('<div class="' + me.solidColliderYClass + '"></div>');
             }
             else if ($(this).hasClass(me.solidMovingGhostClass)) {
-                $(this).append('<div class="' + me.solidColliderClass + ' ' +
-                    me.solidColliderGhostClass + '"></div>');
+                $(this).append('<div class="' + me.solidColliderGhostClass + '"></div>');
             }
             else {
                 $(this).append('<div class="' + me.solidColliderClass + '"></div>');
@@ -416,6 +412,9 @@ function Movable(config, setEnable) {
     me.solidColliderXClass = config.solidColliderXClass
     me.solidColliderYClass = config.solidColliderYClass
     me.solids = $('.' + me.solidColliderClass);
+    me.solidsMovingX = $('.' + me.solidColliderXClass);
+    me.solidsMovingY = $('.' + me.solidColliderXClass);
+    me.solidsMovingGhost = $('.' + me.solidColliderGhostClass);
     me.pickUps = $('.' + config.pickUpClass);
     me.enableCrouchJumpHigh = config.enableCrouchJumpHigh;
     me.collider = [];
@@ -524,101 +523,21 @@ function Movable(config, setEnable) {
         $('#' + me.id).appendTo(obj);
     };
 
-    this.checkCollision = function () {
-        var collision = [],
+    this.checkCollisionSolid = function (direction) {
+        var collision = false,
             collidedObjects = [];
-        collision.left = false;
-        collision.right = false;
-        collision.top = false;
-        collision.bottom = false;
-        collidedObjects.left = [];
-        collidedObjects.right = [];
-        collidedObjects.top = [];
-        collidedObjects.bottom = [];
-        me.solids.each(function () {
-            var checkGhost = $(this).hasClass(me.solidColliderGhostClass),
-                checkX = $(this).hasClass(me.solidColliderXClass),
-                checkY = $(this).hasClass(me.solidColliderYClass),
-                checkMoving = (checkGhost || checkX || checkY);
-            if (!checkX &&
-                    me.overlaps(me.collider.bottom.obj, $(this))) {
-                collision.bottom = true;
-                collidedObjects.bottom.push($(this).parent());
-                if (checkY) {
-                    // to be fast, only one movable possible
-                    return false;
-                }
+        me.solids.each(function (idx) {
+            var collisionInfo = [],
+                collisionRes = me.overlaps(me.collider[direction].obj, $(this));
+            if (collisionRes.isColliding) {
+                collisionInfo.jObject = $(this).parent();
+                collisionInfo.solidPosition = collisionRes.pos2;
+                collision = true;
+                collidedObjects.push(collisionInfo);
             }
-            if ((!checkGhost && !checkY && ((checkX && checkMoving) || !checkMoving)) &&
-                    me.overlaps(me.collider.left.obj, $(this))) {
-                console.log(me.positionsGet($(this))[1][0] -
-                    me.positionsGet(me.collider.left.obj)[1][1]);
-                collision.left = true;
-                collidedObjects.left.push($(this).parent());
-            }
-            if ((!checkGhost && !checkY && ((checkX && checkMoving) || !checkMoving)) &&
-                    me.overlaps(me.collider.right.obj, $(this))) {
-                collision.right = true;
-                collidedObjects.right.push($(this).parent());
-            }
-            if ((!checkGhost && !checkX) &&
-                    me.overlaps(me.collider.top.obj, $(this))) {
-                collision.top = true;
-                collidedObjects.top.push($(this).parent());
-            }
-        }).promise().done(function () {
-            me.collider.bottom.isColliding = collision.bottom;
-            me.collider.left.isColliding = collision.left;
-            me.collider.right.isColliding = collision.right;
-            me.collider.top.isColliding = collision.top;
-            //if ((collision.left && collision.right) ||
-            //    (collision.top && collision.bottom)) {
-            //    me.appear(me.pos.initX, me.pos.initY);
-            //}
-            //else {
-                if (collision.bottom) {
-                    me.speed.inAir = me.delta.dist.down;
-                    collidedObjects.bottom.sort(function(a,b) {
-                        return me.positionsGet(a)[1][0] - me.positionsGet(b)[1][0]
-                    });
-                    if (me.positionAbsolute &&
-                        (collidedObjects.bottom[0]
-                            .attr('data-position') === 'relative')) {
-                        me.changeToRelativePosition(collidedObjects.bottom[0]);
-                    }
-                    else if (!me.positionAbsolute &&
-                        (collidedObjects.bottom[0]
-                            .attr('data-position') === 'absolute')) {
-                        me.changeToAbsolutePosition();
-                    }
-                    else {
-                        me.cssSetY($(window).height() -
-                            me.positionsGet(collidedObjects.bottom[0])[1][0]);
-                    }
-                }
-                if (collision.left && !me.action.moveRight) {
-                    collidedObjects.left.sort(function(a,b) {
-                        return me.positionsGet(b)[0][1] - me.positionsGet(a)[0][1]
-                    });
-                    me.cssSetX(me.positionsGet(collidedObjects.left[0])[0][1]);
-                }
-                if (collision.right && !me.action.moveLeft) {
-                    collidedObjects.right.sort(function(a,b) {
-                        return me.positionsGet(a)[0][0] - me.positionsGet(b)[0][0]
-                    });
-                    me.cssSetX(me.positionsGet(collidedObjects.right[0])[0][0] -
-                            $('#' + me.id).outerWidth());
-                }
-                if (collision.top && me.action.jump) {
-                    collidedObjects.top.sort(function(a,b) {
-                        return me.positionsGet(b)[1][1] - me.positionsGet(a)[1][1]
-                    });
-                    me.cssSetY($(window).height() -
-                        me.positionsGet(collidedObjects.top[0])[1][1] -
-                        $('#' + me.id).outerHeight());
-                }
-            //}
         });
+        me.collider[direction].isColliding = collision;
+        return collidedObjects;
     };
 
     this.checkPosition = function () {
@@ -698,6 +617,7 @@ function Movable(config, setEnable) {
                 me.delta.time.actual / me.delta.time.min;
             me.move.y = Math.round(me.speed.inAir * me.delta.time.actual);
             me.updateCollider("bottom", Math.abs(me.move.y) + 1);
+            collidedObjects = me.checkCollisionSolid('bottom');
             if (!me.collider.bottom.isColliding) {
                 if (!me.positionAbsolute) {
                     me.changeToAbsolutePosition();
@@ -706,6 +626,22 @@ function Movable(config, setEnable) {
                 if (me.speed.inAir < me.speed.fall) me.speed.inAir = me.speed.fall;
             }
             else {
+                me.speed.inAir = me.delta.dist.down;
+                collidedObjects.sort(function(a,b) {
+                    return a.solidPosition[1][0] - b.solidPosition[1][0];
+                });
+                if (!me.positionAbsolute &&
+                        (collidedObjects[0].jObject
+                         .attr('data-position') === 'absolute')) {
+                             me.changeToAbsolutePosition();
+                         }
+                else if (me.positionAbsolute &&
+                        (collidedObjects[0].jObject
+                         .attr('data-position') === 'relative')) {
+                             me.changeToRelativePosition(collidedObjects[0].jObject);
+                         }
+                me.cssSetY($(window).height() -
+                        collidedObjects[0].solidPosition[1][0]);
                 $('#' + me.idImg).removeClass('jump');
                 if (me.positionAbsolute) me.pos.y = $('#' + me.id).css("bottom");
             }
@@ -729,12 +665,19 @@ function Movable(config, setEnable) {
             }
             me.jumpAttr.count.last = me.jumpAttr.count.actual;
             me.updateCollider("top", me.move.y + 1);
+            collidedObjects = me.checkCollisionSolid('top');
             if (!me.collider.top.isColliding) {
                 me.cssMoveY(me.move.y);
             }
             else {
                 me.action.jump = false;
                 me.jumpAttr.height.actual = 0;
+                collidedObjects.sort(function(a,b) {
+                    return b.solidPosition[1][1] - a.solidPosition[1][1];
+                });
+                me.cssSetY($(window).height() -
+                        collidedObjects[0].solidPosition[1][1] -
+                        $('#' + me.id).outerHeight());
             }
         }
         return !me.collider.bottom.isColliding;
@@ -743,6 +686,7 @@ function Movable(config, setEnable) {
     this.jump = function () {
         if (me.collider.bottom.isColliding && !me.action.jump) {
             me.action.jump = true;
+            me.collider.bottom.isColliding = false;
             me.jumpAttr.count.actual = 0;
             me.jumpAttr.count.last = 0;
             me.jumpAttr.height.start = $('#' + me.id).offset().top;
@@ -761,10 +705,19 @@ function Movable(config, setEnable) {
         $('#' + me.idImg).addClass('left');
         me.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("left", Math.abs(me.move.x) + 1);
+        collidedObjects = me.checkCollisionSolid('left');
         if (!me.collider.left.isColliding) {
             me.cssMoveX(me.move.x);
             if (me.collider.bottom.isColliding && me.positionAbsolute)
                 me.pos.x = $('#' + me.id).offset().left + $('#' + me.id).width();
+        }
+        else {
+            collidedObjects.sort(function(a,b) {
+                return a.solidPosition[0][1] - b.solidPosition[0][1];
+            });
+            //TODO: this should rather be the position of the object,
+            //not the collider of the object
+            me.cssSetX(collidedObjects[0].solidPosition[0][1]);
         }
     };
 
@@ -776,18 +729,32 @@ function Movable(config, setEnable) {
         $('#' + me.idImg).addClass('right');
         me.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("right", me.move.x + 1);
+        collidedObjects = me.checkCollisionSolid('right');
         if (!me.collider.right.isColliding) {
             me.cssMoveX(me.move.x);
             if (me.collider.bottom.isColliding && me.positionAbsolute)
                 me.pos.x = $('#' + me.id).offset().left - $('#' + me.id).width();
         }
+        else {
+            collidedObjects.sort(function(a,b) {
+                return a.solidPosition[0][0] - b.solidPosition[0][0];
+            });
+            //TODO: this should rather be the position of the object,
+            //not the collider of the object
+            me.cssSetX(collidedObjects[0].solidPosition[0][0] -
+                    $('#' + me.id).outerWidth());
+        }
     };
 
     this.overlaps = function (a, b) {
         var pos1 = me.positionsGet(a),
-            pos2 = me.positionsGet(b);
-        return (me.positionsCompare(pos1[0], pos2[0]) &&
-            me.positionsCompare(pos1[1], pos2[1]));
+            pos2 = me.positionsGet(b),
+            res = [];
+        res.pos1 = pos1;
+        res.pos2 = pos2;
+        res.isColliding = (me.positionsCompare(pos1[0], pos2[0]) &&
+                me.positionsCompare(pos1[1], pos2[1]));
+        return res;
     };
 
     this.pickUp = function () {
@@ -808,7 +775,7 @@ function Movable(config, setEnable) {
     
     this.positionsCompare = function (p1, p2) {
         var r1, r2;
-        if (p1[0] < p2[0]) {
+        if (p1[0] <= p2[0]) {
             r1 = p1;
             r2 = p2;
         }
@@ -816,7 +783,7 @@ function Movable(config, setEnable) {
             r1 = p2;
             r2 = p1;
         }
-        return r1[1] > r2[0] || r1[0] === r2[0];
+        return (r1[1] > r2[0]);
     };
     
     this.positionsGet = function (elem) {
