@@ -713,7 +713,7 @@ function Movable(config, setEnable) {
         }
         else {
             collidedObjects.sort(function(a,b) {
-                return a.solidPosition[0][1] - b.solidPosition[0][1];
+                return b.solidPosition[0][1] - a.solidPosition[0][1];
             });
             //TODO: this should rather be the position of the object,
             //not the collider of the object
