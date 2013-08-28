@@ -44,7 +44,7 @@ Add a new character to the engine
         id: "movable1"
             id of the added character. This id must like any other id be unique
 
-Enable skill of the character
+Enable ability of the character
 
     Movable.enableAttr(attr);
         attr:
@@ -101,13 +101,13 @@ Enable skill of the character
                 marked with the css class set by
                 Movable.setPickUpCssClass(cssClass).
 
-Disable skill of the character
+Disable ability of the character
 
     Movable.disableAttr(attr);
         attr:
             the same attributes as in Movable.enableAttr(attr).
 
-Get the enable status of a skill
+Get the enable status of an ability
 
     Movable..getEnableStatus(attr);
         attr:
@@ -134,132 +134,115 @@ keys.
             "crouch": 17
                 17 (<ctrl>) is default to make the character crouch.
 
+Get the key code of the corresponding ability
+
     Movable.getKeyCode(attr);
         attr:
             the same attributes as in Movable.setKeyCode(attr).
 
-        // PickUps
-        me.pickUp.idCnt = 'pickUpCnt';
-        me.pickUp.cssClass = 'pickUp';
-        me.pickUp.jObjects = $('.' + me.pickUp.cssClass);
-        me.pickUp.counter = 0; // internal
+Id of element where the pick up count should appear. The corresponding
+element must exist on the webpage.
+If "pickUp" is turned off, this parameter has no effect.
+    
+    Movable.setPickUpCounterId(id);
+        id: "pickUpCnt"
 
-        this.configPickUpCounterId = function (id) {
-            me.pickUp.idCnt = id;
-        };
-        this.configPickUpCssClass = function (cssClass) {
-            me.pickUp.cssClass = cssClass;
-            me.pickUp.jObjects = $('.' + me.pickUp.cssClass);
-        };
-        this.getPickUpCounter = function () {
-            return me.pickUp.counter;
-        };
+Class name definig which elements the character can pick up by moving over them.
+All elements on the web page intended to be objects that can be picked up must
+have this css class.
+If "pickUp" is turned off, this parameter has no effect.
+    
+    Movable.setPickUpCssClass(cssClass);
+        cssClass: "pickUp"
 
-        // Speed
-        me.speed.right = 200;
-        me.speed.rightRun = 300;
-        me.speed.left = -200;
-        me.speed.leftRun = -300;
-        me.speed.jump = 1200;
-        me.speed.fall = -1200;
-        me.speed.inAir = 0; // internal
+Get the actual pick up counter value
 
-        this.setSpeed = function (attr, speed) {
-            if (attr === 'inAir') {
-                console.log('not allowed to set ' + attr + 'manually!');
-            }
-            else me.speed[attr] = speed;
-        };
+    Movable.getPickUpCounter();
 
-        // Position
-        me.pos.initX = 30;
-        me.pos.initY = 500;
-        me.pos.x = 0; // internal
-        me.pos.y = 0; // internal
-        me.pos.absolute = true; // internal
-        me.pos.absoluteJObject = $('#' + me.id).parent(); // internal
+Define the speed of the character. Please pay attention to the minus sign.
 
-        this.setInitialPosition = function (x, y) {
-            me.pos.initX = x;
-            me.pos.initY = y;
-        };
+    Movable.setSpeed(attr, speed);
+        attr:
+            "right": 200
+                walking speed to the right
 
-        // Size
-        me.size.heightStand = 85;
-        me.size.heightCrouch = 40;
-        me.size.width = 53;
+            "rightRun": 300
+                running speed to the right
 
-        this.setSize = function (attr, val) {
-            me.size[attr] = val;
-        };
+            "left": -200
+                walking speed to the left
 
-        // Collider
-        me.collider.left.tolerance = 10;
-        me.collider.left.isColliding = false; // internal
-        me.collider.left.jObject = null; // internal
-        me.collider.right.tolerance = 10;
-        me.collider.right.isColliding = false; // internal
-        me.collider.right.jObject = null; // internal
-        me.collider.top.isColliding = false; // internal
-        me.collider.top.jObject = null; // internal
-        me.collider.bottom.isColliding = false; // internal
-        me.collider.bottom.jObject = null; // internal
-        me.collider.bottom.activeId = null; // internal
+            "leftRun": -300
+                running speed to the right
 
-        this.setColliderTolerance = function (left, right) {
-            me.collider.left.tolerance = left;
-            me.collider.right.tolerance = (right === undefined) left : right;
-        };
+            "jump": 1200
+                initial jumping speed
 
-        // Jump Attributes
-        me.jumpAttr.height.max = 160;
-        me.jumpAttr.height.start = 0; // internal
-        me.jumpAttr.height.actual = 0; // internal
-        me.jumpAttr.count.actual = 0; // internal
-        me.jumpAttr.count.last = 0; // internal
+            "fall": -1200
+                maximal falling speed
 
-        this.setMaxJumpHeight = function (maxHeight) {
-            me.jumpAttr.height.max = maxHeight;
-        };
+        speed:
+            speed value
 
-        // Random Animations
-        me.rand.minVal = 4;
-        me.rand.maxVal = 10;
-        me.rand.count = 0; // internal
-        me.rand.nextVal = -1; // internal
+Define the absolute screen position (in pixel) where the character will start.
+This coordinates will also be used if the character needs to be reset.
 
-        this.setRandomAnimationInterval = function (min, max) {
-            me.rand.minVal = min;
-            me.rand.maxVal = (max === undefined) ? min : max;
-        };
+    Movable.setInitialPosition(x, y);
+        x: 30
+            Distance in pixel from the left screen frame to the left border of
+            the character.
 
-        // Action Flags
-        me.action.crouch = false; // internal
-        me.action.wink = false; // internal
-        me.action.wave = false; // internal
-        me.action.jawn = false; // internal
-        me.action.jump = false; // internal
-        me.action.moveLeft = false; // internal
-        me.action.moveRight = false; // internal
+        y: 500
+            Distance in pixel from the bottom screen frame to the bottom border
+            of the character.
 
+Define the size (in pixel) of the character in either standing or crouching
+position. Keep in mind that these values depend directly on the animation of the
+movable. It may be unwise to change this after the inital configuration.
 
-        // Temporal Information Needed for the Next Frame
-        me.delta.time.min = 1 / config.maxFps;
-        me.delta.time.actual = me.delta.time.min;
-        me.delta.move.x = 0;
-        me.delta.move.y = 0;
-        me.delta.dist.up = me.speed.jump / 
-            (me.jumpAttr.height.max /
-                (me.speed.jump * me.delta.time.actual)
-            * 2 + 1);
-        me.delta.dist.down = me.speed.fall /
-            (me.jumpAttr.height.max /
-                (Math.abs(me.speed.fall) * me.delta.time.actual)
-            * 2 + 1);
+    Movable.setSize(attr, val);
+        attr:
+            "heightStand": 85
+                Height (in pixel) of the character in standing position.
 
-        // Engine configurations
-        me.solidColliderClass = config.solidColliderClass
-        me.solidColliderMovingClass = config.solidColliderMovingClass
-        me.solids = $('.' + me.solidColliderClass);
-        me.solidsMoving = $('.' + me.solidColliderMovingClass);
-    }
+            "heightCrouch": 40
+                Height (in pixel) of the character in crouching position.
+
+            "width": 53
+                Width (in pixel) of the character.
+
+Set these parameters allow the character to move over objects of small heights,
+without colliding (move up stairs without jumping). The value is the maxium
+height (in pixel) of an objet in order to be ignored by right and left
+collision. This can be turned off by setting both values to zero.
+
+    Movable.setColliderTolerance(left, right);
+        left:
+            Tolarance (in pixel) for the left collider.
+
+        right:
+            Tolarance (in pixel) for the right collider. If this value is not
+            set, both colliders are set to the left value.
+
+Define the maximal height (in pixel) the character can jump. One exception to
+surpass this height is by enabling "crouchJumpHeight". Please check the comments
+there to get more information.
+If "jump" is turned off, this parameter has no effect.
+
+    Movable.setMaxJumpHeight(maxHeight);
+        maxHeight:
+            Maximal jump height (in pixel) of the character.
+
+Define the intervall of random idle animations (in seconds). After completion of
+an animation, The next random animation will start in min seconds at the
+erliest and in max seconds at the latest.
+
+    Movable.setRandomAnimationInterval(min, max);
+        min: 4
+            erliest time of a random animation to start the next time after
+            completion.
+
+        max: 10
+            latest time of a random animation to start the next time after
+            completion. If no max value is spezified, the next annimation will
+            alway start after min seconds.
