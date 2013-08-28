@@ -32,7 +32,17 @@ function Configurator() {
     this.enableJump = function () {me.enable.jump = true;};
     this.disableJump = function () {me.enable.jump = false;};
 
-    /* !!! This is only experimental, please do not enable this feature !!! */
+    /* Enables character to jump on a moving solid, with the same properties
+     * as with a normal jump.
+     * If me.enable.jump is turned off, this parameter has no effect.
+     */
+    me.enable.jumpMovingSolid = true;
+    this.enableJumpMovingSolid = function () {me.enable.jumpMovingSolid = true;};
+    this.disableJumpMovingSolid = function () {me.enable.jumpMovingSolid = false;};
+
+    /* !!! This is only experimental, please do not enable this feature !!!
+     * If me.enable.jump is turned off, this parameter has no effect.
+     */
     me.enable.jumpAbsolute = false;
     this.enableJumpAbsolute = function () {me.enable.jumpAbsolute = true;};
     this.disableJumpAbsolute = function () {me.enable.jumpAbsolute = false;};
@@ -215,6 +225,7 @@ function Engine(config) {
     me.enable = [];
     me.enable.run = config.enable.run;
     me.enable.jump = config.enable.jump;
+    me.enable.jumpMovingSolid = config.enable.jumpMovingSolid;
     me.enable.jumpAbsolute = config.enable.jumpAbsolute;
     me.enable.crouch = config.enable.crouch;
     me.enable.appear = config.enable.appear;
@@ -246,12 +257,15 @@ function Engine(config) {
     me.configMovable.minDeltaTime = 1 / config.maxFps;
 
     this.movableHandler = function () {
-        var inAir = false;
+        var inAir = false,
+            onMovableSolid = false;
         me.movable.setDeltaTime(me.ticker.getDeltaTime());
         if (me.enable.appear) me.movable.checkPosition();
-        if (!me.movable.checkCollisionDynamic()) inAir = me.movable.inAir();
+        onMovableSolid = me.movable.checkCollisionDynamic();
+        if (!onMovableSolid) inAir = me.movable.inAir();
         if (me.enable.pickUp) me.movable.pickUp();
-        if (me.enable.jump && me.keyHandler.keyCodeMap[me.keyCode.jump]) {
+        if (me.enable.jump && me.keyHandler.keyCodeMap[me.keyCode.jump] &&
+                ((onMovableSolid && me.enable.jumpMovingSolid) || !onMovableSolid)) {
             me.movable.jump();
             if (!me.enable.crouch.jump) me.movable.standUp();
         }
