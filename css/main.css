@@ -14,7 +14,7 @@ body {
     position:relative;
 }
 
-.solidCollider, .solidColliderGhost {
+.solidCollider, .solidColliderMoving {
    position:absolute;
 }
 
