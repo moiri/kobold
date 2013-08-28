@@ -38,11 +38,34 @@ Configure the engine
         val:
             value to configure the attribute
 
-Add a new character to the engine
+Create and add a new character to the engine
 
     Engine.addMovable(id);
         id: "movable1"
             id of the added character. This id must like any other id be unique
+
+        return
+            Movable object of the added charcter
+
+Enable character by id
+
+    Engine.enableMovable(id);
+        id:
+            id of the character to enable
+
+Disable character by id
+
+    Engine.disableMovable(id);
+        id:
+            id of character to disable
+
+Enable character
+
+    Movable.enableMe();
+
+Disable character
+
+    Movable.disableMe();
 
 Enable ability of the character
 
@@ -109,9 +132,12 @@ Disable ability of the character
 
 Get the enable status of an ability
 
-    Movable..getEnableStatus(attr);
+    Movable.getEnableStatus(attr);
         attr:
             the same attributes as in Movable.enableAttr(attr).
+
+        return
+            true if enabled, false if disabled
 
 Define keyCodes to use the character abilities by pressing the keys.
 Keep in mind, that this will prevent the default browser behavior of the
@@ -140,6 +166,9 @@ Get the key code of the corresponding ability
         attr:
             the same attributes as in Movable.setKeyCode(attr).
 
+        return
+            keyCode
+
 Id of element where the pick up count should appear. The corresponding
 element must exist on the webpage.
 If "pickUp" is turned off, this parameter has no effect.
@@ -158,6 +187,8 @@ If "pickUp" is turned off, this parameter has no effect.
 Get the actual pick up counter value
 
     Movable.getPickUpCounter();
+        return
+            value of the pick up counter
 
 Define the speed of the character. Please pay attention to the minus sign.
 
