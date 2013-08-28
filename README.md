@@ -61,11 +61,17 @@ Configure the engine
 
 Create and add a new character to the engine. Example animations are provided.
 To add different animations for other characters, create new css definitions
-similar to the ones provided in main.css. Only consider [id]Img classes
+similar to the ones provided in main.css.
 
-    Engine.addMovable(id);
-        id: "movable1"
-            id of the added character. This id must like any other id be unique
+    Engine.addMovable(id, cssClass);
+        id: "kobold"
+            id of the added character. This id must like any other id be unique.
+            if no id is provided, the default value is set.
+
+        cssClass: "koboldImg"
+            name of the css class definig the size and animations of the
+            character. One set for the default names is provided. If no cssClass
+            is provided, the default value is set.
 
         return
             Movable object of the added charcter
