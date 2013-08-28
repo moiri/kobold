@@ -1,7 +1,5 @@
 function Engine() {
     var me = this;
-    me.enable = [];
-    me.keyCode = [];
     me.config = [];
     me.movable = [];
     me.ticker = null;
@@ -12,7 +10,8 @@ function Engine() {
     me.config.solidClass = 'solid';
     me.config.solidMovingClass = me.config.solidClass + 'Moving';
     me.config.solidColliderClass = 'solidCollider';
-    me.config.solidColliderMovingClass = me.config.solidColliderClass + 'Moving';
+    me.config.solidColliderMovingClass =
+        me.config.solidColliderClass + 'Moving';
 
     this.setConfigAttr = function (attr, val) {
         me.config[attr] = val;
@@ -189,7 +188,7 @@ function Engine() {
     me.setup();
 }
 
-function Movable(id, config, enableMe, disableMe) {
+function Movable(id, config, enableMeCb, disableMeCb) {
     var me = this;
     {
         // INITIALISATION
@@ -399,14 +398,14 @@ function Movable(id, config, enableMe, disableMe) {
     };
 
     this.appear = function (x, y) {
-        disableMe(me.id);
+        me.disableMe();
         if (!me.pos.absolute)
             me.changeToAbsolutePosition();
+        me.stop();
+        me.standUp();
         me.singleAnimation($('#' + me.idImg), 'appear', function () {
-            enableMe(me.id);
+            me.enableMe();
         });
-        $('#' + me.idImg).removeClass('walk run');
-        $('#' + me.idImg).addClass('idle');
         $('#' + me.id).css('bottom', y);
         $('#' + me.id).css('left', x);
     };
@@ -511,6 +510,14 @@ function Movable(id, config, enableMe, disableMe) {
     this.cssSetY = function (val, force) {
         if (me.pos.absolute || force)
             $('#' + me.id).css("bottom", val + "px");
+    };
+
+    this.disableMe = function () {
+        disableMeCb(me.id);
+    };
+
+    this.enableMe = function () {
+        enableMeCb(me.id);
     };
 
     this.genJumpLut = function () {

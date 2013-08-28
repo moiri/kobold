@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var i, j;
+    var i, j, engine, kobold;
     for (i=1; i<=8; i++)
         for (j=0; j<1; j++)
             $('#content')
@@ -46,9 +46,11 @@ $(document).ready(function() {
     $('#content').append('<div id="pickUp1" class="pickUp1 pickUp"></div>');
     $('#content').append('<div id="pickUp2" class="pickUp2 pickUp"></div>');
     $('#solidCnt').text((i-1)*j);
-    var engine = new Engine();
-    var kobold = engine.addMovable('kobold');
-    engine.enableMovable('kobold');
+
+    engine = new Engine();
+    kobold = engine.addMovable('kobold');
+
     engine.start();
+    kobold.enableMe();
 });
 
