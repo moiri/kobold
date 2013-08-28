@@ -1,7 +1,27 @@
 kobold
 ======
 
-this project aims to provide a engine to design a jump and run on a web page
+This project aims to provide an engine to design a jump and run on a web page.
+The key point is, that the character of the jump and run will be able to
+interact with standard elements (divs) on the web page.
+
+Fast Setup
+----------
+
+1.  add main.js, main.css and jQuery (for development jQuery 1.7.1 was used) to
+    your page.
+
+2.  add the css class "solid" to the page elements you want the character to
+    collide with.
+
+3.  make sure a js file contains the following lines
+    { $(document).ready(function () {
+        var engine, kobold;
+        engine = new Engine();
+        kobold = engine.addMovable('kobold');
+        engine.start();
+        kobold.enableMe();
+    }); }
 
 Configuration
 -------------
@@ -38,7 +58,9 @@ Configure the engine
         val:
             value to configure the attribute
 
-Create and add a new character to the engine
+Create and add a new character to the engine. Example animations are provided.
+To add different animations for other characters, create new css definitions
+similar to the ones provided in main.css. Only consider [id]Img classes
 
     Engine.addMovable(id);
         id: "movable1"
