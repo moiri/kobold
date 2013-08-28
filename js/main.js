@@ -32,20 +32,15 @@ function Configurator() {
     this.enableJump = function () {me.enable.jump = true;};
     this.disableJump = function () {me.enable.jump = false;};
 
-    /* Enables character to jump on a moving solid, with the same properties
+    /* !!! This is experimental, please do not turn this feature on !!!
+     * Enables character to jump on a moving solid, with the same properties
      * as with a normal jump.
      * If me.enable.jump is turned off, this parameter has no effect.
      */
-    me.enable.jumpMovingSolid = true;
+    me.enable.jumpMovingSolid = false;
+    me.enable.jumpAbsolute = !me.enable.jumpMovingSolid;
     this.enableJumpMovingSolid = function () {me.enable.jumpMovingSolid = true;};
     this.disableJumpMovingSolid = function () {me.enable.jumpMovingSolid = false;};
-
-    /* !!! This is only experimental, please do not enable this feature !!!
-     * If me.enable.jump is turned off, this parameter has no effect.
-     */
-    me.enable.jumpAbsolute = false;
-    this.enableJumpAbsolute = function () {me.enable.jumpAbsolute = true;};
-    this.disableJumpAbsolute = function () {me.enable.jumpAbsolute = false;};
 
     /* Enables the character to crouch. The crouch height of the
      * character is set with me.movable.height.crouch. Keep in mind
@@ -125,19 +120,9 @@ function Configurator() {
      * If it should collide with the character from all sides, please use
      * me.solidMovingClass.
      */
-    me.solidMovingGhostClass = 'solidMovingGhost';
-    this.setSolidMovingGhostClass = function (val) {me.solidMovingGhostClass = val;};
-
-    /* !!! This is experimental please do not use this class !!!
-     * Class name defining which elements are moving. Only elements using the
-     * animate function of jquery to change to position work properly. the
-     * animation must be already defined. A moving element with this class will
-     * collide with the character from all sides. If it should only collide
-     * when the character is jumping/falling on top of it, please use
-     * me.solidMovingGhostClass.
-     */
     me.solidMovingClass = 'solidMoving';
     this.setSolidMovingClass = function (val) {me.solidMovingClass = val;};
+
 
     /* Id of the character the corresponding div element must exist on the
      * web page.
@@ -242,16 +227,11 @@ function Engine(config) {
     me.keyHandler = null;
     me.solidClass = config.solidClass;
     me.solidMovingClass = config.solidMovingClass;
-    me.solidMovingGhostClass = config.solidMovingGhostClass;
     me.solidColliderClass = "solidCollider";
-    me.solidColliderGhostClass = me.solidColliderClass + "Ghost";
-    me.solidColliderXClass = me.solidColliderClass + "left";
-    me.solidColliderYClass = me.solidColliderClass + "bottom";
+    me.solidColliderMovingClass = me.solidColliderClass + "Moving";
     me.configMovable = config.movable;
     me.configMovable.solidColliderClass = me.solidColliderClass;
-    me.configMovable.solidColliderGhostClass = me.solidColliderGhostClass;
-    me.configMovable.solidColliderXClass = me.solidColliderXClass;
-    me.configMovable.solidColliderYClass = me.solidColliderYClass;
+    me.configMovable.solidColliderMovingClass = me.solidColliderMovingClass;
     me.configMovable.enableCrouchJumpHigh = me.enable.crouch.jumpHigh;
     me.configMovable.enableJumpAbsolute = me.enable.jumpAbsolute;
     me.configMovable.minDeltaTime = 1 / config.maxFps;
@@ -328,7 +308,7 @@ function Engine(config) {
 
     this.setPosMovableSolid = function (elem, prop, val) {
         var deltaSize;
-        if ($(elem).hasClass(me.solidMovingGhostClass)) {
+        if ($(elem).hasClass(me.solidMovingClass)) {
             deltaSize = Math.round((val - parseFloat($(elem).css(prop))) *
                 me.ticker.getDeltaTime() / me.configMovable.minDeltaTime);
             if (prop === 'bottom') {
@@ -368,9 +348,9 @@ function Engine(config) {
                 height = $(this).outerHeight(),
                 borderLeftWidth = $(this).css('border-left-width'),
                 borderBottomWidth = $(this).css('border-bottom-width');
-            if ($(this).hasClass(me.solidMovingGhostClass)) {
-                $(this).append('<div id="' + me.solidColliderGhostClass + idx +
-                    '" class="' + me.solidColliderGhostClass + '"></div>');
+            if ($(this).hasClass(me.solidMovingClass)) {
+                $(this).append('<div id="' + me.solidColliderMovingClass + idx +
+                    '" class="' + me.solidColliderMovingClass + '"></div>');
             }
             else {
                 $(this).append('<div id="' + me.solidColliderClass + idx +
@@ -406,9 +386,9 @@ function Movable(config, setEnable) {
     me.idCollider = me.id + "-collider";
     me.idPickUpCnt = config.idPickUpCnt;
     me.solidColliderClass = config.solidColliderClass
-    me.solidColliderGhostClass = config.solidColliderGhostClass
+    me.solidColliderMovingClass = config.solidColliderMovingClass
     me.solids = $('.' + me.solidColliderClass);
-    me.solidsMovingGhost = $('.' + me.solidColliderGhostClass);
+    me.solidsMoving = $('.' + me.solidColliderMovingClass);
     me.pickUps = $('.' + config.pickUpClass);
     me.enableCrouchJumpHigh = config.enableCrouchJumpHigh;
     me.enableJumpAbsolute = config.enableJumpAbsolute;
@@ -524,7 +504,7 @@ function Movable(config, setEnable) {
         var collision = false,
             collidedObjects = [];
         if (!me.action.jump) {
-            me.solidsMovingGhost.each(function (idx) {
+            me.solidsMoving.each(function (idx) {
                 var collisionInfo = [],
                     collisionRes = me.overlaps(me.collider.bottom.obj, $(this));
                 if (collisionRes.isColliding) {
