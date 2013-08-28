@@ -1,4 +1,4 @@
-kobold
+Kobold
 ======
 
 This project aims to provide an engine to design a jump and run on a web page.
