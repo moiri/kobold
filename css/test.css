@@ -1,24 +1,24 @@
-.debug * .colliderContainer {
+.debug * .colliderContainer, .debug > .colliderContainer {
     overflow:visible;
     z-index:9;
 }
 
-.debug * .solidCollider {
+.debug * .solidCollider, .debug > .solidCollider {
     background-color:red;
     opacity:0.2;
 }
 
-.debug * .solidColliderMoving {
+.debug * .solidColliderMoving, .debug > .solidColliderMoving {
     background-color:blue;
     opacity:0.2;
 }
 
-.debug * .collider {
+.debug * .collider, .debug > .collider {
     background-color:green;
     opacity:0.2;
 }
 
-.test > .config {
+.test * .config, .test > .config {
     visibility:visible;
 }
 

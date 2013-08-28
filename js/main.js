@@ -7,6 +7,7 @@ function Engine() {
 
     // configuration ENGINE
     me.config.maxFps = 40;
+    me.config.idImgPostfix = '-img'; // internal
     me.config.solidClass = 'solid';
     me.config.solidMovingClass = me.config.solidClass + 'Moving';
     me.config.solidColliderClass = 'solidCollider';
@@ -19,11 +20,16 @@ function Engine() {
 
     this.addMovable = function (id) {
         var newMovable = [];
-        newMovable.enable = false;
-        newMovable.obj = new Movable(id, me.config,
+        if (me.movable[id] === undefined) {
+            $('body')
+                .append('<div id="' + id + '" class="movable"><div id="' +
+                    id + me.config.idImgPostfix + '" class="' + id +
+                    'Img idle right"></div></div>');
+            newMovable.enable = false;
+            newMovable.obj = new Movable(id, me.config,
                 me.enableMovable, me.disableMovable);
-        if (me.movable[id] === undefined)
             me.movable[id] = newMovable;
+        }
         else {
             throw 'Movable with id ' + id + ' already exists';
         }
@@ -221,7 +227,7 @@ function Movable(id, config, enableMeCb, disableMeCb) {
         // CONFIGURATION
         // IDs
         me.id = id;
-        me.idImg = me.id + "-img"; // internal
+        me.idImg = me.id + config.idImgPostfix // internal
         me.idCollider = me.id + "-collider"; // internal
 
         // Enables

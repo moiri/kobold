@@ -3,7 +3,7 @@ body {
     padding:0px;
 }
 
-.kobold {
+.movable {
     position:absolute;
     bottom:500px;
     left:30px;
