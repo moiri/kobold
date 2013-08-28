@@ -7,6 +7,7 @@ Configuration
 -------------
 
 Configure the engine
+
     Engine.setConfigAttr(attr, val);
         attr:
             "maxFps": 40
