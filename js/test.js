@@ -7,14 +7,16 @@ $(document).ready(function() {
     $('#content').append('<div id="elevator1" class="elevator1 solid solidMovingGhost"></div>');
     moveUp = function () {
         $('#elevator1').animate(
-            {"bottom" : "+=450px"},
+            //{"bottom" : "+=450px"},
+            {"top" : "-=450px"},
             "slow",
             moveDown
         );
     };
     moveDown = function () {
         $('#elevator1').animate(
-            {"bottom" : "-=450px"},
+            //{"bottom" : "-=450px"},
+            {"top" : "+=450px"},
             "slow",
             moveUp
         );
