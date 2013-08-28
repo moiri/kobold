@@ -19,7 +19,7 @@ Fast Setup
         $(document).ready(function () {
             var engine, kobold;
             engine = new Engine();
-            kobold = engine.addMovable('kobold');
+            kobold = engine.addMovable();
             engine.start();
             kobold.enableMe();
         });

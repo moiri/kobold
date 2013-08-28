@@ -48,7 +48,7 @@ $(document).ready(function() {
     $('#solidCnt').text((i-1)*j);
 
     engine = new Engine();
-    kobold = engine.addMovable('kobold');
+    kobold = engine.addMovable();
 
     engine.start();
     kobold.enableMe();
