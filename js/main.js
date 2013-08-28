@@ -248,9 +248,8 @@ function Engine(config) {
     this.movableHandler = function () {
         var inAir = false;
         me.movable.setDeltaTime(me.ticker.getDeltaTime());
-        me.movable.checkCollisionDynamic();
         if (me.enable.appear) me.movable.checkPosition();
-        inAir = me.movable.inAir();
+        if (!me.movable.checkCollisionDynamic()) inAir = me.movable.inAir();
         if (me.enable.pickUp) me.movable.pickUp();
         if (me.enable.jump && me.keyHandler.keyCodeMap[me.keyCode.jump]) {
             me.movable.jump();
@@ -314,9 +313,10 @@ function Engine(config) {
     };
 
     this.setPosMovableSolid = function (elem, prop, val) {
-        var deltaSize = Math.round((val - parseFloat($(elem).css(prop))) *
-                me.ticker.getDeltaTime() / me.configMovable.minDeltaTime);
+        var deltaSize;
         if ($(elem).hasClass(me.solidMovingGhostClass)) {
+            deltaSize = Math.round((val - parseFloat($(elem).css(prop))) *
+                me.ticker.getDeltaTime() / me.configMovable.minDeltaTime);
             if (prop === 'bottom') {
                 if (deltaSize > 0) {
                     deltaSize++;
@@ -324,29 +324,12 @@ function Engine(config) {
                         .height($(elem).outerHeight() + deltaSize);
                 }
             }
-        }
-        else {
-            if (deltaSize < 0) {
-                // moving down/left
-                deltaSize--;
-                $(elem).children('.' + me.solidColliderClass + prop)
-                    .css(prop, (deltaSize - parseInt($(elem)
-                                    .css('border-' + prop + '-width'))) + 'px');
-                deltaSize = Math.abs(deltaSize);
-            }
-            else {
-                // moving up/right
-                deltaSize++;
-                $(elem).children('.' + me.solidColliderClass + prop)
-                    .css(prop, '-' + $(elem).css('border-' + prop + '-width'));
-            }
-            if (prop === 'bottom') {
-                $(elem).children('.' + me.solidColliderClass + prop)
-                    .height($(elem).height() + deltaSize);
-            }
-            else if (prop === 'left') {
-                $(elem).children('.' + me.solidColliderClass + prop)
-                    .width($(elem).outerWidth() + deltaSize);
+            else if (prop === 'top') {
+                if (deltaSize < 0) {
+                    deltaSize--;
+                    $(elem).children().first()
+                        .height($(elem).outerHeight() - deltaSize);
+                }
             }
         }
     };
@@ -355,7 +338,7 @@ function Engine(config) {
         jQuery.extend(jQuery.fx, {
             step: {
                 _default: function( fx ) {
-                    if (fx.prop === 'left' || fx.prop === 'bottom') {
+                    if (fx.prop === 'bottom' || fx.prop === 'top') {
                         me.setPosMovableSolid(fx.elem, fx.prop, fx.now);
                     }
                     if ( fx.elem.style && fx.elem.style[ fx.prop ] != null ) {
@@ -371,13 +354,7 @@ function Engine(config) {
                 height = $(this).outerHeight(),
                 borderLeftWidth = $(this).css('border-left-width'),
                 borderBottomWidth = $(this).css('border-bottom-width');
-            if ($(this).hasClass(me.solidMovingClass)) {
-                $(this).append('<div id="' + me.solidColliderXClass + idx +
-                    '" class="' + me.solidColliderXClass + '"></div>');
-                $(this).append('<div id="' + me.solidColliderYClass + idx +
-                    '" class="' + me.solidColliderYClass + '"></div>');
-            }
-            else if ($(this).hasClass(me.solidMovingGhostClass)) {
+            if ($(this).hasClass(me.solidMovingGhostClass)) {
                 $(this).append('<div id="' + me.solidColliderGhostClass + idx +
                     '" class="' + me.solidColliderGhostClass + '"></div>');
             }
@@ -416,12 +393,7 @@ function Movable(config, setEnable) {
     me.idPickUpCnt = config.idPickUpCnt;
     me.solidColliderClass = config.solidColliderClass
     me.solidColliderGhostClass = config.solidColliderGhostClass
-    me.solidColliderXClass = config.solidColliderXClass
-    me.solidColliderYClass = config.solidColliderYClass
     me.solids = $('.' + me.solidColliderClass);
-    me.solidsMovingGhost = $('.' + me.solidColliderGhostClass);
-    me.solidsMovingX = $('.' + me.solidColliderXClass);
-    me.solidsMovingY = $('.' + me.solidColliderXClass);
     me.solidsMovingGhost = $('.' + me.solidColliderGhostClass);
     me.pickUps = $('.' + config.pickUpClass);
     me.enableCrouchJumpHigh = config.enableCrouchJumpHigh;
@@ -438,8 +410,6 @@ function Movable(config, setEnable) {
     me.collider.top.obj = null;
     me.collider.bottom = [];
     me.collider.bottom.isColliding = false;
-    me.collider.bottom.isDynamicColliding = false;
-    me.collider.bottom.dynamicColliderJObject = null;
     me.collider.bottom.activeId = null;
     me.speed = [];
     me.speed.right = config.speed.right;
@@ -549,9 +519,12 @@ function Movable(config, setEnable) {
                 collidedObjects.push(collisionInfo);
             }
         }).promise().done(function () {
-            me.collider.bottom.isDynamicColliding = collision;
-            me.collider.bottom.dynamicColliderJObject = collidedObjects;
+            me.collider.bottom.isColliding = collision;
+            if (collision) {
+                me.land(collidedObjects);
+            }
         });
+        return collision;
     };
 
     this.checkCollisionStatic = function (direction) {
@@ -645,16 +618,14 @@ function Movable(config, setEnable) {
     this.inAir = function () {
         var collidedObjects = null,
             lastElem = false,
-            jumpDiff = 0,
-            newColliderId;
+            jumpDiff = 0;
         if (!me.action.jump) {
             me.speed.inAir += me.delta.dist.down *
                 me.delta.time.actual / me.delta.time.min;
             me.move.y = Math.round(me.speed.inAir * me.delta.time.actual);
             me.updateCollider("bottom", Math.abs(me.move.y) + 1);
             collidedObjects = me.checkCollisionStatic('bottom');
-            if (!me.collider.bottom.isColliding &&
-                    !me.collider.bottom.isDynamicColliding) {
+            if (!me.collider.bottom.isColliding) {
                 if (!me.positionAbsolute && me.enableJumpAbsolute) {
                     me.changeToAbsolutePosition();
                 }
@@ -662,25 +633,7 @@ function Movable(config, setEnable) {
                 if (me.speed.inAir < me.speed.fall) me.speed.inAir = me.speed.fall;
             }
             else {
-                if (me.collider.bottom.isDynamicColliding) {
-                    collidedObjects = me.collider.bottom.dynamicColliderJObject;
-                }
-                me.speed.inAir = me.delta.dist.down;
-                if (collidedObjects.length > 1) {
-                    collidedObjects.sort(function(a,b) {
-                        return a.solidPosition[1][0] - b.solidPosition[1][0];
-                    });
-                }
-                if (me.positionAbsolute) {
-                    me.pos.y = $('#' + me.id).css('bottom');
-                }
-                newColliderId = collidedObjects[0].jObject.attr('id');
-                if (me.positionAbsolute ||
-                        (me.collider.bottom.activeId !== newColliderId)) {
-                    me.collider.bottom.activeId = newColliderId;
-                    me.changeToRelativePosition(collidedObjects[0].jObject.parent());
-                }
-                $('#' + me.idImg).removeClass('jump');
+                me.land(collidedObjects);
             }
         }
         else {
@@ -730,12 +683,34 @@ function Movable(config, setEnable) {
             me.collider.bottom.activeId = 'inAir';
             me.jumpAttr.count.actual = 0;
             me.jumpAttr.count.last = 0;
+            me.jumpAttr.height.actual = 0;
             me.jumpAttr.height.start = $('#' + me.id).offset().top;
             $('#' + me.idImg).addClass('jump');
             if (!me.positionAbsolute && me.enableJumpAbsolute) {
                 me.changeToAbsolutePosition();
             }
         }
+    };
+
+    this.land = function (collidedObjects) {
+        var newColliderId;
+        me.speed.inAir = me.delta.dist.down;
+        if (collidedObjects.length > 1) {
+            collidedObjects.sort(function(a,b) {
+                return a.solidPosition[1][0] - b.solidPosition[1][0];
+            });
+        }
+        if (me.positionAbsolute) {
+            me.pos.y = $('#' + me.id).css('bottom');
+        }
+        newColliderId = collidedObjects[0].jObject.attr('id');
+        if (me.positionAbsolute ||
+                (me.collider.bottom.activeId !== newColliderId)) {
+            me.collider.bottom.activeId = newColliderId;
+            me.changeToRelativePosition(collidedObjects[0].jObject.parent());
+        }
+        me.action.jump = false;
+        $('#' + me.idImg).removeClass('jump');
     };
 
     this.moveLeft = function (run) {
