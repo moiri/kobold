@@ -509,39 +509,39 @@ function Movable(config, setEnable) {
     this.checkCollisionDynamic = function () {
         var collision = false,
             collidedObjects = [];
-        me.solidsMovingGhost.each(function (idx) {
-            var collisionInfo = [],
-                collisionRes = me.overlaps(me.collider.bottom.obj, $(this));
-            if (collisionRes.isColliding) {
-                collisionInfo.jObject = $(this);
-                collisionInfo.solidPosition = collisionRes.pos2;
-                collision = true;
-                collidedObjects.push(collisionInfo);
-            }
-        }).promise().done(function () {
-            me.collider.bottom.isColliding = collision;
-            if (collision) {
-                me.land(collidedObjects);
-            }
-        });
-        return collision;
-    };
-
-    this.checkCollisionStatic = function (direction) {
-        var collision = false,
-            collidedObjects = [];
-        if (!me.collider.bottom.isDynamicColliding) {
-            me.solids.each(function (idx) {
+        if (!me.action.jump) {
+            me.solidsMovingGhost.each(function (idx) {
                 var collisionInfo = [],
-                    collisionRes = me.overlaps(me.collider[direction].obj, $(this));
+                    collisionRes = me.overlaps(me.collider.bottom.obj, $(this));
                 if (collisionRes.isColliding) {
                     collisionInfo.jObject = $(this);
                     collisionInfo.solidPosition = collisionRes.pos2;
                     collision = true;
                     collidedObjects.push(collisionInfo);
                 }
+            }).promise().done(function () {
+                me.collider.bottom.isColliding = collision;
+                if (collision) {
+                    me.land(collidedObjects);
+                }
             });
         }
+        return collision;
+    };
+
+    this.checkCollisionStatic = function (direction) {
+        var collision = false,
+            collidedObjects = [];
+        me.solids.each(function (idx) {
+            var collisionInfo = [],
+                collisionRes = me.overlaps(me.collider[direction].obj, $(this));
+            if (collisionRes.isColliding) {
+                collisionInfo.jObject = $(this);
+                collisionInfo.solidPosition = collisionRes.pos2;
+                collision = true;
+                collidedObjects.push(collisionInfo);
+            }
+        });
         me.collider[direction].isColliding = collision;
         return collidedObjects;
     };
@@ -709,7 +709,6 @@ function Movable(config, setEnable) {
             me.collider.bottom.activeId = newColliderId;
             me.changeToRelativePosition(collidedObjects[0].jObject.parent());
         }
-        me.action.jump = false;
         $('#' + me.idImg).removeClass('jump');
     };
 
