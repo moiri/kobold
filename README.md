@@ -6,24 +6,18 @@ this project aims to provide a engine to design a jump and run on a web page
 Configuration
 -------------
 
- /* Configure the engine */
+Configure the engine
 Engine.setConfigAttr(attr, val);
     attr:
         "maxFps": 40
             frame cap
 
         "solidClass": "solid"
-            Class name definig which elements are solid, i.e. with which
-            elements the character is colliding (lets call them collidables).
-            All elements on the web page intended to be a collidable must have
-            this css class.
+            Class name definig which elements are solid, i.e. with which elements the character is colliding (lets call them collidables). All elements on the web page intended to be a collidable must have this css class.
 
         "solidMovingClass": "solidMoving"
-            Class name defining which elements are moving. Only elements using
-            the animate function of jquery to change the position (left, right,
-            top, bottom) work properly. The animation must be already defined.
-            A moving element with this class will collide with the character
-            only if the character falls/jummps on top of it.
+            Class name defining which elements are moving. Only elements using the animate function of jquery to change the position (left, right, top, bottom) work properly. The animation must be already defined.
+            A moving element with this class will collide with the character only if the character falls/jummps on top of it.
 
         "solidColliderClass": "solidCollider"
             Only used internaly, make sure this class is not used anywhere else
@@ -34,7 +28,7 @@ Engine.setConfigAttr(attr, val);
     val:
         value to configure the attribute
 
-/* Add a new character to the engine */
+Add a new character to the engine
 Engine.addMovable(id);
     id: "movable1"
         id of the added character. This id must like any other id be unique
