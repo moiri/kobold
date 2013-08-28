@@ -10,7 +10,7 @@ License
 
 The origin of this project is an idea of the Swiss game designer company
 [Koboldgames](http://www.koboldgames.ch/home/). The animations and images were
-provided by these nice people and are part of their corporate desgn.
+provided by these nice people and are part of their corporate design.
 
 Fast Setup
 ----------
