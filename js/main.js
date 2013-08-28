@@ -1,290 +1,99 @@
-// Use this class to configure your character abilites
-function Configurator() {
+function Engine() {
     var me = this;
     me.enable = [];
-    me.enable.crouch = [];
     me.keyCode = [];
+    me.config = [];
     me.movable = [];
-    me.movable.colliderTolerance = [];
-    me.movable.speed = [];
-    me.movable.height = [];
-    me.movable.randIdle = [];
+    me.ticker = null;
+    me.keyHandler = null;
 
-    /* frame cap */
-    me.maxFps = 40;
-    this.setMaxFps = function (val) {me.maxFps = val;};
+    // configuration ENGINE
+    me.config.maxFps = 40;
+    me.config.solidClass = 'solid';
+    me.config.solidMovingClass = me.config.solidClass + 'Moving';
+    me.config.solidColliderClass = 'solidCollider';
+    me.config.solidColliderMovingClass = me.config.solidColliderClass + 'Moving';
 
-    /* Enables the character to wlak faster, hence run
-     * the speed can be set with me.movable.speed.rightRun
-     * and me.movable.speed.leftRun.
-     * The character is always able to walk. The walk speed can be
-     * set with me.movable.speed.left and me.movable.speed.right.
-     */
-    me.enable.run = true;
-    this.enableRun = function () {me.enable.run = true;};
-    this.disableRun = function () {me.enable.run = false;};
-
-    /* Enables character to jump. The character can only jump
-     * if he is standing on a solid. The jump height can be set
-     * with me.movable.maxJumpHeight.
-     */
-    me.enable.jump = true;
-    this.enableJump = function () {me.enable.jump = true;};
-    this.disableJump = function () {me.enable.jump = false;};
-
-    /* !!! This is experimental, please do not turn this feature on !!!
-     * Enables character to jump on a moving solid, with the same properties
-     * as with a normal jump.
-     * If me.enable.jump is turned off, this parameter has no effect.
-     */
-    me.enable.jumpMovingSolid = false;
-    me.enable.jumpAbsolute = !me.enable.jumpMovingSolid;
-    this.enableJumpMovingSolid = function () {me.enable.jumpMovingSolid = true;};
-    this.disableJumpMovingSolid = function () {me.enable.jumpMovingSolid = false;};
-
-    /* Enables the character to crouch. The crouch height of the
-     * character is set with me.movable.height.crouch. Keep in mind
-     * that this depends on the size of the crouch animation.
-     */
-    me.enable.crouch.all = true;
-    this.enableCrouch = function () {me.enable.crouch.all = true;};
-    this.disableCrouch = function () {me.enable.crouch.all = false;};
-
-    /* Enables the character to crouch when running. If this is turned
-     * off, the character stands up as soon the run button is pressed.
-     * If me.enable.crouch.all is turned off, this parameter has no effect.
-     * If me.enable.run is turned off, this parameter has no effect.
-     */
-    me.enable.crouch.run = false;
-    this.enableCrouchRun = function () {me.enable.crouch.run = true;};
-    this.disableCrouchRun = function () {me.enable.crouch.run = false;};
-
-    /* Enables the character to crouch when jumping. If this is turned
-     * off, the character stands up as soon the character is in the air.
-     * If me.enable.crouch.all is turned off, this parameter has no effect.
-     * If me.enable.jump is turned off, this parameter has no effect.
-     */
-    me.enable.crouch.jump = true;
-    this.enableCrouchJump = function () {me.enable.crouch.jump = true;};
-    this.disableCrouchJump = function () {me.enable.crouch.jump = false;};
-
-    /* Enables the character to jump higher when crouch is pressed while
-     * jumping (me.movable.maxJumpHeight + me.movable.height.stand
-     * - me.movable.height.crouch). If this is turned off, the character
-     * jumps only to me.movable.maxJumpHeight.
-     * If me.enable.crouch.all is turned off, this parameter has no effect.
-     * If me.enable.jump is turned off, this parameter has no effect.
-     * If me.enable.crouch.jump is turned off, this parameter has no effect.
-     */
-    me.enable.crouch.jumpHigh = true;
-    this.enableCrouchJumpHigh = function () {me.enable.crouch.jumpHigh = true;};
-    this.disableCrouchJumpHigh = function () {me.enable.crouch.jumpHigh = false;};
-
-    /* With this enabled, the character cannot leave the visible screen and
-     * teleported back near to the last valid position if he drops beow the
-     * screen.
-     */
-    me.enable.appear = true;
-    this.enableAppear = function () {me.enable.appear = true;};
-    this.disableAppear = function () {me.enable.appear = false;};
-
-    /* With this enabled, the character is able to pick up elements marked with
-     * the me.movable.pickUpClass class.
-     */
-    me.enable.pickUp = true;
-    this.enablePickUp = function () {me.enable.pickUp = true;};
-    this.disablePickUp = function () {me.enable.pickUp = false;};
-
-    /* Define keyCodes to use the character abilities by pressing the keys.
-     * Keep in mind, that this will prevent the default browser behavior
-     * of the keys.
-     */ 
-    me.keyCode.jump = 32;
-    me.keyCode.run = 16;
-    me.keyCode.left = 37;
-    me.keyCode.right = 39;
-    me.keyCode.crouch = 17;
-    this.setKeyCode = function (type, val) {me.keyCode[type] = val;};
-
-    /* Class name definig which elements are solid, i.e. with which elements
-     * the character is colliding (lets call them collidables). All elements
-     * on the web page intended to be a collidable must have this css class.
-     */
-    me.solidClass = 'solid';
-    this.setSolidClass = function (val) {me.solidClass = val;};
-
-    /* Class name defining which elements are moving. Only elements using the
-     * animate function of jquery to change to position work properly. The
-     * animation must be already defined. A moving element with this class will
-     * collide with the character only if the character falls/jummps on to of it.
-     * If it should collide with the character from all sides, please use
-     * me.solidMovingClass.
-     */
-    me.solidMovingClass = 'solidMoving';
-    this.setSolidMovingClass = function (val) {me.solidMovingClass = val;};
-
-
-    /* Id of the character the corresponding div element must exist on the
-     * web page.
-     */
-    me.movable.id = 'kobold';
-    this.setMovableId = function (val) {me.movable.id = val;};
-
-    me.movable.initialPositionX = 30;
-    me.movable.initialPositionY = 500;
-
-    /* Id of element where the pick up count should appear. The corresponding 
-     * element must exist on he webpage.
-     * If me.enable.pickUp is turned off, this parameter has no effect.
-     */
-    me.movable.idPickUpCnt = 'pickUpCnt';
-    this.setMovablePickUpClass = function (val) {me.movable.pickUpClass = val;};
-
-    /* Class name definig which elements the character can pick up by moving
-     * over them. All elements on the web page intended to be objects that
-     * can be picked up must have this css class.
-     * If me.enable.pickUp is turned off, this parameter has no effect.
-     */
-    me.movable.pickUpClass = 'pickUp';
-    this.setMovablePickUpClass = function (val) {me.movable.pickUpClass = val;};
-
-    /* These parameters allow the character to move over objects of small
-     * heights, without colliding (move up stairs without jumping). The value
-     * is the maxium height (in pixel) of an objet in order to be ignored by
-     * right and left collision. This can be turned off by setting both
-     * values to zero.
-     */
-    me.movable.colliderTolerance.left = 10;
-    me.movable.colliderTolerance.right = 10;
-    this.setMovableColliderTolerance = function (type, val) {
-        me.movable.colliderTolerance[type] = val;
+    this.setConfigAttr = function (attr, val) {
+        me.config[attr] = val;
     };
 
-    /* Define the speed of the character. Please pay attention to the minus
-     * sign.
-     */
-    me.movable.speed.right = 200;
-    me.movable.speed.rightRun = 300;
-    me.movable.speed.left = -200;
-    me.movable.speed.leftRun = -300;
-    me.movable.speed.jump = 1200;
-    me.movable.speed.fall = -1200;
-    this.setMovableSpeed = function (type, val) {me.movable.speed[type] = val;};
+    this.addMovable = function (id) {
+        var newMovable = [];
+        newMovable.enable = false;
+        newMovable.obj = new Movable(id, me.config,
+                me.enableMovable, me.disableMovable);
+        if (me.movable[id] === undefined)
+            me.movable[id] = newMovable;
+        else {
+            throw 'Movable with id ' + id + ' already exists';
+        }
+        return me.movable[id].obj;
+    };
 
-    /* Define the maximal height (in pixel) the character can jump. One
-     * exception to surpass this height is by enabling
-     * me.enable.crouch.jumpHeight. Please check the comments there to get
-     * more information.
-     * If me.enable.jump is turned off, this parameter has no effect.
-     */
-    me.movable.maxJumpHeight = 160;
-    this.setMovableMaxJumpHeight = function (val) {me.movable.maxJumpHeight = val;};
+    this.enableMovable = function (id) {
+        me.movable[id].enable = true;
+    };
 
-    /* Define the height (in pixel) of the character in either standing or
-     * crouching position. Keep in mind that these values depend directly on
-     * the animation of the movable
-     */ 
-    me.movable.height.stand = 85;
-    me.movable.height.crouch = 40;
-    this.setMovableHeight = function (type, val) {me.movable.height[type] = val;};
+    this.disableMovable = function (id) {
+        me.movable[id].enable = false;
+    };
 
-    /* Define the width (in pixel) of the character in either standing or
-     * crouching position. Keep in mind that these values depend directly on
-     * the animation of the movable
-     */ 
-    me.movable.width = 53
-    this.setMovableWidth = function (val) {me.movable.width = val;};
-
-    /* Define the intervall of random idle animations (in seconds). After
-     * completion of an animation, The next random animation well tart in
-     * me.movable.randIdle.minVal seconds at the erliest and in
-     * me.movable.randIdle.maxVal seconds at the latest.
-     */
-    me.movable.randIdle.min = 4;
-    me.movable.randIdle.max = 10;
-    this.setMovableRandIdle = function (type, val) {me.movable.randIdle[type] = val};
-}
-
-function Engine(config) {
-    var me = this;
-    me.enable = [];
-    me.enable.run = config.enable.run;
-    me.enable.jump = config.enable.jump;
-    me.enable.jumpMovingSolid = config.enable.jumpMovingSolid;
-    me.enable.jumpAbsolute = config.enable.jumpAbsolute;
-    me.enable.crouch = config.enable.crouch;
-    me.enable.appear = config.enable.appear;
-    me.enable.pickUp = config.enable.pickUp;
-    me.enable.all = true;
-    me.keyCode = [];
-    me.keyCode.jump = config.keyCode.jump;
-    me.keyCode.run = config.keyCode.run;
-    me.keyCode.left = config.keyCode.left;
-    me.keyCode.right = config.keyCode.right;
-    me.keyCode.crouch = config.keyCode.crouch;
-    me.ticker = null;
-    me.movable = null;
-    me.keyHandler = null;
-    me.solidClass = config.solidClass;
-    me.solidMovingClass = config.solidMovingClass;
-    me.solidColliderClass = "solidCollider";
-    me.solidColliderMovingClass = me.solidColliderClass + "Moving";
-    me.configMovable = config.movable;
-    me.configMovable.solidColliderClass = me.solidColliderClass;
-    me.configMovable.solidColliderMovingClass = me.solidColliderMovingClass;
-    me.configMovable.enableCrouchJumpHigh = me.enable.crouch.jumpHigh;
-    me.configMovable.enableJumpAbsolute = me.enable.jumpAbsolute;
-    me.configMovable.minDeltaTime = 1 / config.maxFps;
-
-    this.movableHandler = function () {
+    this.movableHandler = function (movable) {
         var inAir = false,
             onMovableSolid = false;
-        me.movable.setDeltaTime(me.ticker.getDeltaTime());
-        if (me.enable.appear) me.movable.checkPosition();
-        onMovableSolid = me.movable.checkCollisionDynamic();
-        if (!onMovableSolid) inAir = me.movable.inAir();
-        if (me.enable.pickUp) me.movable.pickUp();
-        if (me.enable.jump && me.keyHandler.keyCodeMap[me.keyCode.jump] &&
-                ((onMovableSolid && me.enable.jumpMovingSolid) || !onMovableSolid)) {
-            me.movable.jump();
-            if (!me.enable.crouch.jump) me.movable.standUp();
+        movable.setDeltaTime(me.ticker.getDeltaTime());
+        if (movable.getEnableStatus('appear')) movable.checkPosition();
+        onMovableSolid = movable.checkCollisionDynamic();
+        if (!onMovableSolid) inAir = movable.inAir();
+        if (movable.getEnableStatus('pickUp')) movable.pickUp();
+        if (movable.getEnableStatus('jump') &&
+                me.keyHandler.keyCodeMap[movable.getKeyCode('jump')] &&
+                (onMovableSolid && movable.getEnableStatus('jumpMovingSolid') ||
+                 !onMovableSolid)) {
+            movable.jump();
+            if (!movable.getEnableStatus('crouchJump')) movable.standUp();
         }
-        if (me.enable.run && me.keyHandler.keyCodeMap[me.keyCode.run]) {
-            me.movable.run();
-            if (me.keyHandler.keyCodeMap[me.keyCode.left]) {
-                me.movable.moveLeft(true);
+        if (movable.getEnableStatus('run') &&
+                me.keyHandler.keyCodeMap[movable.getKeyCode('run')]) {
+            movable.run();
+            if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')]) {
+                movable.moveLeft(true);
             }
-            else if (me.keyHandler.keyCodeMap[me.keyCode.right]) {
-                me.movable.moveRight(true);
+            else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
+                movable.moveRight(true);
             }
         }
         else {
-            me.movable.walk();
-            if (me.keyHandler.keyCodeMap[me.keyCode.left]) {
-                me.movable.moveLeft(false);
+            movable.walk();
+            if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')]) {
+                movable.moveLeft(false);
             }
-            else if (me.keyHandler.keyCodeMap[me.keyCode.right]) {
-                me.movable.moveRight(false);
-            }
-        }
-        if (me.enable.crouch.all && (!inAir || (inAir && me.enable.crouch.jump))) {
-            if (me.keyHandler.keyCodeMap[me.keyCode.crouch] &&
-                (!me.keyHandler.keyCodeMap[me.keyCode.run] ||
-                (me.enable.crouch.run && me.keyHandler.keyCodeMap[me.keyCode.run]))) {
-                me.movable.crouch();
-            }
-            if (!me.keyHandler.keyCodeMap[me.keyCode.crouch] ||
-                (me.keyHandler.keyCodeMap[me.keyCode.crouch] &&
-                me.keyHandler.keyCodeMap[me.keyCode.run] && !me.enable.crouch.run)) {
-                me.movable.standUp();
+            else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
+                movable.moveRight(false);
             }
         }
-        if (!me.keyHandler.keyCodeMap[me.keyCode.left] &&
-            !me.keyHandler.keyCodeMap[me.keyCode.right]) {
-            me.movable.stop();
-            me.movable.idle();
+        if (movable.getEnableStatus('crouch') &&
+                (!inAir || (inAir && movable.getEnableStatus('crouchJump')))) {
+            if (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] &&
+                (!me.keyHandler.keyCodeMap[movable.getKeyCode('run')] ||
+                (movable.getEnableStatus('crouchRun') &&
+                 me.keyHandler.keyCodeMap[movable.getKeyCode('run')]))) {
+                movable.crouch();
+            }
+            if (!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] ||
+                (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] &&
+                me.keyHandler.keyCodeMap[movable.getKeyCode('run')] &&
+                !movable.getEnableStatus('crouchRun'))) {
+                movable.standUp();
+            }
         }
-        if (me.keyHandler.isAnyKeyPressed()) me.movable.active();
+        if (!me.keyHandler.keyCodeMap[movable.getKeyCode('left')] &&
+            !me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
+            movable.stop();
+            movable.idle();
+        }
+        if (me.keyHandler.isAnyKeyPressed()) movable.active();
     };
 
     this.registerKeyEvents = function () {
@@ -302,15 +111,11 @@ function Engine(config) {
         });
     };
 
-    this.setEnableAll = function (val) {
-        me.enable.all = val;
-    };
-
-    this.setPosMovableSolid = function (elem, prop, val) {
+    this.updateCollider = function (elem, prop, val) {
         var deltaSize;
-        if ($(elem).hasClass(me.solidMovingClass)) {
+        if ($(elem).hasClass(me.config.solidMovingClass)) {
             deltaSize = Math.round((val - parseFloat($(elem).css(prop))) *
-                me.ticker.getDeltaTime() / me.configMovable.minDeltaTime);
+                me.ticker.getDeltaTime() * me.config.maxFps);
             if (prop === 'bottom') {
                 if (deltaSize > 0) {
                     deltaSize++;
@@ -333,7 +138,7 @@ function Engine(config) {
             step: {
                 _default: function( fx ) {
                     if (fx.prop === 'bottom' || fx.prop === 'top') {
-                        me.setPosMovableSolid(fx.elem, fx.prop, fx.now);
+                        me.updateCollider(fx.elem, fx.prop, fx.now);
                     }
                     if ( fx.elem.style && fx.elem.style[ fx.prop ] != null ) {
                         fx.elem.style[ fx.prop ] = fx.now + fx.unit;
@@ -343,18 +148,20 @@ function Engine(config) {
                 }
             }
         });
-        $('.' + me.solidClass).each(function (idx) {
+        $('.' + me.config.solidClass).each(function (idx) {
             var width = $(this).outerWidth(),
                 height = $(this).outerHeight(),
                 borderLeftWidth = $(this).css('border-left-width'),
                 borderBottomWidth = $(this).css('border-bottom-width');
-            if ($(this).hasClass(me.solidMovingClass)) {
-                $(this).append('<div id="' + me.solidColliderMovingClass + idx +
-                    '" class="' + me.solidColliderMovingClass + '"></div>');
+            if ($(this).hasClass(me.config.solidMovingClass)) {
+                $(this).append('<div id="' +
+                    me.config.solidColliderMovingClass + idx + '" class="' +
+                    me.config.solidColliderMovingClass + '"></div>');
             }
             else {
-                $(this).append('<div id="' + me.solidColliderClass + idx +
-                    '" class="' + me.solidColliderClass + '"></div>');
+                $(this).append('<div id="' + me.config.solidColliderClass +
+                    idx + '" class="' + me.config.solidColliderClass +
+                    '"></div>');
             }
             $(this).children().each(function () {
                 $(this).width(width);
@@ -366,12 +173,15 @@ function Engine(config) {
     };
 
     this.start = function () {
-        me.ticker = new Ticker(config.maxFps);
+        me.ticker = new Ticker(me.config.maxFps);
         me.keyHandler = new KeyHandler();
-        me.movable = new Movable(me.configMovable, me.setEnableAll);
         me.registerKeyEvents();
         me.ticker.startTicker(function () {
-            if (me.enable.all) me.movableHandler();
+            for (id in me.movable) {
+                if (me.movable[id].enable) {
+                    me.movableHandler(me.movable[id].obj);
+                }
+            }
         });
         me.ticker.drawFps();
     };
@@ -379,90 +189,209 @@ function Engine(config) {
     me.setup();
 }
 
-function Movable(config, setEnable) {
+function Movable(id, config, enableMe, disableMe) {
     var me = this;
-    me.id = config.id;
-    me.idImg = me.id + "-img";
-    me.idCollider = me.id + "-collider";
-    me.idPickUpCnt = config.idPickUpCnt;
-    me.solidColliderClass = config.solidColliderClass
-    me.solidColliderMovingClass = config.solidColliderMovingClass
-    me.solids = $('.' + me.solidColliderClass);
-    me.solidsMoving = $('.' + me.solidColliderMovingClass);
-    me.pickUps = $('.' + config.pickUpClass);
-    me.enableCrouchJumpHigh = config.enableCrouchJumpHigh;
-    me.enableJumpAbsolute = config.enableJumpAbsolute;
-    me.collider = [];
-    me.collider.left = [];
-    me.collider.left.isColliding = false;
-    me.collider.left.tolerance = config.colliderTolerance.left;
-    me.collider.right = [];
-    me.collider.right.isColliding = false;
-    me.collider.right.tolerance = config.colliderTolerance.right;
-    me.collider.top = [];
-    me.collider.top.isColliding = false;
-    me.collider.top.obj = null;
-    me.collider.bottom = [];
-    me.collider.bottom.isColliding = false;
-    me.collider.bottom.activeId = null;
-    me.speed = [];
-    me.speed.right = config.speed.right;
-    me.speed.rightRun = config.speed.rightRun;
-    me.speed.left = config.speed.left;
-    me.speed.leftRun = config.speed.leftRun;
-    me.speed.jump = config.speed.jump;
-    me.speed.fall = config.speed.fall;
-    me.speed.inAir = 0;
-    me.move = [];
-    me.move.x = 0;
-    me.move.y = 0;
-    me.jumpAttr = [];
-    me.jumpAttr.lut = [];
-    me.jumpAttr.height = [];
-    me.jumpAttr.height.start = 0;
-    me.jumpAttr.height.max = config.maxJumpHeight;
-    me.jumpAttr.height.actual = 0;
-    me.jumpAttr.count = [];
-    me.jumpAttr.count.actual = 0;
-    me.jumpAttr.count.last = 0;
-    me.delta = [];
-    me.delta.time = [];
-    me.delta.time.min = config.minDeltaTime;
-    me.delta.time.actual = me.delta.time.min;
-    me.delta.dist = [];
-    me.delta.dist.up = me.speed.jump / 
-        (me.jumpAttr.height.max /
-            (me.speed.jump * me.delta.time.actual)
-        * 2 + 1);
-    me.delta.dist.down = me.speed.fall /
-        (me.jumpAttr.height.max /
-            (Math.abs(me.speed.fall) * me.delta.time.actual)
-        * 2 + 1);
-    me.height = [];
-    me.height.stand = config.height.stand;
-    me.height.crouch = config.height.crouch;
-    me.width = config.width;
-    me.action = [];
-    me.action.crouch = false;
-    me.action.wink = false;
-    me.action.wave = false;
-    me.action.jawn = false;
-    me.action.jump = false;
-    me.action.moveLeft = false;
-    me.action.moveRight = false;
-    me.rand = [];
-    me.rand.count = 0;
-    me.rand.minVal = config.randIdle.min;
-    me.rand.maxVal = config.randIdle.max;
-    me.rand.nextVal = -1;
-    me.pos = [];
-    me.pos.x = 0;
-    me.pos.y = 0;
-    me.pos.initX = config.initialPositionX;
-    me.pos.initY = config.initialPositionY;
-    me.pickUpCounter = 0;
-    me.positionAbsolute = true;
-    me.positionAbsoluteObj = $('#' + me.id).parent();
+    {
+        // INITIALISATION
+        me.enable = [];
+        me.enable.crouch = [];
+        me.enable.jump = [];
+        me.keyCode = [];
+        me.pickUpAttr = [];
+        me.speed = [];
+        me.pos = [];
+        me.size = [];
+        me.collider = [];
+        me.collider.left = [];
+        me.collider.right = [];
+        me.collider.top = [];
+        me.collider.bottom = [];
+        me.jumpAttr = [];
+        me.jumpAttr.lut = [];
+        me.jumpAttr.height = [];
+        me.jumpAttr.count = [];
+        me.rand = [];
+        me.action = [];
+        me.delta = [];
+        me.delta.time = [];
+        me.delta.dist = [];
+        me.delta.move = [];
+    }
+
+    {
+        // CONFIGURATION
+        // IDs
+        me.id = id;
+        me.idImg = me.id + "-img"; // internal
+        me.idCollider = me.id + "-collider"; // internal
+
+        // Enables
+        me.enable.run = true;
+        me.enable.jump = true;
+        me.enable.jumpMovingSolid = false;
+        me.enable.jumpAbsolute = !me.enable.jumpMovingSolid; // internal
+        me.enable.crouch = true;
+        me.enable.crouchRun = false;
+        me.enable.crouchJump = true;
+        me.enable.crouchJumpHigh = true;
+        me.enable.appear = true;
+        me.enable.pickUp = true;
+
+        this.enableAttr = function (attr) {
+            if (attr === 'jumpAbsolute') {
+                throw 'not allowed to set ' + attr + 'manually!';
+            }
+            me.enable[attr] = true;
+        };
+        this.disableAttr = function (attr) {
+            if (attr === 'jumpAbsolute') {
+                throw 'not allowed to set ' + attr + 'manually!';
+            }
+            me.enable[attr] = false;
+        };
+        this.getEnableStatus = function (attr) {
+            return me.enable[attr];
+        };
+
+        // KeyCodes
+        me.keyCode.jump = 32;
+        me.keyCode.run = 16;
+        me.keyCode.left = 37;
+        me.keyCode.right = 39;
+        me.keyCode.crouch = 17;
+
+        this.setKeyCode = function (attr, keyCode) {
+            me.keyCode[attr] = keyCode;
+        };
+        this.getKeyCode = function (attr) {
+            return me.keyCode[attr];
+        };
+
+        // Speed
+        me.speed.right = 200;
+        me.speed.rightRun = 300;
+        me.speed.left = -200;
+        me.speed.leftRun = -300;
+        me.speed.jump = 1200;
+        me.speed.fall = -1200;
+        me.speed.inAir = 0; // internal
+
+        this.setSpeed = function (attr, speed) {
+            if (attr === 'inAir') {
+                throw 'not allowed to set ' + attr + 'manually!';
+            }
+            else me.speed[attr] = speed;
+        };
+
+        // Position
+        me.pos.initX = 30;
+        me.pos.initY = 500;
+        me.pos.x = 0; // internal
+        me.pos.y = 0; // internal
+        me.pos.absolute = true; // internal
+        me.pos.absoluteJObject = $('#' + me.id).parent(); // internal
+
+        this.setInitialPosition = function (x, y) {
+            me.pos.initX = x;
+            me.pos.initY = y;
+        };
+
+        // Size
+        me.size.heightStand = 85;
+        me.size.heightCrouch = 40;
+        me.size.width = 53;
+
+        this.setSize = function (attr, val) {
+            me.size[attr] = val;
+        };
+
+        // Collider
+        me.collider.left.tolerance = 10;
+        me.collider.left.isColliding = false; // internal
+        me.collider.left.jObject = null; // internal
+        me.collider.right.tolerance = 10;
+        me.collider.right.isColliding = false; // internal
+        me.collider.right.jObject = null; // internal
+        me.collider.top.isColliding = false; // internal
+        me.collider.top.jObject = null; // internal
+        me.collider.bottom.isColliding = false; // internal
+        me.collider.bottom.jObject = null; // internal
+        me.collider.bottom.activeId = null; // internal
+
+        this.setColliderTolerance = function (left, right) {
+            me.collider.left.tolerance = left;
+            me.collider.right.tolerance = (right === undefined) ? left : right;
+        };
+
+        // PickUp Attributes
+        me.pickUpAttr.idCnt = 'pickUpCnt';
+        me.pickUpAttr.cssClass = 'pickUp';
+        me.pickUpAttr.jObjects = $('.' + me.pickUpAttr.cssClass);
+        me.pickUpAttr.counter = 0; // internal
+
+        this.setPickUpCounterId = function (id) {
+            me.pickUpAttr.idCnt = id;
+        };
+        this.setPickUpCssClass = function (cssClass) {
+            me.pickUpAttr.cssClass = cssClass;
+            me.pickUpAttr.jObjects = $('.' + me.pickUpAttr.cssClass);
+        };
+        this.getPickUpCounter = function () {
+            return me.pickUpAttr.counter;
+        };
+
+        // Jump Attributes
+        me.jumpAttr.height.max = 160;
+        me.jumpAttr.height.start = 0; // internal
+        me.jumpAttr.height.actual = 0; // internal
+        me.jumpAttr.count.actual = 0; // internal
+        me.jumpAttr.count.last = 0; // internal
+
+        this.setMaxJumpHeight = function (maxHeight) {
+            me.jumpAttr.height.max = maxHeight;
+        };
+
+        // Random Animations
+        me.rand.minVal = 4;
+        me.rand.maxVal = 10;
+        me.rand.count = 0; // internal
+        me.rand.nextVal = -1; // internal
+
+        this.setRandomAnimationInterval = function (min, max) {
+            me.rand.minVal = min;
+            me.rand.maxVal = (max === undefined) ? min : max;
+        };
+
+        // Action Flags
+        me.action.crouch = false; // internal
+        me.action.wink = false; // internal
+        me.action.wave = false; // internal
+        me.action.jawn = false; // internal
+        me.action.jump = false; // internal
+        me.action.moveLeft = false; // internal
+        me.action.moveRight = false; // internal
+
+
+        // Temporal Information Needed for the Next Frame
+        me.delta.time.min = 1 / config.maxFps;
+        me.delta.time.actual = me.delta.time.min;
+        me.delta.move.x = 0;
+        me.delta.move.y = 0;
+        me.delta.dist.up = me.speed.jump / 
+            (me.jumpAttr.height.max /
+                (me.speed.jump * me.delta.time.actual)
+            * 2 + 1);
+        me.delta.dist.down = me.speed.fall /
+            (me.jumpAttr.height.max /
+                (Math.abs(me.speed.fall) * me.delta.time.actual)
+            * 2 + 1);
+
+        // Engine configurations
+        me.solidColliderClass = config.solidColliderClass
+        me.solidColliderMovingClass = config.solidColliderMovingClass
+        me.solids = $('.' + me.solidColliderClass);
+        me.solidsMoving = $('.' + me.solidColliderMovingClass);
+    }
 
     this.active = function () {
         $('#' + me.idImg).removeClass('rand');
@@ -470,11 +399,11 @@ function Movable(config, setEnable) {
     };
 
     this.appear = function (x, y) {
-        setEnable(false);
-        if (!me.positionAbsolute)
+        disableMe(me.id);
+        if (!me.pos.absolute)
             me.changeToAbsolutePosition();
         me.singleAnimation($('#' + me.idImg), 'appear', function () {
-            setEnable(true);
+            enableMe(me.id);
         });
         $('#' + me.idImg).removeClass('walk run');
         $('#' + me.idImg).addClass('idle');
@@ -486,9 +415,9 @@ function Movable(config, setEnable) {
         me.cssSetX($('#' + me.id).offset().left, true);
         me.cssSetY($(window).height() - $('#' + me.id).offset().top -
                 $('#' + me.id).height(), true);
-        $('#' + me.id).appendTo(me.positionAbsoluteObj);
+        $('#' + me.id).appendTo(me.pos.absoluteJObject);
         me.positionRelativeObj = null;
-        me.positionAbsolute = true;
+        me.pos.absolute = true;
     };
 
     this.changeToRelativePosition = function (obj) {
@@ -497,7 +426,7 @@ function Movable(config, setEnable) {
                 parseInt(obj.css('border-top-width')), true);
         $('#' + me.id).appendTo(obj);
         me.positionRelativeObj = obj;
-        me.positionAbsolute = false;
+        me.pos.absolute = false;
     };
 
     this.checkCollisionDynamic = function () {
@@ -506,7 +435,7 @@ function Movable(config, setEnable) {
         if (!me.action.jump) {
             me.solidsMoving.each(function (idx) {
                 var collisionInfo = [],
-                    collisionRes = me.overlaps(me.collider.bottom.obj, $(this));
+                    collisionRes = me.overlaps(me.collider.bottom.jObject, $(this));
                 if (collisionRes.isColliding) {
                     collisionInfo.jObject = $(this);
                     collisionInfo.solidPosition = collisionRes.pos2;
@@ -528,7 +457,7 @@ function Movable(config, setEnable) {
             collidedObjects = [];
         me.solids.each(function (idx) {
             var collisionInfo = [],
-                collisionRes = me.overlaps(me.collider[direction].obj, $(this));
+                collisionRes = me.overlaps(me.collider[direction].jObject, $(this));
             if (collisionRes.isColliding) {
                 collisionInfo.jObject = $(this);
                 collisionInfo.solidPosition = collisionRes.pos2;
@@ -557,10 +486,10 @@ function Movable(config, setEnable) {
         if (!me.action.crouch) {
             $('#' + me.idImg).addClass('crouch');
             $('#' + me.idImg).css('top', (parseInt($('#' + me.idImg).css('top')) -
-                    (me.height.stand - me.height.crouch)) + 'px');
-            $('#' + me.idCollider).height(me.height.crouch + 'px');
-            if (me.enableCrouchJumpHigh && !me.collider.bottom.isColliding)
-                me.cssMoveY(me.height.crouch);
+                    (me.size.heightStand - me.size.heightCrouch)) + 'px');
+            $('#' + me.idCollider).height(me.size.heightCrouch + 'px');
+            if (me.enable.crouchJumpHigh && !me.collider.bottom.isColliding)
+                me.cssMoveY(me.size.heightCrouch);
             me.updateCollider();
             me.action.crouch = true;
         }
@@ -571,7 +500,7 @@ function Movable(config, setEnable) {
     };
 
     this.cssSetX = function (val, force) {
-        if (me.positionAbsolute || force)
+        if (me.pos.absolute || force)
             $('#' + me.id).css("left", val + "px");
     };
 
@@ -580,7 +509,7 @@ function Movable(config, setEnable) {
     };
 
     this.cssSetY = function (val, force) {
-        if (me.positionAbsolute || force)
+        if (me.pos.absolute || force)
             $('#' + me.id).css("bottom", val + "px");
     };
 
@@ -616,14 +545,14 @@ function Movable(config, setEnable) {
         if (!me.action.jump) {
             me.speed.inAir += me.delta.dist.down *
                 me.delta.time.actual / me.delta.time.min;
-            me.move.y = Math.round(me.speed.inAir * me.delta.time.actual);
-            me.updateCollider("bottom", Math.abs(me.move.y) + 1);
+            me.delta.move.y = Math.round(me.speed.inAir * me.delta.time.actual);
+            me.updateCollider("bottom", Math.abs(me.delta.move.y) + 1);
             collidedObjects = me.checkCollisionStatic('bottom');
             if (!me.collider.bottom.isColliding) {
-                if (!me.positionAbsolute && me.enableJumpAbsolute) {
+                if (!me.pos.absolute && me.enable.jumpAbsolute) {
                     me.changeToAbsolutePosition();
                 }
-                me.cssMoveY(me.move.y);
+                me.cssMoveY(me.delta.move.y);
                 if (me.speed.inAir < me.speed.fall) me.speed.inAir = me.speed.fall;
             }
             else {
@@ -637,21 +566,21 @@ function Movable(config, setEnable) {
                 me.jumpAttr.count.actual = me.jumpAttr.lut.length - 1;
                 lastElem = true;
             }
-            me.move.y = me.jumpAttr.lut[me.jumpAttr.count.actual] -
+            me.delta.move.y = me.jumpAttr.lut[me.jumpAttr.count.actual] -
                 me.jumpAttr.lut[me.jumpAttr.count.last];
-            me.jumpAttr.height.actual += me.move.y;
+            me.jumpAttr.height.actual += me.delta.move.y;
             if (lastElem || me.jumpAttr.height.actual > me.jumpAttr.height.max) {
                 jumpDiff = me.jumpAttr.height.max - me.jumpAttr.height.actual;
                 if (jumpDiff != 0)
-                    me.move.y += jumpDiff;
+                    me.delta.move.y += jumpDiff;
                 me.jumpAttr.height.actual = 0;
                 me.action.jump = false;
             }
             me.jumpAttr.count.last = me.jumpAttr.count.actual;
-            me.updateCollider("top", me.move.y + 1);
+            me.updateCollider("top", me.delta.move.y + 1);
             collidedObjects = me.checkCollisionStatic('top');
             if (!me.collider.top.isColliding) {
-                me.cssMoveY(me.move.y);
+                me.cssMoveY(me.delta.move.y);
             }
             else {
                 me.action.jump = false;
@@ -680,7 +609,7 @@ function Movable(config, setEnable) {
             me.jumpAttr.height.actual = 0;
             me.jumpAttr.height.start = $('#' + me.id).offset().top;
             $('#' + me.idImg).addClass('jump');
-            if (!me.positionAbsolute && me.enableJumpAbsolute) {
+            if (!me.pos.absolute && me.enable.jumpAbsolute) {
                 me.changeToAbsolutePosition();
             }
         }
@@ -694,11 +623,11 @@ function Movable(config, setEnable) {
                 return a.solidPosition[1][0] - b.solidPosition[1][0];
             });
         }
-        if (me.positionAbsolute) {
+        if (me.pos.absolute) {
             me.pos.y = $('#' + me.id).css('bottom');
         }
         newColliderId = collidedObjects[0].jObject.attr('id');
-        if (me.positionAbsolute ||
+        if (me.pos.absolute ||
                 (me.collider.bottom.activeId !== newColliderId)) {
             me.collider.bottom.activeId = newColliderId;
             me.changeToRelativePosition(collidedObjects[0].jObject.parent());
@@ -713,11 +642,11 @@ function Movable(config, setEnable) {
         me.action.moveLeft = true;
         $('#' + me.idImg).removeClass('idle right');
         $('#' + me.idImg).addClass('left');
-        me.move.x = Math.floor(speed * me.delta.time.actual);
-        me.updateCollider("left", Math.abs(me.move.x) + 1);
+        me.delta.move.x = Math.floor(speed * me.delta.time.actual);
+        me.updateCollider("left", Math.abs(me.delta.move.x) + 1);
         collidedObjects = me.checkCollisionStatic('left');
         if (!me.collider.left.isColliding) {
-            me.cssMoveX(me.move.x);
+            me.cssMoveX(me.delta.move.x);
             if (me.collider.bottom.isColliding)
                 me.pos.x = $('#' + me.id).offset().left + $('#' + me.id).width();
         }
@@ -738,11 +667,11 @@ function Movable(config, setEnable) {
         me.action.moveRight = true;
         $('#' + me.idImg).removeClass('idle left');
         $('#' + me.idImg).addClass('right');
-        me.move.x = Math.floor(speed * me.delta.time.actual);
-        me.updateCollider("right", me.move.x + 1);
+        me.delta.move.x = Math.floor(speed * me.delta.time.actual);
+        me.updateCollider("right", me.delta.move.x + 1);
         collidedObjects = me.checkCollisionStatic('right');
         if (!me.collider.right.isColliding) {
-            me.cssMoveX(me.move.x);
+            me.cssMoveX(me.delta.move.x);
             if (me.collider.bottom.isColliding)
                 me.pos.x = $('#' + me.id).offset().left - $('#' + me.id).width();
         }
@@ -770,13 +699,13 @@ function Movable(config, setEnable) {
 
     this.pickUp = function () {
         var collisionRes = null;
-        me.pickUps.each(function (idx) {
+        me.pickUpAttr.jObjects.each(function (idx) {
             collisionRes = me.overlaps($('#' + me.id), $(this));
             if (collisionRes.isColliding) {
-                me.pickUps.splice(idx, 1);
-                $(this).removeClass(me.pickUpClass);
-                me.pickUpCounter++;
-                $('#' + me.idPickUpCnt).text(me.pickUpCounter);
+                me.pickUpAttr.jObjects.splice(idx, 1);
+                $(this).removeClass(me.pickUpAttr.cssClass);
+                me.pickUpAttr.counter++;
+                $('#' + me.pickUpAttr.idCnt).text(me.pickUpAttr.counter);
                 me.singleAnimation($(this), 'success', function () {
                     $(this).remove();
                 });
@@ -835,12 +764,12 @@ function Movable(config, setEnable) {
                 '<div id="' + me.idCollider +
                     '-bottom" class="collider colliderBottom"></div>' +
             '</div>');
-        me.collider.left.obj = $('#' + me.idCollider + '-left');
-        me.collider.right.obj = $('#' + me.idCollider + '-right');
-        me.collider.top.obj = $('#' + me.idCollider + '-top');
-        me.collider.bottom.obj = $('#' + me.idCollider + '-bottom');
-        $('#' + me.idCollider).width(me.width);
-        $('#' + me.idCollider).height(me.height.stand);
+        me.collider.left.jObject = $('#' + me.idCollider + '-left');
+        me.collider.right.jObject = $('#' + me.idCollider + '-right');
+        me.collider.top.jObject = $('#' + me.idCollider + '-top');
+        me.collider.bottom.jObject = $('#' + me.idCollider + '-bottom');
+        $('#' + me.idCollider).width(me.size.width);
+        $('#' + me.idCollider).height(me.size.heightStand);
     };
 
     this.singleAnimation = function (obj, cssClass, cb) {
@@ -875,8 +804,8 @@ function Movable(config, setEnable) {
             $('#' + me.idImg).removeClass('crouch');
             $('#' + me.idImg).removeAttr('style');
             if (me.collider.top.isColliding)
-                me.cssMoveY(me.height.crouch - me.height.stand);
-            $('#' + me.idCollider).height(me.height.stand + 'px');
+                me.cssMoveY(me.size.heightCrouch - me.size.heightStand);
+            $('#' + me.idCollider).height(me.size.heightStand + 'px');
             me.updateCollider();
             me.action.crouch = false;
         }

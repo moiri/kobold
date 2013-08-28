@@ -46,8 +46,9 @@ $(document).ready(function() {
     $('#content').append('<div id="pickUp1" class="pickUp1 pickUp"></div>');
     $('#content').append('<div id="pickUp2" class="pickUp2 pickUp"></div>');
     $('#solidCnt').text((i-1)*j);
-    var koboldConf = new Configurator();
-    var engine = new Engine(koboldConf);
+    var engine = new Engine();
+    var kobold = engine.addMovable('kobold');
+    engine.enableMovable('kobold');
     engine.start();
 });
 
