@@ -8,7 +8,7 @@
     opacity:0.2;
 }
 
-.debug * .solidCollider.solidColliderGhost {
+.debug * .solidColliderGhost {
     background-color:blue;
     opacity:0.2;
 }

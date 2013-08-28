@@ -20,7 +20,7 @@ $(document).ready(function() {
         );
     };
     moveUp();
-    $('#content').append('<div id="elevator2" class="elevator2 solid solidMoving"></div>');
+    $('#content').append('<div id="elevator2" class="elevator2 solid solidMovingGhost"></div>');
     moveRight = function () {
         $('#elevator2').animate(
             {"left" : "-=500px"},
