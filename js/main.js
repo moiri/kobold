@@ -777,7 +777,8 @@ function Movable(config, setEnable) {
     this.pickUp = function () {
         var collisionRes = null;
         me.pickUps.each(function (idx) {
-            if (me.overlaps($('#' + me.id), $(this))) {
+            collisionRes = me.overlaps($('#' + me.id), $(this));
+            if (collisionRes.isColliding) {
                 me.pickUps.splice(idx, 1);
                 $(this).removeClass(me.pickUpClass);
                 me.pickUpCounter++;
