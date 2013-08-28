@@ -14,117 +14,129 @@ Configure the engine
                 frame cap
 
             "solidClass": "solid"
-                Class name definig which elements are solid, i.e. with which elements the character is colliding (lets call them collidables). All elements on the web page intended to be a collidable must have this css class.
+                Class name definig which elements are solid, i.e. with which
+                elements the character is colliding (lets call them
+                collidables). All elements on the web page intended to be a
+                collidable must have this css class.
 
             "solidMovingClass": "solidMoving"
-                Class name defining which elements are moving. Only elements using the animate function of jquery to change the position (left, right, top, bottom) work properly. The animation must be already defined.
-                A moving element with this class will collide with the character only if the character falls/jummps on top of it.
+                Class name defining which elements are moving. Only elements
+                using the animate function of jquery to change the position
+                (left, right, top, bottom) work properly. The animation must be
+                already defined.
+                A moving element with this class will collide with the character
+                only if the character falls/jummps on top of it.
 
             "solidColliderClass": "solidCollider"
-                Only used internaly, make sure this class is not used anywhere else
+                Only used internaly, make sure this class is not used anywhere
+                else.
 
             "solidColliderMovingClass": "solidColliderMoving"
-                Only used internaly, make sure this class is not used anywhere else
+                Only used internaly, make sure this class is not used anywhere
+                else.
 
         val:
             value to configure the attribute
 
 Add a new character to the engine
-Engine.addMovable(id);
-    id: "movable1"
-        id of the added character. This id must like any other id be unique
 
-/* Enable skill of the character */
-Movable.enableAttr(attr);
-    attr:
-        "run": true
-            Enables the character to walk faster, hence run. The speed can be
-            set with Movable.setSpeed("rightRun"/"leftRun", speed).
-            The character is always able to walk. The walk speed can be set with
-            Movable.setSpeed("right"/"left", speed).
+    Engine.addMovable(id);
+        id: "movable1"
+            id of the added character. This id must like any other id be unique
 
-        "jump": true
-            Enables character to jump. The character can only jump if he is
-            standing on a solid. The jump height can be set with
-            Movable.setMaxJumpHeight(maxHeight).
+Enable skill of the character
 
-        "jump.movingSolid": false
-            !!! This is experimental, please do not turn this feature on !!!
-            Enables character to jump on a moving solid, with the same
-            properties as with a normal jump.
-            If "jump" is turned off, this parameter has no effect.
+    Movable.enableAttr(attr);
+        attr:
+            "run": true
+                Enables the character to walk faster, hence run. The speed can
+                be set with Movable.setSpeed("rightRun"/"leftRun", speed).
+                The character is always able to walk. The walk speed can be set
+                with Movable.setSpeed("right"/"left", speed).
 
-        "crouch": true
-            Enables the character to crouch. The crouch height of the character
-            is set with setSize("heightCrouch", height). Keep in mind that this
-            depends on the size of the crouch animation.
+            "jump": true
+                Enables character to jump. The character can only jump if he is
+                standing on a solid. The jump height can be set with
+                Movable.setMaxJumpHeight(maxHeight).
 
-        "crouchRun": false
-            Enables the character to crouch while running. If this is turned
-            off, the character stands up as soon the run button is pressed.
-            If "crouch" is turned off, this parameter has no effect.
-            If "run" is turned off, this parameter has no effect.
+            "jump.movingSolid": false
+                !!! This is experimental, please do not turn this feature on !!!
+                Enables character to jump on a moving solid, with the same
+                properties as with a normal jump.
+                If "jump" is turned off, this parameter has no effect.
 
-        "crouchJump": true
-            Enables the character to crouch when jumping. If this is turned
-            off, the character stands up as soon the character is in the air.
-            If "crouch" is turned off, this parameter has no effect.
-            If "jump" is turned off, this parameter has no effect.
+            "crouch": true
+                Enables the character to crouch. The crouch height of the
+                character is set with setSize("heightCrouch", height). Keep in
+                mind that this depends on the size of the crouch animation.
 
-        "crouchJumpHigh":true
-            Enables the character to jump higher when crouch is pressed while
-            jumping. If this is turned off, the character jumps only to the
-            maximal height set by Movable.setMaxJumpHeight(maxHeight)
-            If "crouch" is turned off, this parameter has no effect.
-            If "jump" is turned off, this parameter has no effect.
-            If "crouchJump" is turned off, this parameter has no effect.
+            "crouchRun": false
+                Enables the character to crouch while running. If this is turned
+                off, the character stands up as soon the run button is pressed.
+                If "crouch" is turned off, this parameter has no effect.
+                If "run" is turned off, this parameter has no effect.
 
-        "appear": true
-            With this enabled, the character cannot leave the visible screen and
-            is teleported back near to the last valid position if he drops below
-            the screen.
+            "crouchJump": true
+                Enables the character to crouch when jumping. If this is turned
+                off, the character stands up as soon the character is in the
+                air.
+                If "crouch" is turned off, this parameter has no effect.
+                If "jump" is turned off, this parameter has no effect.
 
-        "pickUp": true
-            With this enabled, the character is able to pick up elements marked
-            with the css class set by Movable.setPickUpCssClass(cssClass).
+            "crouchJumpHigh":true
+                Enables the character to jump higher when crouch is pressed
+                while jumping. If this is turned off, the character jumps Only
+                to the maximal height set by Movable.setMaxJumpHeight(maxHeight)
+                If "crouch" is turned off, this parameter has no effect.
+                If "jump" is turned off, this parameter has no effect.
+                If "crouchJump" is turned off, this parameter has no effect.
 
-/* Disable skill of the character */
-Movable.disableAttr(attr);
-    attr:
-        the same attributes as in Movable.enableAttr(attr)
+            "appear": true
+                With this enabled, the character cannot leave the visible screen
+                and is teleported back near to the last valid position if he
+                drops below the screen.
 
-/* Get the enable status of a skill */
-Movable..getEnableStatus(attr);
-    attr:
-        the same attributes as in Movable.enableAttr(attr)
+            "pickUp": true
+                With this enabled, the character is able to pick up elements
+                marked with the css class set by
+                Movable.setPickUpCssClass(cssClass).
 
-/* Define keyCodes to use the character abilities by pressing the keys.
- * Keep in mind, that this will prevent the default browser behavior of the
- * keys.
- */ 
-Movable.setKeyCode(attr, keyCode);
-    attr:
-        "jump": 32
-            32 (<space>) is the default to make the character jump
+Disable skill of the character
 
-        "run": 16
-            16 (<shift>) is the default to make the character run
+    Movable.disableAttr(attr);
+        attr:
+            the same attributes as in Movable.enableAttr(attr).
 
-        "left": 37
-            37 (<leftArrow>) is the default to make the character move left
+Get the enable status of a skill
 
-        "right": 39
-            39 (<rightArrow>) is the default to make the character move right
+    Movable..getEnableStatus(attr);
+        attr:
+            the same attributes as in Movable.enableAttr(attr).
 
-        "crouch": 17
-            17 (<ctrl>) is the default to make the character crouch
+Define keyCodes to use the character abilities by pressing the keys.
+Keep in mind, that this will prevent the default browser behavior of the
+keys.
+ 
+    Movable.setKeyCode(attr, keyCode);
+        attr:
+            "jump": 32
+                32 (<space>) is default to make the character jump.
 
-        this.setKeyCode = function (attr, keyCode) {
-            me.keyCode[attr] = keyCode;
-        };
-        this.getKeyCode = function (attr) {
-            return me.keyCode[attr];
-        };
+            "run": 16
+                16 (<shift>) is default to make the character run.
+
+            "left": 37
+                37 (<leftArrow>) is default to make the character move left.
+
+            "right": 39
+                39 (<rightArrow>) is default to make the character move right.
+
+            "crouch": 17
+                17 (<ctrl>) is default to make the character crouch.
+
+    Movable.getKeyCode(attr);
+        attr:
+            the same attributes as in Movable.setKeyCode(attr).
 
         // PickUps
         me.pickUp.idCnt = 'pickUpCnt';
