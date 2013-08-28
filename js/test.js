@@ -41,7 +41,7 @@ $(document).ready(function() {
     };
     moveRight();
     $('#debug').click(function () {
-        $('#content').toggleClass('debug');
+        $('body').toggleClass('debug');
     });
     $('#content').append('<div id="pickUp1" class="pickUp1 pickUp"></div>');
     $('#content').append('<div id="pickUp2" class="pickUp2 pickUp"></div>');
