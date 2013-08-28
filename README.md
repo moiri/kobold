@@ -3,7 +3,7 @@ Kobold
 
 This project aims to provide an engine to design a jump and run on a web page.
 The key point is, that the character of the jump and run will be able to
-interact with standard elements (divs) on the web page.
+interact with standard elements on the web page.
 
 License
 -------
