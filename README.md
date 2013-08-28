@@ -7,26 +7,26 @@ Configuration
 -------------
 
 Configure the engine
-Engine.setConfigAttr(attr, val);
-    attr:
-        "maxFps": 40
-            frame cap
+    Engine.setConfigAttr(attr, val);
+        attr:
+            "maxFps": 40
+                frame cap
 
-        "solidClass": "solid"
-            Class name definig which elements are solid, i.e. with which elements the character is colliding (lets call them collidables). All elements on the web page intended to be a collidable must have this css class.
+            "solidClass": "solid"
+                Class name definig which elements are solid, i.e. with which elements the character is colliding (lets call them collidables). All elements on the web page intended to be a collidable must have this css class.
 
-        "solidMovingClass": "solidMoving"
-            Class name defining which elements are moving. Only elements using the animate function of jquery to change the position (left, right, top, bottom) work properly. The animation must be already defined.
-            A moving element with this class will collide with the character only if the character falls/jummps on top of it.
+            "solidMovingClass": "solidMoving"
+                Class name defining which elements are moving. Only elements using the animate function of jquery to change the position (left, right, top, bottom) work properly. The animation must be already defined.
+                A moving element with this class will collide with the character only if the character falls/jummps on top of it.
 
-        "solidColliderClass": "solidCollider"
-            Only used internaly, make sure this class is not used anywhere else
+            "solidColliderClass": "solidCollider"
+                Only used internaly, make sure this class is not used anywhere else
 
-        "solidColliderMovingClass": "solidColliderMoving"
-            Only used internaly, make sure this class is not used anywhere else
+            "solidColliderMovingClass": "solidColliderMoving"
+                Only used internaly, make sure this class is not used anywhere else
 
-    val:
-        value to configure the attribute
+        val:
+            value to configure the attribute
 
 Add a new character to the engine
 Engine.addMovable(id);
