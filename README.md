@@ -204,7 +204,7 @@ Define the speed of the character. Please pay attention to the minus sign.
                 walking speed to the left
 
             "leftRun": -300
-                running speed to the right
+                running speed to the left
 
             "jump": 1200
                 initial jumping speed
