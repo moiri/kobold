@@ -4,7 +4,7 @@ $(document).ready(function() {
         for (j=0; j<1; j++)
             $('#content')
             .append('<div id="stone' + j + '" class="stone' + i + ' solid"></div>');
-    $('#content').append('<div id="elevator1" class="elevator1 solid solidMovingGhost"></div>');
+    $('#content').append('<div id="elevator1" class="elevator1 solid solidMoving"></div>');
     moveUp = function () {
         $('#elevator1').animate(
             //{"bottom" : "+=450px"},
@@ -22,7 +22,7 @@ $(document).ready(function() {
         );
     };
     moveUp();
-    $('#content').append('<div id="elevator2" class="elevator2 solid solidMovingGhost"></div>');
+    $('#content').append('<div id="elevator2" class="elevator2 solid solidMoving"></div>');
     moveRight = function () {
         $('#elevator2').animate(
             {"left" : "-=500px"},
