@@ -8,7 +8,7 @@ interact with standard elements (divs) on the web page.
 License
 -------
 
-This project is based on the idea of the Swiss Game Designers
+The origin of this project is an idea of the Swiss game designer company
 [Koboldgames](http://www.koboldgames.ch/home/). The animations and images were
 provided by these nice people and are part of their corporate desgn.
 
