@@ -5,6 +5,13 @@ This project aims to provide an engine to design a jump and run on a web page.
 The key point is, that the character of the jump and run will be able to
 interact with standard elements (divs) on the web page.
 
+License
+-------
+
+This project is based on the idea of the Swiss Game Designers
+[Koboldgames](http://www.koboldgames.ch/home/). The animations and images were
+provided by these nice people and are part of their corporate desgn.
+
 Fast Setup
 ----------
 
