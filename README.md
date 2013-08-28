@@ -217,10 +217,10 @@ height (in pixel) of an objet in order to be ignored by right and left
 collision. This can be turned off by setting both values to zero.
 
     Movable.setColliderTolerance(left, right);
-        left:
+        left: 10
             Tolarance (in pixel) for the left collider.
 
-        right:
+        right: 10
             Tolarance (in pixel) for the right collider. If this value is not
             set, both colliders are set to the left value.
 
@@ -230,7 +230,7 @@ there to get more information.
 If "jump" is turned off, this parameter has no effect.
 
     Movable.setMaxJumpHeight(maxHeight);
-        maxHeight:
+        maxHeight: 160
             Maximal jump height (in pixel) of the character.
 
 Define the intervall of random idle animations (in seconds). After completion of
