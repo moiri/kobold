@@ -46,6 +46,14 @@ Configure the engine
                 elements the character is colliding (lets call them
                 collidables). All elements on the web page intended to be a
                 collidable must have this css class.
+                The character is positioned realtive to the element on which he
+                is standing (colliding with the bottom collider). If this object
+                is moved, the character will move with it and still collide with
+                all the other solids. It is recommenden to disable the character
+                during the movements to prevent collisions. Anlso nNote, that
+                these elements should not move while the character is able to
+                jump on them. For this purpose the "solidMovingClass" is
+                needed.
 
             "solidMovingClass": "solidMoving"
                 Class name defining which elements are moving. Only elements
@@ -53,7 +61,14 @@ Configure the engine
                 (left, right, top, bottom) work properly. The animation must be
                 already defined.
                 A moving element with this class will collide with the character
-                only if the character falls/jummps on top of it.
+                only if the character falls/jumps on top of it.
+                The character is positioned realative to the element on which he
+                is standing and will move with it. The character will not
+                collide with other solid but may collide with other moving
+                solids. Note that moving solids should be placed in such a way
+                that they can not interfere with each other.
+                The "solidClass" is ignored if an element has the
+                "solidMovingClass".
 
             "solidColliderClass": "solidCollider"
                 Only used internaly, make sure this class is not used anywhere
