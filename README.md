@@ -85,7 +85,7 @@ similar to the ones provided in main.css.
 
 Enable or Disable character by id
 
-    Engine.steEnableMovable(id, val);
+    Engine.setEnableMovable(id, val);
         id:
             id of the character to enable or diable
 
