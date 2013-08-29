@@ -863,6 +863,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.updateCollider = function (direction, colliderSize) {
         var toleranceLeft = 0,
             toleranceRight = 0;
+            delta = 3;
         if ((direction === undefined) || (direction === 'left')) {
             if (colliderSize === undefined)
                 colliderSize = Math.abs(Math.floor(
@@ -873,8 +874,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             colliderSize++;
             $('#' + me.id + '-collider-left')
             .width(colliderSize  + "px")
-            .height($('#' + me.idCollider).height() - toleranceLeft + "px")
-            .css("left", "-" + colliderSize + "px");
+            .height(($('#' + me.idCollider).height() - toleranceLeft -
+                        2 * delta) + "px")
+            .css({
+                "left": "-" + colliderSize + "px",
+                "top": delta + "px"
+            });
         }
 
         if ((direction === undefined) || (direction === 'right')) {
@@ -887,8 +892,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             colliderSize++;
             $('#' + me.id + '-collider-right')
             .width(colliderSize + "px")
-            .height($('#' + me.idCollider).height() - toleranceRight + "px")
-            .css("left", ($('#' + me.idCollider).width()) + "px");
+            .height(($('#' + me.idCollider).height() - toleranceRight -
+                        2 * delta) + "px")
+            .css({
+                "left": ($('#' + me.idCollider).width()) + "px",
+                "top": delta + "px"
+            });
         }
 
         if ((direction === undefined) || (direction === 'top')) {
