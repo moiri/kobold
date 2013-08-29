@@ -23,13 +23,15 @@ Fast Setup
 
 3.  make sure a js file contains the following lines
 
-        $(document).ready(function () {
-            var engine, kobold;
-            engine = new Engine();
-            kobold = engine.addMovable();
-            engine.start();
-            kobold.enableMe();
-        });
+    '''javascript
+    $(document).ready(function () {
+        var engine, kobold;
+        engine = new Engine();
+        kobold = engine.addMovable();
+        engine.start();
+        kobold.enableMe();
+    });
+    '''
 
 Configuration
 -------------
