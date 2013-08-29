@@ -23,7 +23,7 @@ Fast Setup
 
 3.  make sure a js file contains the following lines
 
-    '''javascript
+    ```javascript
     $(document).ready(function () {
         var engine, kobold;
         engine = new Engine();
@@ -31,7 +31,7 @@ Fast Setup
         engine.start();
         kobold.enableMe();
     });
-    '''
+    ```
 
 Configuration
 -------------
