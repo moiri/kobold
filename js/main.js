@@ -1,22 +1,29 @@
 function Engine() {
     var me = this;
-    me.config = [];
-    me.movable = [];
-    me.keyCodes = [];
-    me.ticker = null;
-    me.keyHandler = null;
+    {
+        // INITIALISATION
+        me.config = [];
+        me.movable = [];
+        me.keyCodes = [];
+        me.ticker = null;
+        me.keyHandler = null;
+    }
 
-    // configuration ENGINE
-    me.config.maxFps = 40;
-    me.config.solidClass = 'solid';
-    me.config.solidMovingClass = me.config.solidClass + 'Moving';
-    me.config.solidColliderClass = 'solidCollider';
-    me.config.solidColliderMovingClass =
-        me.config.solidColliderClass + 'Moving';
+    {
+        // CONFIGURATION
+        me.config.maxFps = 40;
+        me.config.solidClass = 'solid';
+        me.config.solidMovingClass = me.config.solidClass + 'Moving';
+        me.config.solidColliderClass = 'solidCollider';
+        me.config.solidColliderMovingClass =
+            me.config.solidColliderClass + 'Moving';
 
-    this.setConfigAttr = function (attr, val) {
-        me.config[attr] = val;
-    };
+        this.setConfigAttr = function (attr, val) {
+            me.config[attr] = val;
+        };
+    }
+
+    // METHODS
 
     this.addMovable = function (id, cssClass) {
         var newMovable = [];
@@ -407,6 +414,8 @@ function Movable(id, config, enableMeCb, disableMeCb, setKeyCodeCb) {
         me.solids = $('.' + me.solidColliderClass);
         me.solidsMoving = $('.' + me.solidColliderMovingClass);
     }
+
+    // METHODS
 
     this.active = function () {
         $('#' + me.idImg).removeClass('rand');
@@ -935,17 +944,26 @@ function KeyHandler () {
 
 function Ticker (maxFps) {
     var me = this;
-    me.timerId = null;
-    me.fps = [];
-    me.fps.max = maxFps;
-    me.fps.real = me.fps.max;
-    me.time = [];
-    me.time.start = 0;
-    me.time.diff = 0;
-    me.tick = [];
-    me.tick.min = 1000/me.fps.max;
-    me.tick.real = 1000/me.fps.real;
-    me.tickCnt = 0;
+    {
+        // INITIALISATION
+        me.fps = [];
+        me.time = [];
+        me.tick = [];
+    }
+
+    {
+        // CONFIGURATION
+        me.timerId = null;
+        me.fps.max = maxFps;
+        me.fps.real = me.fps.max;
+        me.time.start = 0;
+        me.time.diff = 0;
+        me.tick.min = 1000/me.fps.max;
+        me.tick.real = 1000/me.fps.real;
+        me.tickCnt = 0;
+    }
+
+    // METHODS
 
     this.drawFps = function () {
         me.fps.real = Math.floor(1000 / me.tick.real);
