@@ -148,9 +148,11 @@ function Engine() {
             }
         });
         $('.' + me.config.solidClass).each(function (idx) {
-            var width = $(this).outerWidth(),
-                height = $(this).outerHeight(),
+            var width = $(this).width(),
+                height = $(this).height(),
                 borderLeftWidth = $(this).css('border-left-width'),
+                borderRightWidth = $(this).css('border-right-width'),
+                borderTopWidth = $(this).css('border-top-width');
                 borderBottomWidth = $(this).css('border-bottom-width');
             if ($(this).hasClass(me.config.solidMovingClass)) {
                 $(this).append('<div id="' +
@@ -163,8 +165,10 @@ function Engine() {
                     '"></div>');
             }
             $(this).children().each(function () {
-                $(this).width(width);
-                $(this).height(height);
+                $(this).width(width + parseInt(borderLeftWidth) +
+                    parseInt(borderRightWidth));
+                $(this).height(height + parseInt(borderTopWidth) +
+                    parseInt(borderBottomWidth));
                 $(this).css('left', '-' + borderLeftWidth);
                 $(this).css('bottom', '-' + borderBottomWidth);
             });
