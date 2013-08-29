@@ -49,7 +49,6 @@ function Engine() {
         var inAir = false,
             onMovableSolid = false;
         movable.setDeltaTime(me.ticker.getDeltaTime());
-        if (movable.getEnableStatus('appear')) movable.checkPosition();
         onMovableSolid = movable.checkCollisionDynamic();
         if (!onMovableSolid) inAir = movable.inAir();
         if (movable.getEnableStatus('pickUp')) movable.pickUp();
@@ -100,6 +99,7 @@ function Engine() {
             movable.idle();
         }
         if (me.keyHandler.isAnyKeyPressed()) movable.active();
+        if (movable.getEnableStatus('appear')) movable.checkPosition();
     };
 
     this.registerKeyEvents = function () {
