@@ -2,7 +2,7 @@ function Engine() {
     var me = this;
     me.config = [];
     me.movable = [];
-    me.keyCode = [];
+    me.keyCodes = [];
     me.ticker = null;
     me.keyHandler = null;
 
@@ -105,8 +105,9 @@ function Engine() {
 
     this.registerKeyEvents = function () {
         $(document).keydown( function (event) {
-            for (action in me.keyCode)
-                if (event.keyCode === me.keyCode[action])
+            var idx;
+            for (idx in me.keyCodes)
+                if (event.keyCode === me.keyCodes[idx])
                     event.preventDefault();
             me.keyHandler.setKey(event.keyCode, true);
         });
@@ -118,8 +119,10 @@ function Engine() {
         });
     };
 
-    this.setKeyCode = function (attr, keyCode) {
-        me.keyCode[attr] = keyCode;
+    this.setKeyCode = function (keyCode) {
+        if (!(keyCode in me.keyCodes)) {
+            me.keyCodes.push(keyCode)
+        }
     };
 
     this.setup = function () {
@@ -267,7 +270,7 @@ function Movable(id, config, enableMeCb, disableMeCb, setKeyCodeCb) {
         // KeyCodes
         this.setKeyCode = function (attr, keyCode) {
             me.keyCode[attr] = keyCode;
-            setKeyCodeCb(attr, keyCode);
+            setKeyCodeCb(keyCode);
         };
         this.getKeyCode = function (attr) {
             return me.keyCode[attr];
