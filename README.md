@@ -100,6 +100,10 @@ similar to the ones provided in main.css.
         return
             Movable object of the added charcter
 
+Start the engine (frame manager, key bindings, etc)
+
+    Engine.start();
+
 Enable or Disable character by id
 
     Engine.setEnableMovable(id, val);
