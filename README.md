@@ -148,9 +148,9 @@ Enable ability of the character
                 Enables the character to jump higher when crouch is pressed
                 while jumping. If this is turned off, the character jumps Only
                 to the maximal height set by Movable.setMaxJumpHeight(maxHeight)
+                This works also if "crouchJump" is turned off.
                 If "crouch" is turned off, this parameter has no effect.
                 If "jump" is turned off, this parameter has no effect.
-                If "crouchJump" is turned off, this parameter has no effect.
 
             "appear": true
                 With this enabled, the character cannot leave the visible screen

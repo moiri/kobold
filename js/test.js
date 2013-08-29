@@ -77,7 +77,7 @@ $(document).ready(function() {
         $(this).toggleClass('disable');
     });
     $('#enable-crouchJump').click(function () {
-        kobold.toggleEnableAttr('crouchJum');
+        kobold.toggleEnableAttr('crouchJump');
         $(this).toggleClass('disable');
     });
     $('#enable-crouchJumpHigh').click(function () {
