@@ -2,6 +2,7 @@ function Engine() {
     var me = this;
     me.config = [];
     me.movable = [];
+    me.keyCode = [];
     me.ticker = null;
     me.keyHandler = null;
 
@@ -28,7 +29,7 @@ function Engine() {
                     ' idle right"></div></div>');
             newMovable.enable = false;
             newMovable.obj = new Movable(id, me.config,
-                me.enableMovable, me.disableMovable);
+                me.enableMovable, me.disableMovable, me.setKeyCode);
             me.movable[id] = newMovable;
         }
         else {
@@ -117,26 +118,8 @@ function Engine() {
         });
     };
 
-    this.updateCollider = function (elem, prop, val) {
-        var deltaSize;
-        if ($(elem).hasClass(me.config.solidMovingClass)) {
-            deltaSize = Math.round((val - parseFloat($(elem).css(prop))) *
-                me.ticker.getDeltaTime() * me.config.maxFps);
-            if (prop === 'bottom') {
-                if (deltaSize > 0) {
-                    deltaSize++;
-                    $(elem).children().first()
-                        .height($(elem).outerHeight() + deltaSize);
-                }
-            }
-            else if (prop === 'top') {
-                if (deltaSize < 0) {
-                    deltaSize--;
-                    $(elem).children().first()
-                        .height($(elem).outerHeight() - deltaSize);
-                }
-            }
-        }
+    this.setKeyCode = function (attr, keyCode) {
+        me.keyCode[attr] = keyCode;
     };
 
     this.setup = function () {
@@ -192,10 +175,32 @@ function Engine() {
         me.ticker.drawFps();
     };
 
+    this.updateCollider = function (elem, prop, val) {
+        var deltaSize;
+        if ($(elem).hasClass(me.config.solidMovingClass)) {
+            deltaSize = Math.round((val - parseFloat($(elem).css(prop))) *
+                me.ticker.getDeltaTime() * me.config.maxFps);
+            if (prop === 'bottom') {
+                if (deltaSize > 0) {
+                    deltaSize++;
+                    $(elem).children().first()
+                        .height($(elem).outerHeight() + deltaSize);
+                }
+            }
+            else if (prop === 'top') {
+                if (deltaSize < 0) {
+                    deltaSize--;
+                    $(elem).children().first()
+                        .height($(elem).outerHeight() - deltaSize);
+                }
+            }
+        }
+    };
+
     me.setup();
 }
 
-function Movable(id, config, enableMeCb, disableMeCb) {
+function Movable(id, config, enableMeCb, disableMeCb, setKeyCodeCb) {
     var me = this;
     {
         // INITIALISATION
@@ -260,18 +265,19 @@ function Movable(id, config, enableMeCb, disableMeCb) {
         };
 
         // KeyCodes
-        me.keyCode.jump = 32;
-        me.keyCode.run = 16;
-        me.keyCode.left = 37;
-        me.keyCode.right = 39;
-        me.keyCode.crouch = 17;
-
         this.setKeyCode = function (attr, keyCode) {
             me.keyCode[attr] = keyCode;
+            setKeyCodeCb(attr, keyCode);
         };
         this.getKeyCode = function (attr) {
             return me.keyCode[attr];
         };
+
+        me.setKeyCode('jump', 32);
+        me.setKeyCode('run', 16);
+        me.setKeyCode('left', 37);
+        me.setKeyCode('right', 39);
+        me.setKeyCode('crouch', 17);
 
         // Speed
         me.speed.right = 200;
