@@ -83,17 +83,15 @@ similar to the ones provided in main.css.
         return
             Movable object of the added charcter
 
-Enable character by id
+Enable or Disable character by id
 
-    Engine.enableMovable(id);
+    Engine.steEnableMovable(id, val);
         id:
-            id of the character to enable
+            id of the character to enable or diable
 
-Disable character by id
-
-    Engine.disableMovable(id);
-        id:
-            id of character to disable
+        val:
+            true to enable character, false to disable character. If val is
+            not defined, the enable status of the character is toggled.
 
 Enable character
 
@@ -102,6 +100,10 @@ Enable character
 Disable character
 
     Movable.disableMe();
+
+Toggle enable status of the character
+
+    Movable.toggleEnableMe();
 
 Enable ability of the character
 
@@ -163,6 +165,12 @@ Enable ability of the character
 Disable ability of the character
 
     Movable.disableAttr(attr);
+        attr:
+            the same attributes as in Movable.enableAttr(attr).
+
+Toggle ability enable status of the character
+
+    Movable.toggleEnableAttr(attr);
         attr:
             the same attributes as in Movable.enableAttr(attr).
 

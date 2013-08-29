@@ -18,6 +18,32 @@
     opacity:0.2;
 }
 
+.enable {
+    position:absolute;
+    top:10px;
+    left:10px;
+    visibility:hidden;
+}
+
+.clickable {
+    cursor:pointer;
+}
+
+.clickable.configElem.disable {
+    color:red;
+}
+
+.debug * .enable, .debug > .enable {
+    visibility:visible;
+}
+
+.config {
+    position:absolute;
+    top:10px;
+    right:10px;
+    visibility:hidden;
+}
+
 .test * .config, .test > .config {
     visibility:visible;
 }

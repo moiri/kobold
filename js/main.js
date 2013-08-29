@@ -36,21 +36,13 @@ function Engine() {
                     ' idle right"></div></div>');
             newMovable.enable = false;
             newMovable.obj = new Movable(id, me.config,
-                me.enableMovable, me.disableMovable, me.setKeyCode);
+                    me.setEnableMovable, me.setKeyCode);
             me.movable[id] = newMovable;
         }
         else {
             throw 'Movable with id ' + id + ' already exists';
         }
         return me.movable[id].obj;
-    };
-
-    this.enableMovable = function (id) {
-        me.movable[id].enable = true;
-    };
-
-    this.disableMovable = function (id) {
-        me.movable[id].enable = false;
     };
 
     this.movableHandler = function (movable) {
@@ -124,6 +116,11 @@ function Engine() {
         $(document).blur( function (event) {
             me.keyHandler.clearKeyCodeMap();
         });
+    };
+
+    this.setEnableMovable = function (id, val) {
+        if (val === undefined) val = !me.movable[id].enable;
+        me.movable[id].enable = val;
     };
 
     this.setKeyCode = function (keyCode) {
@@ -214,7 +211,7 @@ function Engine() {
     me.setup();
 }
 
-function Movable(id, config, enableMeCb, disableMeCb, setKeyCodeCb) {
+function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     var me = this;
     {
         // INITIALISATION
@@ -264,15 +261,21 @@ function Movable(id, config, enableMeCb, disableMeCb, setKeyCodeCb) {
 
         this.enableAttr = function (attr) {
             if (attr === 'jumpAbsolute') {
-                throw 'not allowed to set ' + attr + 'manually!';
+                throw 'not allowed to set ' + attr + ' manually!';
             }
             me.enable[attr] = true;
         };
         this.disableAttr = function (attr) {
             if (attr === 'jumpAbsolute') {
-                throw 'not allowed to set ' + attr + 'manually!';
+                throw 'not allowed to set ' + attr + ' manually!';
             }
             me.enable[attr] = false;
+        };
+        this.toggleEnableAttr = function (attr) {
+            if (attr === 'jumpAbsolute') {
+                throw 'not allowed to set ' + attr + ' manually!';
+            }
+            me.enable[attr] = !me.enable[attr];
         };
         this.getEnableStatus = function (attr) {
             return me.enable[attr];
@@ -542,11 +545,15 @@ function Movable(id, config, enableMeCb, disableMeCb, setKeyCodeCb) {
     };
 
     this.disableMe = function () {
-        disableMeCb(me.id);
+        setEnableMeCb(me.id, false);
     };
 
     this.enableMe = function () {
-        enableMeCb(me.id);
+        setEnableMeCb(me.id, true);
+    };
+
+    this.toggleEnableMe = function () {
+        setEnableMeCb(me.id);
     };
 
     this.genJumpLut = function () {
