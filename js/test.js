@@ -43,6 +43,12 @@ $(document).ready(function() {
     $('#debug').click(function () {
         $('body').toggleClass('debug');
     });
+    $('#enable').click(function () {
+        kobold.enableMe();
+    });
+    $('#disable').click(function () {
+        kobold.disableMe();
+    });
     $('#content').append('<div id="pickUp1" class="pickUp1 pickUp"></div>');
     $('#content').append('<div id="pickUp2" class="pickUp2 pickUp"></div>');
     $('#solidCnt').text((i-1)*j);
