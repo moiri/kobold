@@ -187,20 +187,21 @@ function Engine() {
     };
 
     this.updateCollider = function (elem, prop, val) {
-        var deltaSize, delta = 1;
+        var deltaSize,
+            delta = 1;
         if ($(elem).hasClass(me.config.solidMovingClass)) {
             deltaSize = Math.round((val - parseFloat($(elem).css(prop))) *
                 me.ticker.getDeltaTime() * me.config.maxFps);
             if (prop === 'bottom') {
                 if (deltaSize > 0) {
-                    deltaSize += 1;
+                    deltaSize += delta;
                     $(elem).children().first()
                         .height($(elem).outerHeight() + deltaSize);
                 }
             }
             else if (prop === 'top') {
                 if (deltaSize < 0) {
-                    deltaSize -= 1;
+                    deltaSize -= delta;
                     $(elem).children().first()
                         .height($(elem).outerHeight() - deltaSize);
                 }
