@@ -133,17 +133,14 @@ function Engine() {
     };
 
     this.setup = function () {
+        var oldFunction = jQuery.fx.step._default;
         jQuery.extend(jQuery.fx, {
             step: {
                 _default: function( fx ) {
                     if (fx.prop === 'bottom' || fx.prop === 'top') {
                         me.updateCollider(fx.elem, fx.prop, fx.now);
                     }
-                    if ( fx.elem.style && fx.elem.style[ fx.prop ] != null ) {
-                        fx.elem.style[ fx.prop ] = fx.now + fx.unit;
-                    } else {
-                        fx.elem[ fx.prop ] = fx.now;
-                    }
+                    oldFunction(fx);
                 }
             }
         });
