@@ -97,7 +97,7 @@ $(document).ready(function() {
     kobold = engine.addMovable();
 
     engine.start();
-    kobold.setColliderTolerance(0);
+    kobold.setColliderTolerance(3);
     kobold.enableMe();
     $('div[id^="enable"]').each(function () {
         var attr = $(this).attr('id').split('-');

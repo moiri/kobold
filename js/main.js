@@ -343,7 +343,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.collider.right.jObject = null; // internal
         me.collider.top.isColliding = false; // internal
         me.collider.top.jObject = null; // internal
-        me.collider.top.activeId = null; // internal
         me.collider.bottom.isColliding = false; // internal
         me.collider.bottom.jObject = null; // internal
         me.collider.bottom.activeId = null; // internal
@@ -631,7 +630,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.updateCollider("top", me.delta.move.y + 1);
             collidedObjects = me.checkCollisionStatic('top');
             if (!me.collider.top.isColliding) {
-                me.collider.top.activeId = 'inAir';
                 me.cssMoveY(me.delta.move.y);
             }
             else {
@@ -642,10 +640,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                     collidedObjects.sort(function(a,b) {
                         return b.solidPosition[1][1] - a.solidPosition[1][1];
                     });
-                }
-                newColliderId = collidedObjects[0].jObject.attr('id');
-                if (me.collider.top.activeId !== newColliderId) {
-                    me.collider.top.activeId = newColliderId;
                 }
                 me.cssSetY($(window).height() -
                         collidedObjects[0].solidPosition[1][1] -
@@ -700,8 +694,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     this.moveLeft = function (run) {
         var collidedObjects,
-            dist2Collider,
-            newColliderObj,
             speed = (run) ? me.speed.leftRun : me.speed.left;
         me.action.moveLeft = true;
         $('#' + me.idImg).removeClass('idle right');
@@ -718,25 +710,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                     return b.solidPosition[0][1] - a.solidPosition[0][1];
                 });
             }
-            newColliderObj = collidedObjects[0].jObject;
-            if ((newColliderObj.attr('id') === me.collider.bottom.activeId) ||
-                    (newColliderObj.attr('id') === me.collider.top.activeId)) {
-                if (collidedObjects[1] !== undefined) {
-                    newColliderObj = collidedObjects[1].jObject;
-                }
-                else {
-                    me.move();
-                    return;
-                }
-            }
-            me.cssMoveX(me.positionsGet(newColliderObj.parent())[0][1] -
-                me.positionsGet($('#' + me.id))[0][0]);
+            me.cssMoveX(
+                me.positionsGet(collidedObjects[0].jObject.parent())[0][1] -
+                me.positionsGet($('#' + me.id))[0][0]
+            );
         }
     };
 
     this.moveRight = function (run) {
         var collidedObjects,
-            newColliderObj,
             speed = (run) ? me.speed.rightRun : me.speed.right;
         me.action.moveRight = true;
         $('#' + me.idImg).removeClass('idle left');
@@ -753,19 +735,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                     return a.solidPosition[0][0] - b.solidPosition[0][0];
                 });
             }
-            newColliderObj = collidedObjects[0].jObject;
-            if ((newColliderObj.attr('id') === me.collider.bottom.activeId) ||
-                    (newColliderObj.attr('id') === me.collider.top.activeId)) {
-                if (collidedObjects[1] !== undefined) {
-                    newColliderObj = collidedObjects[1].jObject;
-                }
-                else {
-                    me.move();
-                    return;
-                }
-            }
-            me.cssMoveX(me.positionsGet(newColliderObj.parent())[0][0] -
-                me.positionsGet($('#' + me.id))[0][1]);
+            me.cssMoveX(
+                me.positionsGet(collidedObjects[0].jObject.parent())[0][0] -
+                me.positionsGet($('#' + me.id))[0][1]
+            );
         }
     };
 
