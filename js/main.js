@@ -226,7 +226,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.size = [];
         me.collider = [];
         me.collider.left = [];
+        me.collider.left.tolerance = [];
         me.collider.right = [];
+        me.collider.right.tolerance = [];
         me.collider.top = [];
         me.collider.bottom = [];
         me.jumpAttr = [];
@@ -336,10 +338,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         };
 
         // Collider
-        me.collider.left.tolerance = 10;
+        me.collider.left.tolerance.top = 3;
+        me.collider.left.tolerance.bottom = 10;
         me.collider.left.isColliding = false; // internal
         me.collider.left.jObject = null; // internal
-        me.collider.right.tolerance = 10;
+        me.collider.right.tolerance.top = 3;
+        me.collider.right.tolerance.bottom = 10;
         me.collider.right.isColliding = false; // internal
         me.collider.right.jObject = null; // internal
         me.collider.top.isColliding = false; // internal
@@ -348,14 +352,26 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.collider.bottom.jObject = null; // internal
         me.collider.bottom.activeId = null; // internal
 
-        this.setColliderTolerance = function (left, right) {
-            me.collider.left.tolerance = left;
-            me.collider.right.tolerance = (right === undefined) ? left : right;
+        this.setColliderToleranceTop = function (left, right) {
+            me.collider.left.tolerance.top = left;
+            me.collider.right.tolerance.top =
+                (right === undefined) ? left : right;
         };
-        this.getColliderTolerance = function () {
+        this.setColliderToleranceBottom = function (left, right) {
+            me.collider.left.tolerance.bottom = left;
+            me.collider.right.tolerance.bottom =
+                (right === undefined) ? left : right;
+        };
+        this.getColliderToleranceTop = function () {
             var ret = [];
-            ret.left = me.collider.left.tolerance;
-            ret.right = me.collider.right.tolerance;
+            ret.left = me.collider.left.tolerance.top;
+            ret.right = me.collider.right.tolerance.top;
+            return ret;
+        };
+        this.getColliderToleranceBottom = function () {
+            var ret = [];
+            ret.left = me.collider.left.tolerance.bottom;
+            ret.right = me.collider.right.tolerance.bottom;
             return ret;
         };
 
@@ -875,24 +891,26 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     }
 
     this.updateCollider = function (direction, colliderSize) {
-        var toleranceLeft = 0,
-            toleranceRight = 0;
-            delta = 0;
+        var tolerance = [];
+        tolerance.bottom = [];
+        tolerance.bottom.left = 0;
+        tolerance.bottom.right = 0;
+
         if ((direction === undefined) || (direction === 'left')) {
             if (colliderSize === undefined)
                 colliderSize = Math.abs(Math.floor(
                             me.delta.time.actual * me.speed.left));
             if (me.collider.bottom.isColliding) {
-                toleranceLeft = me.collider.left.tolerance;
+                tolerance.bottom.left = me.collider.left.tolerance.bottom;
             }
             colliderSize++;
             $('#' + me.id + '-collider-left')
             .width(colliderSize  + "px")
-            .height(($('#' + me.idCollider).height() - toleranceLeft -
-                        2 * delta) + "px")
+            .height(($('#' + me.idCollider).height() - tolerance.bottom.left -
+                        me.collider.left.tolerance.top) + "px")
             .css({
                 "left": "-" + colliderSize + "px",
-                "top": delta + "px"
+                "top": me.collider.left.tolerance.top + "px"
             });
         }
 
@@ -901,16 +919,16 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 colliderSize = Math.abs(
                     Math.floor(me.delta.time.actual * me.speed.right));
             if (me.collider.bottom.isColliding) {
-                toleranceRight = me.collider.right.tolerance;
+                tolerance.bottom.right = me.collider.right.tolerance.bottom;
             }
             colliderSize++;
             $('#' + me.id + '-collider-right')
             .width(colliderSize + "px")
-            .height(($('#' + me.idCollider).height() - toleranceRight -
-                        2 * delta) + "px")
+            .height(($('#' + me.idCollider).height() - tolerance.bottom.right -
+                        me.collider.right.tolerance.top) + "px")
             .css({
                 "left": ($('#' + me.idCollider).width()) + "px",
-                "top": delta + "px"
+                "top": me.collider.right.tolerance.top + "px"
             });
         }
 
