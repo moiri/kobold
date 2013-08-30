@@ -21,6 +21,9 @@ function Engine() {
         this.setConfigAttr = function (attr, val) {
             me.config[attr] = val;
         };
+        this.getConfigAttr = function (attr) {
+            return me.config[attr];
+        };
     }
 
     // METHODS
@@ -314,6 +317,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             else me.speed[attr] = speed;
         };
+        this.getSpeed = function (attr) {
+            return me.speed[attr];
+        };
 
         // Position
         me.pos.initX = 30;
@@ -327,6 +333,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.pos.initX = x;
             me.pos.initY = y;
         };
+        this.getInitialPosition = function () {
+            var res = [];
+            res.x = me.pos.initX;
+            res.y = me.pos.initY;
+            return res;
+        };
 
         // Size
         me.size.heightStand = 85;
@@ -335,6 +347,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
         this.setSize = function (attr, val) {
             me.size[attr] = val;
+        };
+        this.getSize = function (attr) {
+            return me.size[attr];
         };
 
         // Collider
@@ -357,16 +372,16 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.collider.right.tolerance.top =
                 (right === undefined) ? left : right;
         };
-        this.setColliderToleranceBottom = function (left, right) {
-            me.collider.left.tolerance.bottom = left;
-            me.collider.right.tolerance.bottom =
-                (right === undefined) ? left : right;
-        };
         this.getColliderToleranceTop = function () {
             var ret = [];
             ret.left = me.collider.left.tolerance.top;
             ret.right = me.collider.right.tolerance.top;
             return ret;
+        };
+        this.setColliderToleranceBottom = function (left, right) {
+            me.collider.left.tolerance.bottom = left;
+            me.collider.right.tolerance.bottom =
+                (right === undefined) ? left : right;
         };
         this.getColliderToleranceBottom = function () {
             var ret = [];
@@ -384,9 +399,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         this.setPickUpCounterId = function (id) {
             me.pickUpAttr.idCnt = id;
         };
+        this.getPickUpCounterId = function () {
+            return me.pickUpAttr.idCnt;
+        };
         this.setPickUpCssClass = function (cssClass) {
             me.pickUpAttr.cssClass = cssClass;
             me.pickUpAttr.jObjects = $('.' + me.pickUpAttr.cssClass);
+        };
+        this.getPickUpCssClass = function () {
+            return me.pickUpAttr.cssClass;
         };
         this.getPickUpCounter = function () {
             return me.pickUpAttr.counter;
@@ -402,6 +423,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         this.setMaxJumpHeight = function (maxHeight) {
             me.jumpAttr.height.max = maxHeight;
         };
+        this.getMaxJumpHeight = function () {
+            return me.jumpAttr.height.max;
+        };
 
         // Random Animations
         me.rand.minVal = 4;
@@ -412,6 +436,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         this.setRandomAnimationInterval = function (min, max) {
             me.rand.minVal = min;
             me.rand.maxVal = (max === undefined) ? min : max;
+        };
+        this.getRandomAnimationInterval = function () {
+            var ret = [];
+            ret.min = me.rand.minVal;
+            ret.max = me.rand.maxVal;
+            return ret;
         };
 
         // Action Flags
