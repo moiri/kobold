@@ -232,7 +232,7 @@ Get the key code of the corresponding ability
             the same attributes as in Movable.setKeyCode(attr).
 
         return
-            keyCode
+            keyCode as integer
 
 Id of element where the pick up count should appear. The corresponding
 element must exist on the webpage.
@@ -240,6 +240,12 @@ If "pickUp" is turned off, this parameter has no effect.
     
     Movable.setPickUpCounterId(id);
         id: "pickUpCnt"
+
+Get pick up counter idle
+
+    Movable.getPickUpCounterId();
+        return
+            pick up counter id as string.
 
 Class name definig which elements the character can pick up by moving over them.
 All elements on the web page intended to be objects that can be picked up must
@@ -249,11 +255,17 @@ If "pickUp" is turned off, this parameter has no effect.
     Movable.setPickUpCssClass(cssClass);
         cssClass: "pickUp"
 
+Get pick up class
+
+    Movable.getPickUpCssClass();
+        return
+            pick up css class as string
+
 Get the actual pick up counter value
 
     Movable.getPickUpCounter();
         return
-            value of the pick up counter
+            value of the pick up counter as integer
 
 Define the speed of the character. Please pay attention to the minus sign.
 
@@ -280,6 +292,19 @@ Define the speed of the character. Please pay attention to the minus sign.
         speed:
             speed value
 
+Get the speed value of an ability
+
+    Movabe.getSpeed(attr);
+        attr:
+            same values as descriped in Movable.setSpeed(attr, speed), with one
+            addition:
+
+            "inAir":
+                speed of the character while falling
+
+        return
+            speed value as signed integer
+
 Define the absolute screen position (in pixel) where the character will start.
 This coordinates will also be used if the character needs to be reset.
 
@@ -291,6 +316,12 @@ This coordinates will also be used if the character needs to be reset.
         y: 500
             Distance in pixel from the bottom screen frame to the bottom border
             of the character.
+
+Get the defined initial position (in pixel) of the character
+
+    Movable.getInitialPosition();
+        return
+            object with attribute x and y as pixel values.
 
 Define the size (in pixel) of the character in either standing or crouching
 position. Keep in mind that these values depend directly on the animation of the
@@ -307,18 +338,56 @@ movable. It may be unwise to change this after the inital configuration.
             "width": 53
                 Width (in pixel) of the character.
 
-Set these parameters allow the character to move over objects of small heights,
-without colliding (move up stairs without jumping). The value is the maxium
-height (in pixel) of an objet in order to be ignored by right and left
-collision. This can be turned off by setting both values to zero.
+Get size attribute of character
 
-    Movable.setColliderTolerance(left, right);
+    Movable.getSize(attr);
+        attr:
+            the same values as described in Movable.setSize(attr, val);
+
+        return
+            the size attribute as pixel value.
+
+Setting these parameters allows the character to move over objects of small
+heights, without colliding (move up stairs without jumping). The value is the
+maxium height (in pixel) of an objet in order to be ignored by right and left
+collision. This can be turned off by setting both values to zero. Note that
+due to imprecision when zooming functionnality of the browsers is used, this
+values should not be set lower than 3.
+
+    Movable.setColliderToleranceBottom(left, right);
         left: 10
             Tolarance (in pixel) for the left collider.
 
         right: 10
             Tolarance (in pixel) for the right collider. If this value is not
             set, both colliders are set to the left value.
+
+Get the bottom collider tolerance values.
+
+    Movable.getColliderToleranceBottom();
+        return
+            object with attributes left and right as pixel values.
+
+Setting these parameters allows the character to move below objects of small
+heights hanging down from the ceiling, without colliding.The value is the
+maxium height (in pixel) of an objet in order to be ignored by right and left
+collision. This can be turned off by setting both values to zero. Note that
+due to imprecision when zooming functionnality of the browsers is used, this
+values should not be set lower than 3.
+
+    Movable.setColliderToleranceTop(left, right);
+        left: 3
+            Tolarance (in pixel) for the left collider.
+
+        right: 3
+            Tolarance (in pixel) for the right collider. If this value is not
+            set, both colliders are set to the left value.
+
+Get the top collider tolerance values.
+
+    Movable.getColliderToleranceTop();
+        return
+            object with attributes left and right as pixel values.
 
 Define the maximal height (in pixel) the character can jump. One exception to
 surpass this height is by enabling "crouchJumpHeight". Please check the comments
@@ -329,6 +398,12 @@ If "jump" is turned off, this parameter has no effect.
         maxHeight: 160
             Maximal jump height (in pixel) of the character.
 
+Get the maximum jump height
+
+    Movable.getMaxJumpHeight();
+        return
+            maximal jump height as pixel value
+
 Define the intervall of random idle animations (in seconds). After completion of
 an animation, The next random animation will start in min seconds at the
 erliest and in max seconds at the latest.
@@ -336,9 +411,15 @@ erliest and in max seconds at the latest.
     Movable.setRandomAnimationInterval(min, max);
         min: 4
             erliest time of a random animation to start the next time after
-            completion.
+            completion (in seconds).
 
         max: 10
             latest time of a random animation to start the next time after
-            completion. If no max value is spezified, the next annimation will
-            alway start after min seconds.
+            completion (in seconds). If no max value is spezified, the next
+            animation will alway start after min seconds.
+
+Get the random animation interval values
+
+    Movable.getRandomAnimationInterval();
+        return
+            object with attributes min and max (seconds).
