@@ -12,6 +12,12 @@ The origin of this project is an idea of the Swiss game designer company
 [Koboldgames](http://www.koboldgames.ch/home/). The animations and images were
 provided by these nice people and are part of their corporate design.
 
+Version
+-------
+
+This README should be up to date to the current commits. If you use a released
+version, only consider the attached README to this version.
+
 Fast Setup
 ----------
 
