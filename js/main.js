@@ -470,6 +470,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.solidColliderMovingClass = config.solidColliderMovingClass
         me.solids = $('.' + me.solidColliderClass);
         me.solidsMoving = $('.' + me.solidColliderMovingClass);
+
+        me.documentHeight = $(document).height();
+        me.documentWidth = $(document).width();
     }
 
     // METHODS
@@ -551,15 +554,29 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.checkPosition = function () {
-        var pos = me.positionsGet($('#' + me.id));
-        if (pos[1][0] > $(window).height()) {
+        var pos = me.positionsGet($('#' + me.id)),
+            posImg = me.positionsGet($('#' + me.idImg));
+        if (pos[1][0] > (me.documentHeight - $('#' + me.id).height())) {
+            // callback function documentBottomOverflow
             me.appear(me.pos.x, parseInt(me.pos.y));
         }
+        else if (0 > me.documentWidth - posImg[0][1]) {
+            // callback function documentRightOverflow
+            me.cssMoveX(me.documentWidth - (posImg[0][1]));
+        }
         else if (pos[0][0] < 0) {
+            // callback function documentLeftOverflow
             me.cssMoveX(-pos[0][0]);
         }
+        else if (pos[1][0] < 0) {
+            // callback function documentLeftOverflow
+            me.cssMoveX(-pos[1][0]);
+        }
+        else if (pos[1][0] > $(window).height()) {
+            // callback function windowBottomOverflow
+        }
         else if (pos[0][1] > $(window).width()) {
-            me.cssMoveX($(window).width() - pos[0][1]);
+            // callback function windowRightOverflow
         }
     };
 
@@ -577,19 +594,23 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.cssMoveX = function (val) {
+        me.documentWidth = $(document).width();
         $('#' + me.id).css("left", "+=" + val + "px");
     };
 
     this.cssSetX = function (val, force) {
+        me.documentWidth = $(document).width();
         if (me.pos.absolute || force)
             $('#' + me.id).css("left", val + "px");
     };
 
     this.cssMoveY = function (val) {
+        me.documentHeight = $(document).height();
         $('#' + me.id).css("bottom", "+=" + val + "px");
     };
 
     this.cssSetY = function (val, force) {
+        me.documentHeight = $(document).height();
         if (me.pos.absolute || force)
             $('#' + me.id).css("bottom", val + "px");
     };
