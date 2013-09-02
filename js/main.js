@@ -241,6 +241,17 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.delta.time = [];
         me.delta.dist = [];
         me.delta.move = [];
+        me.overflow = [];
+        me.overflow.window = [];
+        me.overflow.window.left = [];
+        me.overflow.window.right = [];
+        me.overflow.window.top = [];
+        me.overflow.window.bottom = [];
+        me.overflow.document = [];
+        me.overflow.document.left = [];
+        me.overflow.document.right = [];
+        me.overflow.document.top = [];
+        me.overflow.document.bottom = [];
     }
 
     {
@@ -450,7 +461,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.action.moveLeft = false; // internal
         me.action.moveRight = false; // internal
 
-
         // Temporal Information Needed for the Next Frame
         me.delta.time.min = 1 / config.maxFps;
         me.delta.time.actual = me.delta.time.min;
@@ -471,8 +481,51 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.solids = $('.' + me.solidColliderClass);
         me.solidsMoving = $('.' + me.solidColliderMovingClass);
 
-        me.documentHeight = $(document).height();
-        me.documentWidth = $(document).width();
+        // Overflow Behavior
+        me.overflow.document.height = $(document).height();
+        me.overflow.document.heightVirtual = null;
+        me.overflow.document.width = $(document).width();
+        me.overflow.document.widthVirtual = null;
+
+        me.overflow.document.left.delta = 0;
+        me.overflow.document.left.cb = function (pos) {
+            me.cssMoveX(-pos[0][0]);
+        };
+        me.overflow.document.right.delta = 0;
+        me.overflow.document.right.cb = function (pos) {
+            me.cssMoveX(me.overflow.document.widthVirtual - pos[0][1]);
+        };
+        me.overflow.document.top.delta = -me.size.heightStand;
+        me.overflow.document.top.cb = function (pos) {};
+        me.overflow.document.bottom.delta = -me.size.heightStand;;
+        me.overflow.document.bottom.cb = function (pos) {
+            me.appear(me.pos.x, parseInt(me.pos.y));
+        };
+        me.overflow.window.left.delta = 0;
+        me.overflow.window.left.cb = function (pos) {
+        };
+        me.overflow.window.right.delta = 0;
+        me.overflow.window.right.cb = function (pos) {
+        };
+        me.overflow.window.top.delta = 0;
+        me.overflow.window.top.cb = function (pos) {
+        };
+        me.overflow.window.bottom.delta = 0;
+        me.overflow.window.bottom.cb = function (pos) {
+        };
+
+        this.setDocumentOverflowCb = function (direction, cb) {
+            me.overflow.document[direction].cb = cb;
+        };
+        this.setDocumentOverflowDelta = function (direction, delta) {
+            me.overflow.document[direction].delta = delta;
+        };
+        this.setWindowOverflowCb = function (direction, cb) {
+            me.overflow.window[direction].cb = cb;
+        };
+        this.setWindowOverflowDelta = function (direction, delta) {
+            me.overflow.window[direction].delta = delta;
+        };
     }
 
     // METHODS
@@ -555,35 +608,74 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     this.checkPosition = function () {
         var pos = me.positionsGet($('#' + me.id)),
-            posImg = me.positionsGet($('#' + me.idImg));
-        if (pos[1][0] > (me.documentHeight - $('#' + me.id).height())) {
-            // callback function documentBottomOverflow
-            me.appear(me.pos.x, parseInt(me.pos.y));
+            posImg = me.positionsGet($('#' + me.idImg)),
+            imgDiff = 0;
+
+        // check document boundaries
+        if (me.overflow.document.widthVirtual >= me.overflow.document.width) {
+            me.overflow.document.widthVirtual = null;
         }
-        else if (0 > me.documentWidth - posImg[0][1]) {
-            // callback function documentRightOverflow
-            me.cssMoveX(me.documentWidth - (posImg[0][1]));
+        if (me.overflow.document.heightVirtual >= me.overflow.document.height) {
+            me.overflow.document.heightVirtual = null;
         }
-        else if (pos[0][0] < 0) {
-            // callback function documentLeftOverflow
-            me.cssMoveX(-pos[0][0]);
+        if ((me.overflow.document.widthVirtual === null) &&
+                ((posImg[0][1] > me.overflow.document.width) ||
+                (pos[0][1] > me.overflow.document.width))) {
+            imgDiff = posImg[0][1] - pos[0][1];
+            if (imgDiff < 0) imgDiff = 0;
+            me.overflow.document.widthVirtual =
+                me.overflow.document.width;
         }
-        else if (pos[1][0] < 0) {
-            // callback function documentLeftOverflow
-            me.cssMoveX(-pos[1][0]);
+        else if ((me.overflow.document.heightVirtual === null) &&
+                ((posImg[1][1] > me.overflow.document.height) ||
+                (pos[1][1] > me.overflow.document.height))) {
+            imgDiff = posImg[1][1] - pos[1][1];
+            if (imgDiff < 0) imgDiff = 0;
+            me.overflow.document.heightVirtual =
+                me.overflow.document.height - imgDiff;
         }
-        else if (pos[1][0] > $(window).height()) {
-            // callback function windowBottomOverflow
+        // check document overflow
+        if (pos[0][0] < me.overflow.document.left.delta) {
+            me.overflow.document.left.cb(pos);
         }
-        else if (pos[0][1] > $(window).width()) {
-            // callback function windowRightOverflow
+        else if ((me.overflow.document.widthVirtual != null) &&
+                (pos[0][1] > (me.overflow.document.widthVirtual -
+                     me.overflow.document.right.delta))) {
+            me.overflow.document.right.cb(pos);
+        }
+        else if (pos[1][0] < me.overflow.document.top.delta) {
+            me.overflow.document.top.cb(pos);
+        }
+        else if ((me.overflow.document.heightVirtual != null) &&
+                (pos[1][1] > (me.overflow.document.heightVirtual -
+                    me.overflow.document.bottom.delta))) {
+            me.overflow.document.bottom.cb(pos);
+        }
+
+        // check window overflow (only considered if no document overflow)
+        else if (pos[0][0] <
+                    ($(window).scrollLeft() - me.overflow.window.left.delta)) {
+            me.overflow.window.left.cb(pos);
+        }
+        else if (pos[0][1] > ($(window).scrollLeft() + $(window).width() -
+                    me.overflow.window.right.delta)) {
+            me.overflow.window.right.cb(pos);
+        }
+        else if (pos[1][0] <
+                    ($(window).scrollTop() - me.overflow.window.top.delta)) {
+            me.overflow.window.top.cb(pos);
+        }
+        else if (pos[1][1] > ($(window).scrollTop() + $(window).height() -
+                    me.overflow.window.bottom.delta)) {
+            me.overflow.window.bottom.cb(pos);
         }
     };
 
     this.crouch = function () {
         if (!me.action.crouch) {
             $('#' + me.idImg).addClass('crouch');
-            $('#' + me.idImg).css('top', (parseInt($('#' + me.idImg).css('top')) -
+            $('#' + me.idImg).css('top',
+                    (parseInt($('#' + me.idImg).css('top')) -
                     (me.size.heightStand - me.size.heightCrouch)) + 'px');
             $('#' + me.idCollider).height(me.size.heightCrouch + 'px');
             if (me.enable.crouchJumpHigh && !me.collider.bottom.isColliding)
@@ -594,23 +686,23 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.cssMoveX = function (val) {
-        me.documentWidth = $(document).width();
+        me.overflow.document.width = $(document).width();
         $('#' + me.id).css("left", "+=" + val + "px");
     };
 
     this.cssSetX = function (val, force) {
-        me.documentWidth = $(document).width();
+        me.overflow.document.width = $(document).width();
         if (me.pos.absolute || force)
             $('#' + me.id).css("left", val + "px");
     };
 
     this.cssMoveY = function (val) {
-        me.documentHeight = $(document).height();
+        me.overflow.document.height = $(document).height();
         $('#' + me.id).css("bottom", "+=" + val + "px");
     };
 
     this.cssSetY = function (val, force) {
-        me.documentHeight = $(document).height();
+        me.overflow.document.height = $(document).height();
         if (me.pos.absolute || force)
             $('#' + me.id).css("bottom", val + "px");
     };
