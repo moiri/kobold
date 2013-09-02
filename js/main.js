@@ -140,38 +140,13 @@ function Engine() {
             step: {
                 _default: function( fx ) {
                     if (fx.prop === 'bottom' || fx.prop === 'top') {
-                        me.updateCollider(fx.elem, fx.prop, fx.now);
+                        me.updateMovingCollider(fx.elem, fx.prop, fx.now);
                     }
                     oldFunction(fx);
                 }
             }
         });
-        $('.' + me.config.solidClass).each(function (idx) {
-            var width = $(this).width(),
-                height = $(this).height(),
-                borderLeftWidth = $(this).css('border-left-width'),
-                borderRightWidth = $(this).css('border-right-width'),
-                borderTopWidth = $(this).css('border-top-width');
-                borderBottomWidth = $(this).css('border-bottom-width');
-            if ($(this).hasClass(me.config.solidMovingClass)) {
-                $(this).append('<div id="' +
-                    me.config.solidColliderMovingClass + idx + '" class="' +
-                    me.config.solidColliderMovingClass + '"></div>');
-            }
-            else {
-                $(this).append('<div id="' + me.config.solidColliderClass +
-                    idx + '" class="' + me.config.solidColliderClass +
-                    '"></div>');
-            }
-            $(this).children().each(function () {
-                $(this).width(width + parseInt(borderLeftWidth) +
-                    parseInt(borderRightWidth));
-                $(this).height(height + parseInt(borderTopWidth) +
-                    parseInt(borderBottomWidth));
-                $(this).css('left', '-' + borderLeftWidth);
-                $(this).css('bottom', borderBottomWidth);
-            });
-        });
+        me.updateCollider();
     };
 
     this.start = function () {
@@ -188,7 +163,46 @@ function Engine() {
         me.ticker.drawFps();
     };
 
-    this.updateCollider = function (elem, prop, val) {
+    this.updateCollider = function () {
+        $('.' + me.config.solidClass + ':not(.' + me.config.solidMovingClass +
+                    ')' + ':not(:has(>.' +
+                    me.config.solidColliderClass + '))').each(function () {
+            $(this).append('<div class="' + me.config.solidColliderClass +
+                '"></div>');
+        });
+        $('.' + me.config.solidMovingClass + ':not(:has(>.' +
+                    me.config.solidColliderMovingClass + '))')
+        .each(function () {
+            $('<div class="' + me.config.solidColliderMovingClass + '"></div>')
+            .appendTo(this)
+            .width($(this).width() +
+                parseInt($(this).css('border-left-width')) +
+                parseInt($(this).css('border-right-width')))
+            .height($(this).height() +
+                parseInt($(this).css('border-top-width')) +
+                parseInt($(this).css('border-bottom-width')))
+            .css({
+                'left': '-' + $(this).css('border-left-width'),
+                'bottom': $(this).css('border-bottom-width')
+            });
+        });
+        $('.' + me.config.solidClass + '>.' + me.config.solidColliderClass)
+        .each(function () {
+            var myParent = $(this).parent();
+            $(this).width(myParent.width() +
+                parseInt(myParent.css('border-left-width')) +
+                parseInt(myParent.css('border-right-width')))
+            .height(myParent.height() +
+                parseInt(myParent.css('border-top-width')) +
+                parseInt(myParent.css('border-bottom-width')))
+            .css({
+                'left': myParent.offset().left - $(this).offset().left,
+                'bottom': $(this).offset().top - myParent.offset().top
+            });
+        });
+    };
+
+    this.updateMovingCollider = function (elem, prop, val) {
         var deltaSize,
             delta = 1;
         if ($(elem).hasClass(me.config.solidMovingClass)) {
