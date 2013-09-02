@@ -113,9 +113,10 @@
 
 .stone8 {
     position:absolute;
-    bottom:10px;
+    bottom:-100px;
     height:10px;
-    width:1600px;
+    width:2000px;
+    left:150px;
     border:solid black 1px;
 }
 
