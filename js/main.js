@@ -364,6 +364,17 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             return me.size[attr];
         };
 
+        // z-index
+        me.zIndex = 10;
+
+        this.setZIndex = function (zIndex) {
+            me.zIndex = zIndex;
+            $('#' + me.idImg).css('z-index', zIndex);
+        };
+        this.getZIndex = function () {
+            return me.zIndex;
+        };
+
         // Collider
         me.collider.left.tolerance.top = 3;
         me.collider.left.tolerance.bottom = 10;
