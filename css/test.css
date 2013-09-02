@@ -79,9 +79,11 @@
     position:absolute;
     bottom:70px;
     left:0px;
-    height:10px;
+    height:300px;
     width:51px;
-    border:solid black 1px;
+    border:solid black 5px;
+    border-bottom:solid black 10px;
+    border-top:solid black 10px;
 }
 
 .stone5 {
@@ -94,11 +96,10 @@
 }
 
 .stone6 {
-    position:absolute;
-    bottom:319px;
-    left:400px;
-    height:31px;
-    width:50px;
+    margin-top:650px;
+    margin-left:1000px;
+    height:50px;
+    width:300px;
     border:solid black 1px;
 }
 

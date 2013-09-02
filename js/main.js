@@ -169,7 +169,7 @@ function Engine() {
                 $(this).height(height + parseInt(borderTopWidth) +
                     parseInt(borderBottomWidth));
                 $(this).css('left', '-' + borderLeftWidth);
-                $(this).css('bottom', '-' + borderBottomWidth);
+                $(this).css('bottom', borderBottomWidth);
             });
         });
     };
@@ -864,7 +864,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.land = function (collidedObjects) {
-        var newColliderId;
+        var newColliderId,
+            newJObject;
         me.speed.inAir = me.delta.dist.down;
         if (collidedObjects.length > 1) {
             collidedObjects.sort(function(a,b) {
@@ -878,7 +879,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         if (me.pos.absolute ||
                 (me.collider.bottom.activeId !== newColliderId)) {
             me.collider.bottom.activeId = newColliderId;
-            me.changeToRelativePosition(collidedObjects[0].jObject.parent());
+            newJObject = collidedObjects[0].jObject;
+            if (newJObject.hasClass(config.solidColliderMovingClass)) {
+                newJObject = newJObject.parent();
+            }
+            me.changeToRelativePosition(newJObject);
         }
         $('#' + me.idImg).removeClass('jump');
     };
