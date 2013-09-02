@@ -341,7 +341,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
         this.setInitialPosition = function (x, y) {
             me.pos.initX = x;
+            me.cssSetX(x);
             me.pos.initY = y;
+            me.cssSetY(y);
         };
         this.getInitialPosition = function () {
             var res = [];
