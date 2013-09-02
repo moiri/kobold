@@ -42,7 +42,10 @@ Fast Setup
 Configuration
 -------------
 
-Configure the engine
+Configure the engine. It is advised to read carefully the descriptions of the
+possible configurations. This is especially the case for the choice of the css
+class used to define elements, the character can interact with.
+
 
     Engine.setConfigAttr(attr, val);
         attr:
@@ -79,8 +82,16 @@ Configure the engine
                 "solidMovingClass".
 
             "solidColliderClass": "solidCollider"
-                Only used internaly, make sure this class is not used anywhere
-                else.
+                If the elements intended to be solids are changed by the webpage
+                logic during runtime the use of the former two classes will not
+                work. If the former two classes are used, the engine generates
+                collider inside the intended solid. If now the web page logic
+                deletes or alters child elements of the intended solid, this may
+                also delete or modify the generated colliders. A solution to
+                this problem is to directly use the solid element as collider.
+                That can be achieved by adding this class name to the solid.
+                Note, that such a solid should not be moved while the character
+                is able to jump on top of it.
 
             "solidColliderMovingClass": "solidColliderMoving"
                 Only used internaly, make sure this class is not used anywhere
