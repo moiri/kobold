@@ -662,38 +662,39 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.overflow.document.heightVirtual =
                 me.overflow.document.height - imgDiff;
         }
-        // check document overflow
+        // check left overflow
         if (pos[0][0] < me.overflow.document.left.delta) {
             me.overflow.document.left.cb(pos);
         }
+        else if (pos[0][0] <
+                    ($(window).scrollLeft() + me.overflow.window.left.delta)) {
+            me.overflow.window.left.cb(pos);
+        }
+        // check right overflow
         if ((me.overflow.document.widthVirtual != null) &&
                 (pos[0][1] > (me.overflow.document.widthVirtual -
                      me.overflow.document.right.delta))) {
             me.overflow.document.right.cb(pos);
         }
+        else if (pos[0][1] > ($(window).scrollLeft() + $(window).width() -
+                    me.overflow.window.right.delta)) {
+            me.overflow.window.right.cb(pos);
+        }
+        // check top overflow
         if (pos[1][0] < me.overflow.document.top.delta) {
             me.overflow.document.top.cb(pos);
         }
+        else if (pos[1][0] <
+                    ($(window).scrollTop() + me.overflow.window.top.delta)) {
+            me.overflow.window.top.cb(pos);
+        }
+        // check bottom overflow
         if ((me.overflow.document.heightVirtual != null) &&
                 (pos[1][1] > (me.overflow.document.heightVirtual -
                     me.overflow.document.bottom.delta))) {
             me.overflow.document.bottom.cb(pos);
         }
-
-        // check window overflow (only considered if no document overflow)
-        if (pos[0][0] <
-                    ($(window).scrollLeft() + me.overflow.window.left.delta)) {
-            me.overflow.window.left.cb(pos);
-        }
-        if (pos[0][1] > ($(window).scrollLeft() + $(window).width() -
-                    me.overflow.window.right.delta)) {
-            me.overflow.window.right.cb(pos);
-        }
-        if (pos[1][0] <
-                    ($(window).scrollTop() + me.overflow.window.top.delta)) {
-            me.overflow.window.top.cb(pos);
-        }
-        if (pos[1][1] > ($(window).scrollTop() + $(window).height() -
+        else if (pos[1][1] > ($(window).scrollTop() + $(window).height() -
                     me.overflow.window.bottom.delta)) {
             me.overflow.window.bottom.cb(pos);
         }
