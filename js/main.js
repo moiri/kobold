@@ -101,8 +101,10 @@ function Engine() {
             movable.stop();
             movable.idle();
         }
-        if (me.keyHandler.isAnyKeyPressed()) movable.active();
-        if (movable.getEnableStatus('appear')) movable.checkPosition();
+        if (me.keyHandler.isAnyKeyPressed() || inAir) {
+            movable.active();
+            movable.checkPosition();
+        }
     };
 
     this.registerKeyEvents = function () {
@@ -501,17 +503,35 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.overflow.document.bottom.cb = function (pos) {
             me.appear(me.pos.x, parseInt(me.pos.y));
         };
-        me.overflow.window.left.delta = 0;
+        me.overflow.window.left.delta = 500;
         me.overflow.window.left.cb = function (pos) {
+            if ($(document).scrollLeft() > 0) {
+                $(document).scrollLeft(
+                        $(document).scrollLeft() + me.delta.move.x);
+            }
         };
-        me.overflow.window.right.delta = 0;
+        me.overflow.window.right.delta = 500;
         me.overflow.window.right.cb = function (pos) {
+            if ($(document).width() >
+                    ($(document).scrollLeft() + $(window).width())) {
+                $(document).scrollLeft(
+                        $(document).scrollLeft() + me.delta.move.x);
+            }
         };
-        me.overflow.window.top.delta = 0;
+        me.overflow.window.top.delta = 100;
         me.overflow.window.top.cb = function (pos) {
+            if ($(document).scrollTop() > 0) {
+                $(document).scrollTop(
+                        $(document).scrollTop() - me.delta.move.y);
+            }
         };
-        me.overflow.window.bottom.delta = 0;
+        me.overflow.window.bottom.delta = 100;
         me.overflow.window.bottom.cb = function (pos) {
+            if ($(document).height() >
+                    ($(document).scrollTop() + $(window).height())) {
+                $(document).scrollTop(
+                        $(document).scrollTop() - me.delta.move.y);
+            }
         };
 
         this.setDocumentOverflowCb = function (direction, cb) {
@@ -520,11 +540,17 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         this.setDocumentOverflowDelta = function (direction, delta) {
             me.overflow.document[direction].delta = delta;
         };
+        this.getDocumentOverflowDelta = function (direction) {
+            return me.overflow.document[direction].delta;
+        };
         this.setWindowOverflowCb = function (direction, cb) {
             me.overflow.window[direction].cb = cb;
         };
         this.setWindowOverflowDelta = function (direction, delta) {
             me.overflow.window[direction].delta = delta;
+        };
+        this.getWindowOverflowDelta = function (direction) {
+            return me.overflow.window[direction].delta;
         };
     }
 
@@ -536,16 +562,18 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.appear = function (x, y) {
-        me.disableMe();
-        if (!me.pos.absolute)
-            me.changeToAbsolutePosition();
-        me.stop();
-        me.standUp();
-        me.singleAnimation($('#' + me.idImg), 'appear', function () {
-            me.enableMe();
-        });
-        $('#' + me.id).css('bottom', y);
-        $('#' + me.id).css('left', x);
+        if (me.enable.appear) {
+            me.disableMe();
+            if (!me.pos.absolute)
+                me.changeToAbsolutePosition();
+            me.stop();
+            me.standUp();
+            me.singleAnimation($('#' + me.idImg), 'appear', function () {
+                me.enableMe();
+            });
+            $('#' + me.id).css('bottom', y);
+            $('#' + me.id).css('left', x);
+        }
     };
 
     this.changeToAbsolutePosition = function () {
@@ -626,7 +654,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.overflow.document.widthVirtual =
                 me.overflow.document.width;
         }
-        else if ((me.overflow.document.heightVirtual === null) &&
+        if ((me.overflow.document.heightVirtual === null) &&
                 ((posImg[1][1] > me.overflow.document.height) ||
                 (pos[1][1] > me.overflow.document.height))) {
             imgDiff = posImg[1][1] - pos[1][1];
@@ -638,34 +666,34 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         if (pos[0][0] < me.overflow.document.left.delta) {
             me.overflow.document.left.cb(pos);
         }
-        else if ((me.overflow.document.widthVirtual != null) &&
+        if ((me.overflow.document.widthVirtual != null) &&
                 (pos[0][1] > (me.overflow.document.widthVirtual -
                      me.overflow.document.right.delta))) {
             me.overflow.document.right.cb(pos);
         }
-        else if (pos[1][0] < me.overflow.document.top.delta) {
+        if (pos[1][0] < me.overflow.document.top.delta) {
             me.overflow.document.top.cb(pos);
         }
-        else if ((me.overflow.document.heightVirtual != null) &&
+        if ((me.overflow.document.heightVirtual != null) &&
                 (pos[1][1] > (me.overflow.document.heightVirtual -
                     me.overflow.document.bottom.delta))) {
             me.overflow.document.bottom.cb(pos);
         }
 
         // check window overflow (only considered if no document overflow)
-        else if (pos[0][0] <
-                    ($(window).scrollLeft() - me.overflow.window.left.delta)) {
+        if (pos[0][0] <
+                    ($(window).scrollLeft() + me.overflow.window.left.delta)) {
             me.overflow.window.left.cb(pos);
         }
-        else if (pos[0][1] > ($(window).scrollLeft() + $(window).width() -
+        if (pos[0][1] > ($(window).scrollLeft() + $(window).width() -
                     me.overflow.window.right.delta)) {
             me.overflow.window.right.cb(pos);
         }
-        else if (pos[1][0] <
-                    ($(window).scrollTop() - me.overflow.window.top.delta)) {
+        if (pos[1][0] <
+                    ($(window).scrollTop() + me.overflow.window.top.delta)) {
             me.overflow.window.top.cb(pos);
         }
-        else if (pos[1][1] > ($(window).scrollTop() + $(window).height() -
+        if (pos[1][1] > ($(window).scrollTop() + $(window).height() -
                     me.overflow.window.bottom.delta)) {
             me.overflow.window.bottom.cb(pos);
         }
