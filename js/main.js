@@ -462,30 +462,30 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.action.moveRight = false; // internal
 
         // Temporal Information Needed for the Next Frame
-        me.delta.time.min = 1 / config.maxFps;
-        me.delta.time.actual = me.delta.time.min;
-        me.delta.move.x = 0;
-        me.delta.move.y = 0;
+        me.delta.time.min = 1 / config.maxFps; // internal
+        me.delta.time.actual = me.delta.time.min; // internal
+        me.delta.move.x = 0; // internal
+        me.delta.move.y = 0; // internal
         me.delta.dist.up = me.speed.jump / 
             (me.jumpAttr.height.max /
                 (me.speed.jump * me.delta.time.actual)
-            * 2 + 1);
+            * 2 + 1); // internal
         me.delta.dist.down = me.speed.fall /
             (me.jumpAttr.height.max /
                 (Math.abs(me.speed.fall) * me.delta.time.actual)
-            * 2 + 1);
+            * 2 + 1); // internal
 
         // Engine configurations
-        me.solidColliderClass = config.solidColliderClass
-        me.solidColliderMovingClass = config.solidColliderMovingClass
-        me.solids = $('.' + me.solidColliderClass);
-        me.solidsMoving = $('.' + me.solidColliderMovingClass);
+        me.solidColliderClass = config.solidColliderClass; // internal
+        me.solidColliderMovingClass = config.solidColliderMovingClass;//internal
+        me.solids = $('.' + me.solidColliderClass); // internal
+        me.solidsMoving = $('.' + me.solidColliderMovingClass); // internal
 
         // Overflow Behavior
-        me.overflow.document.height = $(document).height();
-        me.overflow.document.heightVirtual = null;
-        me.overflow.document.width = $(document).width();
-        me.overflow.document.widthVirtual = null;
+        me.overflow.document.height = $(document).height(); // internal
+        me.overflow.document.heightVirtual = null; // internal
+        me.overflow.document.width = $(document).width(); // internal
+        me.overflow.document.widthVirtual = null; // internal
 
         me.overflow.document.left.delta = 0;
         me.overflow.document.left.cb = function (pos) {
