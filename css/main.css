@@ -15,7 +15,7 @@ body {
 }
 
 .solidCollider, .solidColliderMoving {
-   position:absolute;
+   position:relative;
 }
 
 .collider {
