@@ -869,14 +869,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         $('#' + me.idImg).removeClass('jump');
     };
 
-    this.move = function () {
-        me.cssMoveX(me.delta.move.x);
-        if (me.collider.bottom.isColliding) {
-            me.pos.x =
-                $('#' + me.id).offset().left - $('#' + me.id).width();
-        }
-    };
-
     this.moveLeft = function (run) {
         var collidedObjects,
             speed = (run) ? me.speed.leftRun : me.speed.left;
@@ -887,7 +879,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.updateCollider("left", Math.abs(me.delta.move.x) + 1);
         collidedObjects = me.checkCollisionStatic('left');
         if (!me.collider.left.isColliding) {
-            me.move();
+            me.cssMoveX(me.delta.move.x);
+            if (me.collider.bottom.isColliding) {
+                me.pos.x =
+                    $('#' + me.id).offset().left + $('#' + me.id).width();
+            }
         }
         else {
             if (collidedObjects.length > 1) {
@@ -912,7 +908,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.updateCollider("right", me.delta.move.x + 1);
         collidedObjects = me.checkCollisionStatic('right');
         if (!me.collider.right.isColliding) {
-            me.move();
+            me.cssMoveX(me.delta.move.x);
+            if (me.collider.bottom.isColliding) {
+                me.pos.x =
+                    $('#' + me.id).offset().left - $('#' + me.id).width();
+            }
         }
         else {
             if (collidedObjects.length > 1) {
