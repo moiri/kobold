@@ -353,6 +353,18 @@ Get size attribute of character
         return
             the size attribute as pixel value.
 
+Set the z-index of the character image
+
+    Movable.setZIndex(zIndex);
+        zIndex: 10
+            value to define the css property z-index
+
+Get the z-index of the character images
+
+    Movable.getZIndex();
+        return
+            value of css property z-index
+
 Setting these parameters allows the character to move over objects of small
 heights, without colliding (move up stairs without jumping). The value is the
 maxium height (in pixel) of an objet in order to be ignored by right and left
