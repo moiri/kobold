@@ -78,11 +78,21 @@ Configure the engine
                 The "solidClass" is ignored if an element has the
                 "solidMovingClass".
 
+            "solidOnlyTopClass": "solidOnlyTop"
+                Class name definig which elemets (already having the
+                "solidClass") will be solids that only check collision when the
+                character is falling on top of them. In all other directions,
+                the collision is ignored.
+
             "solidColliderClass": "solidCollider"
                 Only used internaly, make sure this class is not used anywhere
                 else.
 
             "solidColliderMovingClass": "solidColliderMoving"
+                Only used internaly, make sure this class is not used anywhere
+                else.
+
+            "solidColliderOnlyTopClass": "solidColliderOnlyTop""
                 Only used internaly, make sure this class is not used anywhere
                 else.
 

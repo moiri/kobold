@@ -8,8 +8,14 @@
     opacity:0.2;
 }
 
-.debug * .solidColliderMoving, .debug > .solidColliderMoving {
+.debug * .solidColliderMoving.solidColliderOnlyTop,
+    .debug > .solidColliderMoving.solidColliderOnlyTop {
     background-color:blue;
+    opacity:0.2;
+}
+
+.debug * .solidColliderOnlyTop, .debug > .solidColliderOnlyTop {
+    background-color:yellow;
     opacity:0.2;
 }
 
@@ -19,7 +25,7 @@
 }
 
 .enable {
-    position:absolute;
+    position:fixed;
     top:10px;
     left:10px;
     visibility:hidden;
@@ -38,7 +44,7 @@
 }
 
 .config {
-    position:absolute;
+    position:fixed;
     top:10px;
     right:10px;
     visibility:hidden;

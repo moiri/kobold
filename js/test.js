@@ -7,18 +7,19 @@ $(document).ready(function() {
                 ' solid"></div>');
     $('#content').append('<div id="elevator1" class="elevator1 solid ' +
         'solidMoving"></div>');
+    $('#stone6').addClass('solidOnlyTop');
     moveUp = function () {
         $('#elevator1').animate(
-            //{"bottom" : "+=450px"},
-            {"top" : "-=450px"},
+            {"bottom" : "+=450px"},
+            //{"top" : "-=450px"},
             "slow",
             moveDown
         );
     };
     moveDown = function () {
         $('#elevator1').animate(
-            //{"bottom" : "-=450px"},
-            {"top" : "+=450px"},
+            {"bottom" : "-=450px"},
+            //{"top" : "+=450px"},
             "slow",
             moveUp
         );

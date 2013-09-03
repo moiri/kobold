@@ -15,10 +15,13 @@ function Engine() {
         // CONFIGURATION
         me.config.maxFps = 40;
         me.config.solidClass = 'solid';
+        me.config.solidOnlyTopClass = me.config.solidClass + 'OnlyTop';
         me.config.solidMovingClass = me.config.solidClass + 'Moving';
         me.config.solidColliderClass = 'solidCollider';
         me.config.solidColliderMovingClass =
             me.config.solidColliderClass + 'Moving';
+        me.config.solidColliderOnlyTopClass =
+            me.config.solidColliderClass + 'OnlyTop';
 
         this.setConfigAttr = function (attr, val) {
             me.config[attr] = val;
@@ -168,9 +171,12 @@ function Engine() {
         $('.' + me.config.solidClass + ':not(.' + me.config.solidMovingClass +
                     ')' + ':not(:has(>.' + me.config.solidColliderClass + '))')
         .each(function () {
-            $(this).append('<div id="' + me.config.solidColliderClass +
+            var jObject = $('<div id="' + me.config.solidColliderClass +
                 me.colliderCnt + '" class="' + me.config.solidColliderClass +
-                '"></div>');
+                '"></div>').appendTo(this);
+            if ($(this).hasClass(me.config.solidOnlyTopClass)) {
+                jObject.addClass(me.config.solidColliderOnlyTopClass);
+            }
             me.colliderCnt++;
         });
         $('.' + me.config.solidMovingClass + ':not(:has(>.' +
@@ -178,7 +184,8 @@ function Engine() {
         .each(function () {
             $('<div id="' + me.config.solidColliderMovingClass +
                 me.colliderCnt + '" class="' +
-                me.config.solidColliderMovingClass + '"></div>')
+                me.config.solidColliderMovingClass + ' ' +
+                me.config.solidColliderOnlyTopClass + '"></div>')
             .appendTo(this)
             .width($(this).outerWidth())
             .height($(this).outerHeight())
@@ -663,12 +670,18 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             collidedObjects = [];
         me.solids.each(function (idx) {
             var collisionInfo = [],
-                collisionRes = me.overlaps(me.collider[direction].jObject, $(this));
-            if (collisionRes.isColliding) {
-                collisionInfo.jObject = $(this);
-                collisionInfo.solidPosition = collisionRes.pos2;
-                collision = true;
-                collidedObjects.push(collisionInfo);
+                collisionRes = null;
+            if (($(this).hasClass(config.solidColliderOnlyTopClass) &&
+                (direction === 'bottom')) ||
+                !$(this).hasClass(config.solidColliderOnlyTopClass)) {
+                collisionRes =
+                    me.overlaps(me.collider[direction].jObject, $(this));
+                if (collisionRes.isColliding) {
+                    collisionInfo.jObject = $(this);
+                    collisionInfo.solidPosition = collisionRes.pos2;
+                    collision = true;
+                    collidedObjects.push(collisionInfo);
+                }
             }
         });
         me.collider[direction].isColliding = collision;
