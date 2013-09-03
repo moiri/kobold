@@ -212,14 +212,16 @@ function Engine() {
                 if (deltaSize > 0) {
                     deltaSize += delta;
                     $(elem).children().first()
-                        .height($(elem).outerHeight() + deltaSize);
+                        .height($(elem).outerHeight() + deltaSize)
+                        .css('bottom', 1 + deltaSize);
                 }
             }
             else if (prop === 'top') {
                 if (deltaSize < 0) {
                     deltaSize -= delta;
                     $(elem).children().first()
-                        .height($(elem).outerHeight() - deltaSize);
+                        .height($(elem).outerHeight() - deltaSize)
+                        .css('bottom', 1 - deltaSize);
                 }
             }
         }
