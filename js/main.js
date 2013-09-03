@@ -564,6 +564,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         this.setDocumentOverflowCb = function (direction, cb) {
             me.overflow.document[direction].cb = cb;
         };
+        this.getDocumentOverflowCb = function (direction) {
+            return me.overflow.document[direction].cb;
+        };
         this.setDocumentOverflowDelta = function (direction, delta) {
             me.overflow.document[direction].delta = delta;
         };
@@ -572,6 +575,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         };
         this.setWindowOverflowCb = function (direction, cb) {
             me.overflow.window[direction].cb = cb;
+        };
+        this.getWindowOverflowCb = function (direction) {
+            return me.overflow.window[direction].cb;
         };
         this.setWindowOverflowDelta = function (direction, delta) {
             me.overflow.window[direction].delta = delta;

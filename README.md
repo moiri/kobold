@@ -470,6 +470,17 @@ Define the document overflow behavior.
             definition of the callback function if the default behaviour should
             be overridden.
 
+Get document overflow behavior. This could be useful if the default behavior
+should be extended, not overwritten completely.
+
+    Movable.getDocumentOverflowCb(direction);
+        direction:
+            The same directions as in
+            Movable.setDocumentOverflowDelta(direction, delta).
+
+        return
+            function, definig the document overflow behavior.
+
 Define a distance (in pixel) from the document border at which the document
 overflow callback function triggers.
 
@@ -529,6 +540,17 @@ Define the window overflow behavior.
         cb:
             definition of the callback function if the default behaviour should
             be overridden.
+
+Get window overflow behavior. This could be useful if the default behavior
+should be extended, not overwritten completely.
+
+    Movable.getWindowOverflowCb(direction);
+        direction:
+            The same directions as in
+            Movable.setWindowOverflowDelta(direction, delta).
+
+        return
+            function, definig the window overflow behavior.
 
 Define a distance (in pixel) from the window border at which the document
 overflow callback function triggers.
