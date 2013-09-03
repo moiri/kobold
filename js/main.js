@@ -165,8 +165,8 @@ function Engine() {
 
     this.updateCollider = function () {
         $('.' + me.config.solidClass + ':not(.' + me.config.solidMovingClass +
-                    ')' + ':not(:has(>.' +
-                    me.config.solidColliderClass + '))').each(function () {
+                    ')' + ':not(:has(>.' + me.config.solidColliderClass + '))')
+        .each(function () {
             $(this).append('<div class="' + me.config.solidColliderClass +
                 '"></div>');
         });
@@ -175,13 +175,10 @@ function Engine() {
         .each(function () {
             $('<div class="' + me.config.solidColliderMovingClass + '"></div>')
             .appendTo(this)
-            .width($(this).width() +
-                parseInt($(this).css('border-left-width')) +
-                parseInt($(this).css('border-right-width')))
-            .height($(this).height() +
-                parseInt($(this).css('border-top-width')) +
-                parseInt($(this).css('border-bottom-width')))
+            .width($(this).outerWidth())
+            .height($(this).outerHeight())
             .css({
+                'margin-bottom': -$(this).outerHeight(),
                 'left': '-' + $(this).css('border-left-width'),
                 'bottom': $(this).css('border-bottom-width')
             });
@@ -189,13 +186,10 @@ function Engine() {
         $('.' + me.config.solidClass + '>.' + me.config.solidColliderClass)
         .each(function () {
             var myParent = $(this).parent();
-            $(this).width(myParent.width() +
-                parseInt(myParent.css('border-left-width')) +
-                parseInt(myParent.css('border-right-width')))
-            .height(myParent.height() +
-                parseInt(myParent.css('border-top-width')) +
-                parseInt(myParent.css('border-bottom-width')))
+            $(this).width(myParent.outerWidth())
+            .height(myParent.outerHeight())
             .css({
+                'margin-bottom': -$(this).outerHeight(),
                 'left': myParent.offset().left - $(this).offset().left,
                 'bottom': $(this).offset().top - myParent.offset().top
             });
