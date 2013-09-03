@@ -10,6 +10,8 @@ function Engine() {
     }
 
     {
+        me.colliderCnt = 0;
+
         // CONFIGURATION
         me.config.maxFps = 40;
         me.config.solidClass = 'solid';
@@ -166,13 +168,17 @@ function Engine() {
         $('.' + me.config.solidClass + ':not(.' + me.config.solidMovingClass +
                     ')' + ':not(:has(>.' + me.config.solidColliderClass + '))')
         .each(function () {
-            $(this).append('<div class="' + me.config.solidColliderClass +
+            $(this).append('<div id="' + me.config.solidColliderClass +
+                me.colliderCnt + '" class="' + me.config.solidColliderClass +
                 '"></div>');
+            me.colliderCnt++;
         });
         $('.' + me.config.solidMovingClass + ':not(:has(>.' +
                     me.config.solidColliderMovingClass + '))')
         .each(function () {
-            $('<div class="' + me.config.solidColliderMovingClass + '"></div>')
+            $('<div id="' + me.config.solidColliderMovingClass +
+                me.colliderCnt + '" class="' +
+                me.config.solidColliderMovingClass + '"></div>')
             .appendTo(this)
             .width($(this).outerWidth())
             .height($(this).outerHeight())
@@ -181,6 +187,7 @@ function Engine() {
                 'left': '-' + $(this).css('border-left-width'),
                 'bottom': $(this).css('border-bottom-width')
             });
+            me.colliderCnt++;
         });
         $('.' + me.config.solidClass + '>.' + me.config.solidColliderClass)
         .each(function () {
@@ -343,6 +350,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.pos.initY = 500;
         me.pos.x = 0; // internal
         me.pos.y = 0; // internal
+        me.pos.overflowX; // internal
+        me.pos.overflowY; // internal
         me.pos.absolute = true; // internal
         me.pos.absoluteJObject = $('#' + me.id).parent(); // internal
 
@@ -510,47 +519,47 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.overflow.document.widthVirtual = null; // internal
 
         me.overflow.document.left.delta = 0;
-        me.overflow.document.left.cb = function (pos) {
-            me.cssMoveX(-pos[0][0]);
+        me.overflow.document.left.cb = function (deltaBorder) {
+            me.cssMoveX(deltaBorder);
         };
         me.overflow.document.right.delta = 0;
-        me.overflow.document.right.cb = function (pos) {
-            me.cssMoveX(me.overflow.document.widthVirtual - pos[0][1]);
+        me.overflow.document.right.cb = function (deltaBorder) {
+            me.cssMoveX(deltaBorder);
         };
         me.overflow.document.top.delta = -me.size.heightStand;
-        me.overflow.document.top.cb = function (pos) {};
+        me.overflow.document.top.cb = function (deltaBorder) {};
         me.overflow.document.bottom.delta = -me.size.heightStand;;
-        me.overflow.document.bottom.cb = function (pos) {
-            me.appear(me.pos.x, parseInt(me.pos.y));
+        me.overflow.document.bottom.cb = function (deltaBorder) {
+            me.appear();
         };
         me.overflow.window.left.delta = 500;
-        me.overflow.window.left.cb = function (pos) {
+        me.overflow.window.left.cb = function (deltaMove) {
             if ($(document).scrollLeft() > 0) {
                 $(document).scrollLeft(
-                        $(document).scrollLeft() + me.delta.move.x);
+                        $(document).scrollLeft() + deltaMove);
             }
         };
         me.overflow.window.right.delta = 500;
-        me.overflow.window.right.cb = function (pos) {
+        me.overflow.window.right.cb = function (deltaMove) {
             if ($(document).width() >
                     ($(document).scrollLeft() + $(window).width())) {
                 $(document).scrollLeft(
-                        $(document).scrollLeft() + me.delta.move.x);
+                        $(document).scrollLeft() + deltaMove);
             }
         };
         me.overflow.window.top.delta = 100;
-        me.overflow.window.top.cb = function (pos) {
+        me.overflow.window.top.cb = function (deltaMove) {
             if ($(document).scrollTop() > 0) {
                 $(document).scrollTop(
-                        $(document).scrollTop() - me.delta.move.y);
+                        $(document).scrollTop() + deltaMove);
             }
         };
         me.overflow.window.bottom.delta = 100;
-        me.overflow.window.bottom.cb = function (pos) {
+        me.overflow.window.bottom.cb = function (deltaMove) {
             if ($(document).height() >
                     ($(document).scrollTop() + $(window).height())) {
                 $(document).scrollTop(
-                        $(document).scrollTop() - me.delta.move.y);
+                        $(document).scrollTop() + deltaMove);
             }
         };
 
@@ -589,6 +598,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     this.appear = function (x, y) {
         if (me.enable.appear) {
+            if (x === undefined) x = me.pos.x;
+            if (y === undefined) y = me.pos.y;
             me.disableMe();
             if (!me.pos.absolute)
                 me.changeToAbsolutePosition();
@@ -597,8 +608,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.singleAnimation($('#' + me.idImg), 'appear', function () {
                 me.enableMe();
             });
-            $('#' + me.id).css('bottom', y);
-            $('#' + me.id).css('left', x);
+            $('#' + me.id).offset({'top': y, 'left': x});
+            me.overflow.document.heightVirtual = null;
         }
     };
 
@@ -615,6 +626,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.cssSetX($('#' + me.id).offset().left - obj.offset().left, true);
         me.cssSetY(parseInt(obj.height()) +
                 parseInt(obj.css('border-top-width')), true);
+        $('#' + me.id).css('top', '');
         $('#' + me.id).appendTo(obj);
         me.positionRelativeObj = obj;
         me.pos.absolute = false;
@@ -635,6 +647,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 }
             }).promise().done(function () {
                 if (collision) {
+                    me.checkPosition();
                     me.collider.bottom.isColliding = true;
                     me.land(collidedObjects);
                 }
@@ -666,17 +679,17 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             imgDiff = 0;
 
         // check left overflow
-        if (direction === 'left') {
+        if ((direction === 'left') || (direction === undefined)) {
             if (pos[0][0] < me.overflow.document.left.delta) {
-                me.overflow.document.left.cb(pos);
+                me.overflow.document.left.cb(-pos[0][0]);
             }
             else if (pos[0][0] <
                     ($(window).scrollLeft() + me.overflow.window.left.delta)) {
-                me.overflow.window.left.cb(pos);
+                me.overflow.window.left.cb(pos[0][0] - me.pos.overflowX);
             }
         }
         // check right overflow
-        else if (direction === 'right') {
+        if ((direction === 'right') || (direction === undefined)) {
             // check document boundaries
             if (me.overflow.document.widthVirtual >=
                     me.overflow.document.width) {
@@ -693,25 +706,26 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             if ((me.overflow.document.widthVirtual != null) &&
                     (pos[0][1] > (me.overflow.document.widthVirtual -
                         me.overflow.document.right.delta))) {
-                me.overflow.document.right.cb(pos);
+                me.overflow.document.right.cb(
+                        me.overflow.document.widthVirtual - pos[0][1]);
             }
             else if (pos[0][1] > ($(window).scrollLeft() + $(window).width() -
                         me.overflow.window.right.delta)) {
-                me.overflow.window.right.cb(pos);
+                me.overflow.window.right.cb(pos[0][0] - me.pos.overflowX);
             }
         }
         // check top overflow
-        else if (direction === 'top') {
+        if ((direction === 'top') || (direction === undefined)) {
             if (pos[1][0] < me.overflow.document.top.delta) {
-                me.overflow.document.top.cb(pos);
+                me.overflow.document.top.cb(-pos[1][0]);
             }
             else if (pos[1][0] <
                     ($(window).scrollTop() + me.overflow.window.top.delta)) {
-                me.overflow.window.top.cb(pos);
+                me.overflow.window.top.cb(pos[1][0] - me.pos.overflowY);
             }
         }
         // check bottom overflow
-        else if (direction === 'bottom') {
+        if ((direction === 'bottom') || (direction === undefined)) {
             // check document boundaries
             if (me.overflow.document.heightVirtual >=
                     me.overflow.document.height) {
@@ -728,13 +742,16 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             if ((me.overflow.document.heightVirtual != null) &&
                     (pos[1][1] > (me.overflow.document.heightVirtual -
                         me.overflow.document.bottom.delta))) {
-                me.overflow.document.bottom.cb(pos);
+                me.overflow.document.bottom.cb(
+                        me.overflow.document.heightVirtual - pos[1][1]);
             }
             else if (pos[1][1] > ($(window).scrollTop() + $(window).height() -
                         me.overflow.window.bottom.delta)) {
-                me.overflow.window.bottom.cb(pos);
+                me.overflow.window.bottom.cb(pos[1][0] - me.pos.overflowY);
             }
         }
+        me.pos.overflowX = pos[0][0];
+        me.pos.overflowY = pos[1][0];
     };
 
     this.crouch = function () {
@@ -820,18 +837,20 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.delta.move.y = Math.round(me.speed.inAir * me.delta.time.actual);
             me.updateCollider("bottom", Math.abs(me.delta.move.y) + 1);
             collidedObjects = me.checkCollisionStatic('bottom');
-            me.checkPosition('bottom');
             if (!me.collider.bottom.isColliding) {
                 me.collider.bottom.activeId = 'inAir';
                 if (!me.pos.absolute && me.enable.jumpAbsolute) {
                     me.changeToAbsolutePosition();
                 }
                 me.cssMoveY(me.delta.move.y);
-                if (me.speed.inAir < me.speed.fall) me.speed.inAir = me.speed.fall;
+                if (me.speed.inAir < me.speed.fall) {
+                    me.speed.inAir = me.speed.fall;
+                }
             }
             else {
                 me.land(collidedObjects);
             }
+            me.checkPosition('bottom');
         }
         else {
             me.jumpAttr.count.actual += Math.round(
@@ -843,7 +862,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.delta.move.y = me.jumpAttr.lut[me.jumpAttr.count.actual] -
                 me.jumpAttr.lut[me.jumpAttr.count.last];
             me.jumpAttr.height.actual += me.delta.move.y;
-            if (lastElem || me.jumpAttr.height.actual > me.jumpAttr.height.max) {
+            if (lastElem ||
+                    (me.jumpAttr.height.actual > me.jumpAttr.height.max)) {
                 jumpDiff = me.jumpAttr.height.max - me.jumpAttr.height.actual;
                 if (jumpDiff != 0)
                     me.delta.move.y += jumpDiff;
@@ -853,7 +873,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.jumpAttr.count.last = me.jumpAttr.count.actual;
             me.updateCollider("top", me.delta.move.y + 1);
             collidedObjects = me.checkCollisionStatic('top');
-            me.checkPosition('top');
             if (!me.collider.top.isColliding) {
                 me.cssMoveY(me.delta.move.y);
             }
@@ -870,6 +889,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                         collidedObjects[0].solidPosition[1][1] -
                         $('#' + me.id).outerHeight());
             }
+            me.checkPosition('top');
         }
         return !me.collider.bottom.isColliding;
     };
@@ -898,9 +918,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 return a.solidPosition[1][0] - b.solidPosition[1][0];
             });
         }
-        if (me.pos.absolute) {
-            me.pos.y = $('#' + me.id).css('bottom');
-        }
+        me.pos.y = $('#' + me.id).offset().top;
         newColliderId = collidedObjects[0].jObject.attr('id');
         if (me.pos.absolute ||
                 (me.collider.bottom.activeId !== newColliderId)) {
@@ -923,7 +941,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.delta.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("left", Math.abs(me.delta.move.x) + 1);
         collidedObjects = me.checkCollisionStatic('left');
-        me.checkPosition('left');
         if (!me.collider.left.isColliding) {
             me.cssMoveX(me.delta.move.x);
             if (me.collider.bottom.isColliding) {
@@ -942,6 +959,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 me.positionsGet($('#' + me.id))[0][0]
             );
         }
+        me.checkPosition('left');
     };
 
     this.moveRight = function (run) {
@@ -953,7 +971,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.delta.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("right", me.delta.move.x + 1);
         collidedObjects = me.checkCollisionStatic('right');
-        me.checkPosition('right');
         if (!me.collider.right.isColliding) {
             me.cssMoveX(me.delta.move.x);
             if (me.collider.bottom.isColliding) {
@@ -972,6 +989,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 me.positionsGet($('#' + me.id))[0][1]
             );
         }
+        me.checkPosition('right');
     };
 
     this.overlaps = function (a, b) {
