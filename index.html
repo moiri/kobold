@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Kobold : jump and run on web page" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Kobold</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/moiri/kobold">View on GitHub</a>
+
+          <h1 id="project_title">Kobold</h1>
+          <h2 id="project_tagline">jump and run on web page</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/moiri/kobold/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/moiri/kobold/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="kobold" class="anchor" href="#kobold"><span class="octicon octicon-link"></span></a>Kobold</h1>
+
+<p>This project aims to provide an engine to design a jump and run on a web page.
+The key point is, that the character of the jump and run will be able to
+interact with standard elements on the web page.</p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>The origin of this project is an idea of the Swiss game designer company
+<a href="http://www.koboldgames.ch/home/">Koboldgames</a>. The animations and images were
+provided by these nice people and are part of their corporate design.</p>
+
+<h2>
+<a name="version" class="anchor" href="#version"><span class="octicon octicon-link"></span></a>Version</h2>
+
+<p>This README should be up to date to the current commits. If you use a released
+version, only consider the attached README to this version.</p>
+
+<h2>
+<a name="fast-setup" class="anchor" href="#fast-setup"><span class="octicon octicon-link"></span></a>Fast Setup</h2>
+
+<ol>
+<li><p>add main.js, main.css and jQuery (for development jQuery 1.7.1 was used) to
+your page.</p></li>
+<li><p>add the css class "solid" to the page elements you want the character to
+collide with.</p></li>
+<li>
+<p>make sure a js file contains the following lines</p>
+
+<div class="highlight"><pre><span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">engine</span><span class="p">,</span> <span class="nx">kobold</span><span class="p">;</span>
+    <span class="nx">engine</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Engine</span><span class="p">();</span>
+    <span class="nx">kobold</span> <span class="o">=</span> <span class="nx">engine</span><span class="p">.</span><span class="nx">newMovable</span><span class="p">();</span>
+    <span class="nx">engine</span><span class="p">.</span><span class="nx">start</span><span class="p">();</span>
+    <span class="nx">kobold</span><span class="p">.</span><span class="nx">enableMe</span><span class="p">();</span>
+<span class="p">});</span>
+</pre></div>
+</li>
+</ol><h2>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h2>
+
+<p>Configure the engine</p>
+
+<pre><code>Engine.setConfigAttr(attr, val);
+    attr:
+        "maxFps": 40
+            frame cap
+
+        "solidClass": "solid"
+            Class name definig which elements are solid, i.e. with which
+            elements the character is colliding (lets call them
+            collidables). All elements on the web page intended to be a
+            collidable must have this css class.
+            The character is positioned realtive to the element on which he
+            is standing (colliding with the bottom collider). If this object
+            is moved, the character will move with it and still collide with
+            all the other solids. It is recommenden to disable the character
+            during the movements to prevent collisions. Anlso nNote, that
+            these elements should not move while the character is able to
+            jump on them. For this purpose the "solidMovingClass" is
+            needed.
+
+        "solidMovingClass": "solidMoving"
+            Class name defining which elements are moving. Only elements
+            using the animate function of jquery to change the position
+            (left, right, top, bottom) work properly. The animation must be
+            already defined.
+            A moving element with this class will collide with the character
+            only if the character falls/jumps on top of it.
+            The character is positioned realative to the element on which he
+            is standing and will move with it. The character will not
+            collide with other solid but may collide with other moving
+            solids. Note that moving solids should be placed in such a way
+            that they can not interfere with each other.
+            The "solidClass" is ignored if an element has the
+            "solidMovingClass".
+
+        "solidColliderClass": "solidCollider"
+            Only used internaly, make sure this class is not used anywhere
+            else.
+
+        "solidColliderMovingClass": "solidColliderMoving"
+            Only used internaly, make sure this class is not used anywhere
+            else.
+
+    val:
+        value to configure the attribute
+</code></pre>
+
+<p>Create and add a new character to the engine. Example animations are provided.
+To add different animations for other characters, create new css definitions
+similar to the ones provided in main.css.</p>
+
+<pre><code>Engine.newMovable(id, cssClass);
+    id: "kobold"
+        id of the added character. This id must like any other id be unique.
+        if no id is provided, the default value is set.
+
+    cssClass: "koboldImg"
+        name of the css class definig the size and animations of the
+        character. One set for the default names is provided. If no cssClass
+        is provided, the default value is set.
+
+    return
+        Movable object of the added charcter
+</code></pre>
+
+<p>Start the engine (frame manager, key bindings, etc)</p>
+
+<pre><code>Engine.start();
+</code></pre>
+
+<p>Enable or Disable character by id</p>
+
+<pre><code>Engine.setEnableMovable(id, val);
+    id:
+        id of the character to enable or diable
+
+    val:
+        true to enable character, false to disable character. If val is
+        not defined, the enable status of the character is toggled.
+</code></pre>
+
+<p>Update the collider. Always call this method, if the content of the page changes
+in such a way, that elements intended as solids are changed (size, new elements,
+etc.)</p>
+
+<pre><code>Engine.updateCollider();
+</code></pre>
+
+<p>Enable character</p>
+
+<pre><code>Movable.enableMe();
+</code></pre>
+
+<p>Disable character</p>
+
+<pre><code>Movable.disableMe();
+</code></pre>
+
+<p>Toggle enable status of the character</p>
+
+<pre><code>Movable.toggleEnableMe();
+</code></pre>
+
+<p>Enable ability of the character</p>
+
+<pre><code>Movable.enableAttr(attr);
+    attr:
+        "run": true
+            Enables the character to walk faster, hence run. The speed can
+            be set with Movable.setSpeed("rightRun"/"leftRun", speed).
+            The character is always able to walk. The walk speed can be set
+            with Movable.setSpeed("right"/"left", speed).
+
+        "jump": true
+            Enables character to jump. The character can only jump if he is
+            standing on a solid. The jump height can be set with
+            Movable.setMaxJumpHeight(maxHeight).
+
+        "jump.movingSolid": false
+            !!! This is experimental, please do not turn this feature on !!!
+            Enables character to jump on a moving solid, with the same
+            properties as with a normal jump.
+            If "jump" is turned off, this parameter has no effect.
+
+        "crouch": true
+            Enables the character to crouch. The crouch height of the
+            character is set with setSize("heightCrouch", height). Keep in
+            mind that this depends on the size of the crouch animation.
+
+        "crouchRun": false
+            Enables the character to crouch while running. If this is turned
+            off, the character stands up as soon the run button is pressed.
+            If "crouch" is turned off, this parameter has no effect.
+            If "run" is turned off, this parameter has no effect.
+
+        "crouchJump": true
+            Enables the character to crouch when jumping. If this is turned
+            off, the character stands up as soon the character is in the
+            air.
+            If "crouch" is turned off, this parameter has no effect.
+            If "jump" is turned off, this parameter has no effect.
+
+        "crouchJumpHigh":true
+            Enables the character to jump higher when crouch is pressed
+            while jumping. If this is turned off, the character jumps Only
+            to the maximal height set by Movable.setMaxJumpHeight(maxHeight)
+            This works also if "crouchJump" is turned off.
+            If "crouch" is turned off, this parameter has no effect.
+            If "jump" is turned off, this parameter has no effect.
+
+        "appear": true
+            With this enabled, the character cannot leave the visible screen
+            and is teleported back near to the last valid position if he
+            drops below the screen.
+
+        "pickUp": true
+            With this enabled, the character is able to pick up elements
+            marked with the css class set by
+            Movable.setPickUpCssClass(cssClass).
+</code></pre>
+
+<p>Disable ability of the character</p>
+
+<pre><code>Movable.disableAttr(attr);
+    attr:
+        the same attributes as in Movable.enableAttr(attr).
+</code></pre>
+
+<p>Toggle ability enable status of the character</p>
+
+<pre><code>Movable.toggleEnableAttr(attr);
+    attr:
+        the same attributes as in Movable.enableAttr(attr).
+</code></pre>
+
+<p>Get the enable status of an ability</p>
+
+<pre><code>Movable.getEnableStatus(attr);
+    attr:
+        the same attributes as in Movable.enableAttr(attr).
+
+    return
+        true if enabled, false if disabled
+</code></pre>
+
+<p>Define keyCodes to use the character abilities by pressing the keys.
+Keep in mind, that this will prevent the default browser behavior of the
+keys.</p>
+
+<pre><code>Movable.setKeyCode(attr, keyCode);
+    attr:
+        "jump": 32
+            32 (&lt;space&gt;) is default to make the character jump.
+
+        "run": 16
+            16 (&lt;shift&gt;) is default to make the character run.
+
+        "left": 37
+            37 (&lt;leftArrow&gt;) is default to make the character move left.
+
+        "right": 39
+            39 (&lt;rightArrow&gt;) is default to make the character move right.
+
+        "crouch": 17
+            17 (&lt;ctrl&gt;) is default to make the character crouch.
+</code></pre>
+
+<p>Get the key code of the corresponding ability</p>
+
+<pre><code>Movable.getKeyCode(attr);
+    attr:
+        the same attributes as in Movable.setKeyCode(attr).
+
+    return
+        keyCode as integer
+</code></pre>
+
+<p>Id of element where the pick up count should appear. The corresponding
+element must exist on the webpage.
+If "pickUp" is turned off, this parameter has no effect.</p>
+
+<pre><code>Movable.setPickUpCounterId(id);
+    id: "pickUpCnt"
+</code></pre>
+
+<p>Get pick up counter idle</p>
+
+<pre><code>Movable.getPickUpCounterId();
+    return
+        pick up counter id as string.
+</code></pre>
+
+<p>Class name definig which elements the character can pick up by moving over them.
+All elements on the web page intended to be objects that can be picked up must
+have this css class.
+If "pickUp" is turned off, this parameter has no effect.</p>
+
+<pre><code>Movable.setPickUpCssClass(cssClass);
+    cssClass: "pickUp"
+</code></pre>
+
+<p>Get pick up class</p>
+
+<pre><code>Movable.getPickUpCssClass();
+    return
+        pick up css class as string
+</code></pre>
+
+<p>Get the actual pick up counter value</p>
+
+<pre><code>Movable.getPickUpCounter();
+    return
+        value of the pick up counter as integer
+</code></pre>
+
+<p>Define the speed of the character. Please pay attention to the minus sign.</p>
+
+<pre><code>Movable.setSpeed(attr, speed);
+    attr:
+        "right": 200
+            walking speed to the right
+
+        "rightRun": 300
+            running speed to the right
+
+        "left": -200
+            walking speed to the left
+
+        "leftRun": -300
+            running speed to the left
+
+        "jump": 1200
+            initial jumping speed
+
+        "fall": -1200
+            maximal falling speed
+
+    speed:
+        speed value
+</code></pre>
+
+<p>Get the speed value of an ability</p>
+
+<pre><code>Movabe.getSpeed(attr);
+    attr:
+        same values as descriped in Movable.setSpeed(attr, speed), with one
+        addition:
+
+        "inAir":
+            speed of the character while falling
+
+    return
+        speed value as signed integer
+</code></pre>
+
+<p>Define the absolute screen position (in pixel) where the character will start.
+This coordinates will also be used if the character needs to be reset.</p>
+
+<pre><code>Movable.setInitialPosition(x, y);
+    x: 30
+        Distance in pixel from the left screen frame to the left border of
+        the character.
+
+    y: 500
+        Distance in pixel from the bottom screen frame to the bottom border
+        of the character.
+</code></pre>
+
+<p>Get the defined initial position (in pixel) of the character</p>
+
+<pre><code>Movable.getInitialPosition();
+    return
+        object with attribute x and y as pixel values.
+</code></pre>
+
+<p>Define the size (in pixel) of the character in either standing or crouching
+position. Keep in mind that these values depend directly on the animation of the
+movable. It may be unwise to change this after the inital configuration.</p>
+
+<pre><code>Movable.setSize(attr, val);
+    attr:
+        "heightStand": 85
+            Height (in pixel) of the character in standing position.
+
+        "heightCrouch": 40
+            Height (in pixel) of the character in crouching position.
+
+        "width": 53
+            Width (in pixel) of the character.
+</code></pre>
+
+<p>Get size attribute of character</p>
+
+<pre><code>Movable.getSize(attr);
+    attr:
+        the same values as described in Movable.setSize(attr, val);
+
+    return
+        the size attribute as pixel value.
+</code></pre>
+
+<p>Set the z-index of the character image</p>
+
+<pre><code>Movable.setZIndex(zIndex);
+    zIndex: 10
+        value to define the css property z-index
+</code></pre>
+
+<p>Get the z-index of the character images</p>
+
+<pre><code>Movable.getZIndex();
+    return
+        value of css property z-index
+</code></pre>
+
+<p>Setting these parameters allows the character to move over objects of small
+heights, without colliding (move up stairs without jumping). The value is the
+maxium height (in pixel) of an objet in order to be ignored by right and left
+collision. This can be turned off by setting both values to zero. Note that
+due to imprecision when zooming functionnality of the browsers is used, this
+values should not be set lower than 3.</p>
+
+<pre><code>Movable.setColliderToleranceBottom(left, right);
+    left: 10
+        Tolarance (in pixel) for the left collider.
+
+    right: 10
+        Tolarance (in pixel) for the right collider. If this value is not
+        set, both colliders are set to the left value.
+</code></pre>
+
+<p>Get the bottom collider tolerance values.</p>
+
+<pre><code>Movable.getColliderToleranceBottom();
+    return
+        object with attributes left and right as pixel values.
+</code></pre>
+
+<p>Setting these parameters allows the character to move below objects of small
+heights hanging down from the ceiling, without colliding.The value is the
+maxium height (in pixel) of an objet in order to be ignored by right and left
+collision. This can be turned off by setting both values to zero. Note that
+due to imprecision when zooming functionnality of the browsers is used, this
+values should not be set lower than 3.</p>
+
+<pre><code>Movable.setColliderToleranceTop(left, right);
+    left: 3
+        Tolarance (in pixel) for the left collider.
+
+    right: 3
+        Tolarance (in pixel) for the right collider. If this value is not
+        set, both colliders are set to the left value.
+</code></pre>
+
+<p>Get the top collider tolerance values.</p>
+
+<pre><code>Movable.getColliderToleranceTop();
+    return
+        object with attributes left and right as pixel values.
+</code></pre>
+
+<p>Define the maximal height (in pixel) the character can jump. One exception to
+surpass this height is by enabling "crouchJumpHeight". Please check the comments
+there to get more information.
+If "jump" is turned off, this parameter has no effect.</p>
+
+<pre><code>Movable.setMaxJumpHeight(maxHeight);
+    maxHeight: 160
+        Maximal jump height (in pixel) of the character.
+</code></pre>
+
+<p>Get the maximum jump height</p>
+
+<pre><code>Movable.getMaxJumpHeight();
+    return
+        maximal jump height as pixel value
+</code></pre>
+
+<p>Define the intervall of random idle animations (in seconds). After completion of
+an animation, The next random animation will start in min seconds at the
+erliest and in max seconds at the latest.</p>
+
+<pre><code>Movable.setRandomAnimationInterval(min, max);
+    min: 4
+        erliest time of a random animation to start the next time after
+        completion (in seconds).
+
+    max: 10
+        latest time of a random animation to start the next time after
+        completion (in seconds). If no max value is spezified, the next
+        animation will alway start after min seconds.
+</code></pre>
+
+<p>Get the random animation interval values</p>
+
+<pre><code>Movable.getRandomAnimationInterval();
+    return
+        object with attributes min and max (seconds).
+</code></pre>
+
+<p>Define the document overflow behavior.</p>
+
+<pre><code>Movable.setDocumentOverflowCb(direction, cb);
+    direction:
+        "left": default behavior description see below
+            the callback function triggers as soon as the character touches
+            the left border of the document. The default behavior is, that
+            the character cannot move any further to the left.
+
+        "right": default behavior description see below
+            the callback function triggers as soon as the character touches
+            the right border of the document. The default behavior is, that
+            the character cannot move any further to the right.
+
+        "top": default behaviour see description below
+            the callback function triggers as soon as the character touches
+            the top border of the document. By default nothing happens.
+
+        "bottom": default behavior description see below
+            the callback function triggers as soon as the character touches
+            the bottom border of the document. The default behavior is, that
+            the character is teleported back to the last valid position.
+            This works only if "appear" is enabled.
+
+    cb:
+        definition of the callback function if the default behaviour should
+        be overridden.
+</code></pre>
+
+<p>Get document overflow behavior. This could be useful if the default behavior
+should be extended, not overwritten completely.</p>
+
+<pre><code>Movable.getDocumentOverflowCb(direction);
+    direction:
+        The same directions as in
+        Movable.setDocumentOverflowDelta(direction, delta).
+
+    return
+        function, definig the document overflow behavior.
+</code></pre>
+
+<p>Define a distance (in pixel) from the document border at which the document
+overflow callback function triggers.</p>
+
+<pre><code>Movable.setDocumentOverflowDelta(direction, delta);
+    direction:
+        "left": 0
+            Distance in pixel to the left document border.
+
+        "right": 0
+            Distance in pixel to the right document border.
+
+        "top": -Movable.getSize('heightStand');
+            Distance in pixel to the top document border.
+
+        "bottom": -Movable.getSize('heightStand')
+            Distance in pixel to the bottom document border.
+
+    delta:
+        value in pixel
+</code></pre>
+
+<p>Get the distance (in pixel) from the document border at which the document
+overflow callback function triggers.</p>
+
+<pre><code>Movable.getDocumentOverflowDelta(direction);
+    direction:
+        The same directions as in
+        Movable.setDocumentOverflowDelta(direction, delta).
+</code></pre>
+
+<p>Define the window overflow behavior.</p>
+
+<pre><code>Movable.setWindowOverflowCb(direction, cb);
+    direction:
+        "left": default behavior description see below
+            the callback function triggers as soon as the character touches
+            the left border of the windwo. The default behavior is, that
+            the window is scrolled left with the same speed as the character
+            is moving.
+
+        "right": default behavior description see below
+            the callback function triggers as soon as the character touches
+            the right border of the window. The default behavior is, that
+            the window is scrolled right with the same speed as the
+            character is moving.
+
+        "top": default behaviour see description below
+            the callback function triggers as soon as the character touches
+            the top border of the windwo. The default behavior is, that the
+            window is scrolled to the top with the same speed as the
+            character is moving.
+
+        "bottom": default behavior description see below
+            the callback function triggers as soon as the character touches
+            the bottom border of the window. The default behavior is, that
+            the window is scrolled down by the same speed as the character
+            is moving.
+
+    cb:
+        definition of the callback function if the default behaviour should
+        be overridden.
+</code></pre>
+
+<p>Get window overflow behavior. This could be useful if the default behavior
+should be extended, not overwritten completely.</p>
+
+<pre><code>Movable.getWindowOverflowCb(direction);
+    direction:
+        The same directions as in
+        Movable.setWindowOverflowDelta(direction, delta).
+
+    return
+        function, definig the window overflow behavior.
+</code></pre>
+
+<p>Define a distance (in pixel) from the window border at which the document
+overflow callback function triggers.</p>
+
+<pre><code>Movable.setWindowOverflowDelta(direction, delta);
+    direction:
+        "left": 500
+            Distance in pixel to the left windwo border.
+
+        "right": 500
+            Distance in pixel to the right window border.
+
+        "top": 100;
+            Distance in pixel to the top window border.
+
+        "bottom": 100
+            Distance in pixel to the bottom window border.
+
+    delta:
+        value in pixel
+</code></pre>
+
+<p>Get the distance (in pixel) from the window border at which the window overflow
+callback function triggers.</p>
+
+<pre><code>Movable.getWindowOverflowDelta(direction);
+    direction:
+        The same directions as in
+        Movable.setWindowOverflowDelta(direction, delta).
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Kobold maintained by <a href="https://github.com/moiri">moiri</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
