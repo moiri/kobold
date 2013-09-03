@@ -120,6 +120,12 @@ Enable or Disable character by id
             true to enable character, false to disable character. If val is
             not defined, the enable status of the character is toggled.
 
+Update the collider. Always call this method, if the content of the page changes
+in such a way, that elements intended as solids are changed (size, new elements,
+etc.)
+
+    Engine.updateCollider();
+
 Enable character
 
     Movable.enableMe();
