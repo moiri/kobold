@@ -33,7 +33,7 @@ Fast Setup
     $(document).ready(function () {
         var engine, kobold;
         engine = new Engine();
-        kobold = engine.addMovable();
+        kobold = engine.newMovable();
         engine.start();
         kobold.enableMe();
     });
@@ -93,7 +93,7 @@ Create and add a new character to the engine. Example animations are provided.
 To add different animations for other characters, create new css definitions
 similar to the ones provided in main.css.
 
-    Engine.addMovable(id, cssClass);
+    Engine.newMovable(id, cssClass);
         id: "kobold"
             id of the added character. This id must like any other id be unique.
             if no id is provided, the default value is set.

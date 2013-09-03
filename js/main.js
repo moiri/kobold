@@ -28,7 +28,7 @@ function Engine() {
 
     // METHODS
 
-    this.addMovable = function (id, cssClass) {
+    this.newMovable = function (id, cssClass) {
         var newMovable = [];
         if (id === undefined) id = 'kobold';
         if (me.movable[id] === undefined) {

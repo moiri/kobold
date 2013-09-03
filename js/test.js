@@ -94,7 +94,7 @@ $(document).ready(function() {
     });
 
     engine = new Engine();
-    kobold = engine.addMovable();
+    kobold = engine.newMovable();
 
     engine.start();
     kobold.enableMe();
