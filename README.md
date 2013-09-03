@@ -490,10 +490,70 @@ overflow callback function triggers.
         delta:
             value in pixel
 
-Get the distance (in pixel) from the document botrder at which the document
+Get the distance (in pixel) from the document border at which the document
 overflow callback function triggers.
 
     Movable.getDocumentOverflowDelta(direction);
         direction:
             The same directions as in
             Movable.setDocumentOverflowDelta(direction, delta).
+
+Define the window overflow behavior.
+
+    Movable.setWindowOverflowCb(direction, cb);
+        direction:
+            "left": default behavior description see below
+                the callback function triggers as soon as the character touches
+                the left border of the windwo. The default behavior is, that
+                the window is scrolled left with the same speed as the character
+                is moving.
+
+            "right": default behavior description see below
+                the callback function triggers as soon as the character touches
+                the right border of the window. The default behavior is, that
+                the window is scrolled right with the same speed as the
+                character is moving.
+
+            "top": default behaviour see description below
+                the callback function triggers as soon as the character touches
+                the top border of the windwo. The default behavior is, that the
+                window is scrolled to the top with the same speed as the
+                character is moving.
+
+            "bottom": default behavior description see below
+                the callback function triggers as soon as the character touches
+                the bottom border of the window. The default behavior is, that
+                the window is scrolled down by the same speed as the character
+                is moving.
+
+        cb:
+            definition of the callback function if the default behaviour should
+            be overridden.
+
+Define a distance (in pixel) from the window border at which the document
+overflow callback function triggers.
+
+    Movable.setWindowOverflowDelta(direction, delta);
+        direction:
+            "left": 500
+                Distance in pixel to the left windwo border.
+
+            "right": 500
+                Distance in pixel to the right window border.
+
+            "top": 100;
+                Distance in pixel to the top window border.
+
+            "bottom": 100
+                Distance in pixel to the bottom window border.
+
+        delta:
+            value in pixel
+
+Get the distance (in pixel) from the window border at which the window overflow
+callback function triggers.
+
+    Movable.getWindowOverflowDelta(direction);
+        direction:
+            The same directions as in
+            Movable.setWindowOverflowDelta(direction, delta).
