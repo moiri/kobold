@@ -1106,14 +1106,23 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.standUp = function () {
+        var colliderSize = 0;
         if (me.action.crouch) {
-            $('#' + me.idImg).removeClass('crouch');
-            $('#' + me.idImg).removeAttr('style');
-            if (me.collider.top.isColliding)
-                me.cssMoveY(me.size.heightCrouch - me.size.heightStand);
-            $('#' + me.idCollider).height(me.size.heightStand + 'px');
-            me.updateCollider();
-            me.action.crouch = false;
+            colliderSize = $('#' + me.idCollider + 'top').height();
+            me.updateCollider('top', colliderSize +
+                    (me.size.heightCrouch - me.size.heightStand));
+            me.checkCollisionStatic('top');
+            if (!me.collider.top.isColliding) {
+                $('#' + me.idImg).removeClass('crouch');
+                $('#' + me.idImg).removeAttr('style');
+                if (me.collider.top.isColliding)
+                    me.cssMoveY(me.size.heightCrouch - me.size.heightStand);
+                $('#' + me.idCollider).height(me.size.heightStand + 'px');
+                me.updateCollider();
+                me.action.crouch = false;
+            }
+            me.updateCollider('top', colliderSize);
+            me.checkCollisionStatic('top');
         }
     };
 
