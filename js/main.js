@@ -166,7 +166,7 @@ function Engine() {
         .each(function () {
             var jObject = $('<div id="' + me.config.solidColliderClass +
                 me.colliderCnt + '" class="' + me.config.solidColliderClass +
-                '"></div>').prependTo(this);
+                '"></div>').appendTo(this);
             if ($(this).hasClass(me.config.solidOnlyTopClass)) {
                 jObject.addClass(me.config.solidColliderOnlyTopClass);
             }
@@ -179,7 +179,7 @@ function Engine() {
                 me.colliderCnt + '" class="' +
                 me.config.solidColliderMovingClass + ' ' +
                 me.config.solidColliderOnlyTopClass + '"></div>')
-            .prependTo(this)
+            .appendTo(this)
             .width($(this).outerWidth())
             .height($(this).outerHeight())
             .css({
