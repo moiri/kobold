@@ -70,21 +70,15 @@ function Engine() {
         if (movable.getEnableStatus('run') &&
                 me.keyHandler.keyCodeMap[movable.getKeyCode('run')]) {
             movable.run();
-            if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')]) {
-                movable.moveLeft(true);
-            }
-            else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
-                movable.moveRight(true);
-            }
         }
         else {
             movable.walk();
-            if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')]) {
-                movable.moveLeft(false);
-            }
-            else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
-                movable.moveRight(false);
-            }
+        }
+        if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')]) {
+            movable.moveLeft();
+        }
+        else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
+            movable.moveRight();
         }
         if (movable.getEnableStatus('crouch') &&
                 (!inAir || (inAir && movable.getEnableStatus('crouchJump')))) {
@@ -494,6 +488,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
         // Action Flags
         me.action.crouch = false; // internal
+        me.action.run = false; // internal
         me.action.wink = false; // internal
         me.action.wave = false; // internal
         me.action.jawn = false; // internal
@@ -947,9 +942,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         $('#' + me.idImg).removeClass('jump');
     };
 
-    this.moveLeft = function (run) {
+    this.moveLeft = function () {
         var collidedObjects,
-            speed = (run) ? me.speed.leftRun : me.speed.left;
+            speed = (me.action.run) ? me.speed.leftRun : me.speed.left;
         me.action.moveLeft = true;
         $('#' + me.idImg).removeClass('idle right');
         $('#' + me.idImg).addClass('left');
@@ -977,9 +972,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.checkPosition('left');
     };
 
-    this.moveRight = function (run) {
+    this.moveRight = function () {
         var collidedObjects,
-            speed = (run) ? me.speed.rightRun : me.speed.right;
+            speed = (me.action.run) ? me.speed.rightRun : me.speed.right;
         me.action.moveRight = true;
         $('#' + me.idImg).removeClass('idle left');
         $('#' + me.idImg).addClass('right');
@@ -1057,8 +1052,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.run = function () {
-        $('#' + me.idImg).removeClass('walk');
-        $('#' + me.idImg).addClass('run');
+        if (!me.action.run) {
+            me.action.run = true;
+            $('#' + me.idImg).removeClass('walk');
+            $('#' + me.idImg).addClass('run');
+        }
     };
 
     this.setDeltaTime = function (val) {
@@ -1145,6 +1143,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         $('#' + me.idImg).removeClass('walk run');
         me.action.moveLeft = false;
         me.action.moveRight = false;
+        me.action.run = false;
     }
 
     this.updateCollider = function (direction, colliderSize) {
@@ -1215,6 +1214,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.walk = function () {
         $('#' + me.idImg).removeClass('run');
         $('#' + me.idImg).addClass('walk');
+        me.action.run = false;
     };
 
     this.setup();
