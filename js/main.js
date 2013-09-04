@@ -66,7 +66,6 @@ function Engine() {
             movable.jump();
             if (!movable.getEnableStatus('crouchJump')) movable.standUp();
         }
-        if (!onMovableSolid) inAir = movable.inAir();
         if (movable.getEnableStatus('run') &&
                 me.keyHandler.keyCodeMap[movable.getKeyCode('run')]) {
             movable.run();
@@ -80,8 +79,7 @@ function Engine() {
         else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
             movable.moveRight();
         }
-        if (movable.getEnableStatus('crouch') &&
-                (!inAir || (inAir && movable.getEnableStatus('crouchJump')))) {
+        if (movable.getEnableStatus('crouch')) {
             if (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] &&
                 (!me.keyHandler.keyCodeMap[movable.getKeyCode('run')] ||
                 (movable.getEnableStatus('crouchRun') &&
@@ -100,6 +98,7 @@ function Engine() {
             movable.stop();
             movable.idle();
         }
+        if (!onMovableSolid) inAir = movable.inAir();
         if (me.keyHandler.isAnyKeyPressed() || inAir) {
             movable.active();
         }
@@ -765,7 +764,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.crouch = function () {
-        if (!me.action.crouch) {
+        if (!me.action.crouch && (me.collider.bottom.isColliding ||
+                    (!me.collider.bottom.isColliding && me.enable.crouchJump))) {
             $('#' + me.idImg).addClass('crouch');
             $('#' + me.idImg).css('top',
                     (parseInt($('#' + me.idImg).css('top')) -
