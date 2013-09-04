@@ -166,7 +166,9 @@ function Engine() {
         .each(function () {
             var jObject = $('<div id="' + me.config.solidColliderClass +
                 me.colliderCnt + '" class="' + me.config.solidColliderClass +
-                '"></div>').appendTo(this);
+                '"></div>');
+            $('<div class="colliderWrapper"></div>').appendTo(this)
+            .append(jObject);
             if ($(this).hasClass(me.config.solidOnlyTopClass)) {
                 jObject.addClass(me.config.solidColliderOnlyTopClass);
             }
@@ -175,11 +177,13 @@ function Engine() {
         $('.' + me.config.solidMovingClass + ':not(:has(>.' +
                     me.config.solidColliderMovingClass + '))')
         .each(function () {
-            $('<div id="' + me.config.solidColliderMovingClass +
+            var jObject = $('<div id="' + me.config.solidColliderMovingClass +
                 me.colliderCnt + '" class="' +
                 me.config.solidColliderMovingClass + ' ' +
-                me.config.solidColliderOnlyTopClass + '"></div>')
-            .appendTo(this)
+                me.config.solidColliderOnlyTopClass + '"></div>');
+            $('<div class="colliderWrapper"></div>').appendTo(this)
+            .append(jObject);
+            jObject
             .width($(this).outerWidth())
             .height($(this).outerHeight())
             .css({
@@ -189,9 +193,9 @@ function Engine() {
             });
             me.colliderCnt++;
         });
-        $('.' + me.config.solidClass + '>.' + me.config.solidColliderClass)
+        $('.' + me.config.solidColliderClass)
         .each(function () {
-            var myParent = $(this).parent();
+            var myParent = $(this).parent().parent();
             $(this).width(myParent.outerWidth())
             .height(myParent.outerHeight())
             .css({
@@ -211,7 +215,8 @@ function Engine() {
             if (prop === 'bottom') {
                 if (deltaSize > 0) {
                     deltaSize += delta;
-                    $(elem).children().first()
+                    $(elem).find('.' + me.config.solidColliderMovingClass)
+                        .first()
                         .height($(elem).outerHeight() + deltaSize)
                         .css('bottom', 1 + deltaSize);
                 }
@@ -219,7 +224,8 @@ function Engine() {
             else if (prop === 'top') {
                 if (deltaSize < 0) {
                     deltaSize -= delta;
-                    $(elem).children().first()
+                    $(elem).find('.' + me.config.solidColliderMovingClass)
+                        .first()
                         .height($(elem).outerHeight() - deltaSize)
                         .css('bottom', 1 - deltaSize);
                 }
@@ -935,7 +941,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.collider.bottom.activeId = newColliderId;
             newJObject = collidedObjects[0].jObject;
             if (newJObject.hasClass(config.solidColliderMovingClass)) {
-                newJObject = newJObject.parent();
+                newJObject = newJObject.parent().parent();
             }
             me.changeToRelativePosition(newJObject);
         }
@@ -965,7 +971,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 });
             }
             me.cssMoveX(
-                me.positionsGet(collidedObjects[0].jObject.parent())[0][1] -
+                me.positionsGet(
+                    collidedObjects[0].jObject.parent().parent())[0][1] -
                 me.positionsGet($('#' + me.id))[0][0]
             );
         }
@@ -995,7 +1002,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 });
             }
             me.cssMoveX(
-                me.positionsGet(collidedObjects[0].jObject.parent())[0][0] -
+                me.positionsGet(
+                    collidedObjects[0].jObject.parent().parent())[0][0] -
                 me.positionsGet($('#' + me.id))[0][1]
             );
         }
