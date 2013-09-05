@@ -614,11 +614,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 me.changeToAbsolutePosition();
             me.stop();
             me.standUp();
+            $('#' + me.id).css({'bottom': $(window).height() - y, 'left': x});
+            me.overflow.document.heightVirtual = null;
             me.singleAnimation($('#' + me.idImg), 'appear', function () {
                 me.enableMe();
             });
-            $('#' + me.id).offset({'top': y, 'left': x});
-            me.overflow.document.heightVirtual = null;
         }
     };
 
@@ -934,7 +934,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 return a.solidPosition[1][0] - b.solidPosition[1][0];
             });
         }
-        me.pos.y = $('#' + me.id).offset().top;
+        me.pos.y = $('#' + me.id).offset().top + $('#' + me.id).height();
         newColliderId = collidedObjects[0].jObject.attr('id');
         if (me.pos.absolute ||
                 (me.collider.bottom.activeId !== newColliderId)) {
