@@ -5,8 +5,6 @@ body {
 
 .movable {
     position:absolute;
-    bottom:500px;
-    left:30px;
 }
 
 .colliderContainer {

@@ -335,8 +335,8 @@ This coordinates will also be used if the character needs to be reset.
             Distance in pixel from the left screen frame to the left border of
             the character.
 
-        y: 500
-            Distance in pixel from the bottom screen frame to the bottom border
+        y: 100
+            Distance in pixel from the top screen frame to the bottom border
             of the character.
 
 Get the defined initial position (in pixel) of the character

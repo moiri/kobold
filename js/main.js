@@ -355,19 +355,20 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
         // Position
         me.pos.initX = 30;
-        me.pos.initY = 500;
+        me.pos.initY = 100;
         me.pos.x = 0; // internal
         me.pos.y = 0; // internal
         me.pos.overflowX; // internal
         me.pos.overflowY; // internal
         me.pos.absolute = true; // internal
         me.pos.absoluteJObject = $('#' + me.id).parent(); // internal
+        me.pos.appearCnt = 0;
 
         this.setInitialPosition = function (x, y) {
             me.pos.initX = x;
             me.cssSetX(x);
             me.pos.initY = y;
-            me.cssSetY(y);
+            me.cssSetY($(window).height() - y);
         };
         this.getInitialPosition = function () {
             var res = [];
@@ -375,6 +376,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             res.y = me.pos.initY;
             return res;
         };
+
 
         // Size
         me.size.heightStand = 85;
@@ -606,10 +608,16 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.appear = function (x, y) {
+        var collidedObjects;
         if (me.enable.appear) {
             if (x === undefined) x = me.pos.x;
             if (y === undefined) y = me.pos.y;
             me.disableMe();
+            if (me.pos.appearCnt > 0) {
+                x = me.pos.initX;
+                y = me.pos.initY;
+            }
+            me.pos.appearCnt++;
             if (!me.pos.absolute)
                 me.changeToAbsolutePosition();
             me.stop();
@@ -928,6 +936,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.land = function (collidedObjects) {
         var newColliderId,
             newJObject;
+        me.pos.appearCnt = 0;
         me.speed.inAir = me.delta.dist.down;
         if (collidedObjects.length > 1) {
             collidedObjects.sort(function(a,b) {
@@ -1097,6 +1106,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.collider.bottom.jObject = $('#' + me.idCollider + '-bottom');
         $('#' + me.idCollider).width(me.size.width);
         $('#' + me.idCollider).height(me.size.heightStand);
+        me.setInitialPosition(me.pos.initX, me.pos.initY);
     };
 
     this.singleAnimation = function (obj, cssClass, cb) {
