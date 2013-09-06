@@ -77,12 +77,6 @@ function Engine() {
         else {
             movable.walk();
         }
-        if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')]) {
-            movable.moveLeft();
-        }
-        else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
-            movable.moveRight();
-        }
         if (movable.getEnableStatus('crouch')) {
             if (!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] ||
                 (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] &&
@@ -104,6 +98,12 @@ function Engine() {
             movable.idle();
         }
         if (!onMovableSolid) inAir = movable.inAir();
+        if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')]) {
+            movable.moveLeft();
+        }
+        else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
+            movable.moveRight();
+        }
         if (me.keyHandler.isAnyKeyPressed() || inAir || forcedCrouch) {
             movable.active();
         }
