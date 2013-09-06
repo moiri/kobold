@@ -331,6 +331,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.enable.crouchJump = true;
         me.enable.crouchJumpHigh = true;
         me.enable.appear = true;
+        me.enable.vanish = true;
         me.enable.pickUp = true;
         me.enable.alwaysCheckPosition = false;
 
@@ -649,6 +650,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         if (me.enable.appear) {
             if (x === undefined) x = me.pos.x;
             if (y === undefined) y = me.pos.y;
+            $('#' + me.id).show();
             me.disableMe();
             if (me.pos.appearCnt > 0) {
                 x = me.pos.initX;
@@ -658,6 +660,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             if (!me.pos.absolute)
                 me.changeToAbsolutePosition();
             me.stop();
+            me.idle();
             me.standUp();
             $('#' + me.id).css({'bottom': $(window).height() - y, 'left': x});
             me.overflow.document.heightVirtual = null;
@@ -1212,7 +1215,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.action.moveLeft = false;
         me.action.moveRight = false;
         me.action.run = false;
-    }
+    };
+
+    this.teleport = function (x, y) {
+        me.vanish(true, x, y);
+    };
 
     this.updateCollider = function (direction, colliderSize) {
         var tolerance = [];
@@ -1278,6 +1285,21 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.updateSolidCollider = function () {
         me.solids = $('.' + me.solidColliderClass); // internal
         me.solidsMoving = $('.' + me.solidColliderMovingClass); // internal
+    };
+
+    this.vanish = function (teleport, x, y) {
+        var collidedObjects;
+        if (me.enable.vanish) {
+            me.disableMe();
+            me.active();
+            me.standUp();
+            if (!me.pos.absolute)
+                me.changeToAbsolutePosition();
+            me.singleAnimation($('#' + me.idImg), 'vanish', function () {
+                $('#' + me.id).hide();
+                if(teleport) me.appear(x, y);
+            });
+        }
     };
 
     this.walk = function () {

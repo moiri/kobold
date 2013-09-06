@@ -216,9 +216,12 @@ Enable ability of the character
                 If "jump" is turned off, this parameter has no effect.
 
             "appear": true
-                With this enabled, the character cannot leave the visible screen
-                and is teleported back near to the last valid position if he
-                drops below the screen.
+                With this enabled, the character is able to appear at a defined
+                position.
+
+            "vanish": true
+                With this enabled, the characte is able to vanish from the
+                screen or teleport to a defined position.
 
             "pickUp": true
                 With this enabled, the character is able to pick up elements

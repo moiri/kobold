@@ -115,6 +115,7 @@ $(document).ready(function() {
         }
     });
     $('#testStuff').click(function () {
+        kobold.teleport(200, 200);
         engine.toggleEnableCollider($('#stone6'));
         engine.toggleEnableCollider($('#elevator1'));
     });
