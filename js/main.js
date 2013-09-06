@@ -83,17 +83,18 @@ function Engine() {
             movable.moveRight();
         }
         if (movable.getEnableStatus('crouch')) {
-            if (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] &&
-                (!me.keyHandler.keyCodeMap[movable.getKeyCode('run')] ||
-                (movable.getEnableStatus('crouchRun') &&
-                 me.keyHandler.keyCodeMap[movable.getKeyCode('run')]))) {
-                movable.crouch();
-            }
             if (!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] ||
                 (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] &&
                 me.keyHandler.keyCodeMap[movable.getKeyCode('run')] &&
                 !movable.getEnableStatus('crouchRun'))) {
-                movable.standUp();
+                forcedCrouch = movable.standUp();
+            }
+            if ((me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] ||
+                    forcedCrouch) &&
+                (!me.keyHandler.keyCodeMap[movable.getKeyCode('run')] ||
+                    (movable.getEnableStatus('crouchRun') &&
+                        me.keyHandler.keyCodeMap[movable.getKeyCode('run')]))) {
+                movable.crouch();
             }
         }
         if (!me.keyHandler.keyCodeMap[movable.getKeyCode('left')] &&
@@ -102,7 +103,7 @@ function Engine() {
             movable.idle();
         }
         if (!onMovableSolid) inAir = movable.inAir();
-        if (me.keyHandler.isAnyKeyPressed() || inAir) {
+        if (me.keyHandler.isAnyKeyPressed() || inAir || forcedCrouch) {
             movable.active();
         }
     };
@@ -1049,7 +1050,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
         });
     };
-    
+
     this.positionsCompare = function (p1, p2) {
         var r1, r2;
         if (p1[0] <= p2[0]) {
@@ -1062,7 +1063,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return (r1[1] > r2[0]);
     };
-    
+
     this.positionsGet = function (elem) {
         var pos, width, height, res;
         pos = elem.offset();
