@@ -17,6 +17,7 @@ function Engine() {
         me.config.solidClass = 'solid';
         me.config.solidOnlyTopClass = me.config.solidClass + 'OnlyTop';
         me.config.solidMovingClass = me.config.solidClass + 'Moving';
+        me.config.solidColliderWrapperClass = 'solidColliderWrapper';
         me.config.solidColliderClass = 'solidCollider';
         me.config.solidColliderMovingClass =
             me.config.solidColliderClass + 'Moving';
@@ -165,18 +166,21 @@ function Engine() {
     };
 
     this.updateCollider = function () {
+        var newCollider = false;
         $('.' + me.config.solidClass + ':not(.' + me.config.solidMovingClass +
-                    ')' + ':not(:has(>.' + me.config.solidColliderClass + '))')
+            ')' + ':not(:has(>.' + me.config.solidColliderWrapperClass + '))')
         .each(function () {
             var jObject = $('<div id="' + me.config.solidColliderClass +
                 me.colliderCnt + '" class="' + me.config.solidColliderClass +
                 '"></div>');
-            $('<div class="colliderWrapper"></div>').appendTo(this)
+            $('<div class="' + me.config.solidColliderWrapperClass + '"></div>')
+            .appendTo(this)
             .append(jObject);
             if ($(this).hasClass(me.config.solidOnlyTopClass)) {
                 jObject.addClass(me.config.solidColliderOnlyTopClass);
             }
             me.colliderCnt++;
+            newCollider = true;
         });
         $('.' + me.config.solidMovingClass + ':not(:has(>.' +
                     me.config.solidColliderMovingClass + '))')
@@ -185,7 +189,8 @@ function Engine() {
                 me.colliderCnt + '" class="' +
                 me.config.solidColliderMovingClass + ' ' +
                 me.config.solidColliderOnlyTopClass + '"></div>');
-            $('<div class="colliderWrapper"></div>').appendTo(this)
+            $('<div class="' + me.config.solidColliderWrapperClass + '"></div>')
+            .appendTo(this)
             .append(jObject);
             jObject
             .width($(this).outerWidth())
@@ -196,10 +201,12 @@ function Engine() {
                 'bottom': $(this).css('border-bottom-width')
             });
             me.colliderCnt++;
+            newCollider = true;
         });
         $('.' + me.config.solidColliderClass)
         .each(function () {
             var myParent = $(this).parent().parent();
+            $(this).removeAttr('style');
             $(this).width(myParent.outerWidth())
             .height(myParent.outerHeight())
             .css({
@@ -208,6 +215,11 @@ function Engine() {
                 'bottom': $(this).offset().top - myParent.offset().top
             });
         });
+        if (newCollider) {
+            for (id in me.movable) {
+                me.movable[id].obj.updateSolidCollider();
+            }
+        }
     };
 
     this.updateMovingCollider = function (elem, prop, val) {
@@ -524,8 +536,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // Engine configurations
         me.solidColliderClass = config.solidColliderClass; // internal
         me.solidColliderMovingClass = config.solidColliderMovingClass;//internal
-        me.solids = $('.' + me.solidColliderClass); // internal
-        me.solidsMoving = $('.' + me.solidColliderMovingClass); // internal
 
         // Overflow Behavior
         me.overflow.document.height = $(document).height(); // internal
@@ -1111,6 +1121,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         $('#' + me.idCollider).width(me.size.width);
         $('#' + me.idCollider).height(me.size.heightStand);
         me.setInitialPosition(me.pos.initX, me.pos.initY);
+        me.updateSolidCollider();
+        me.updateCollider();
+        me.genJumpLut();
     };
 
     this.singleAnimation = function (obj, cssClass, cb) {
@@ -1234,6 +1247,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
     };
 
+    this.updateSolidCollider = function () {
+        me.solids = $('.' + me.solidColliderClass); // internal
+        me.solidsMoving = $('.' + me.solidColliderMovingClass); // internal
+    };
+
     this.walk = function () {
         $('#' + me.idImg).removeClass('run');
         $('#' + me.idImg).addClass('walk');
@@ -1241,8 +1259,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.setup();
-    this.updateCollider();
-    this.genJumpLut();
 }
 
 function KeyHandler () {
