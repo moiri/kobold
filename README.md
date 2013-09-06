@@ -205,6 +205,10 @@ Enable ability of the character
                 marked with the css class set by
                 Movable.setPickUpCssClass(cssClass).
 
+            "alwaysCheckPosition": false
+                With this enabled, the position of the character is checked on
+                every tick not only when the character moves, jumps and falls.
+
 Disable ability of the character
 
     Movable.disableAttr(attr);

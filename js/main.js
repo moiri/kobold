@@ -107,6 +107,9 @@ function Engine() {
         if (me.keyHandler.isAnyKeyPressed() || inAir || forcedCrouch) {
             movable.active();
         }
+        if (movable.getEnableStatus('alwaysCheckPosition')) {
+            movable.checkPosition();
+        }
     };
 
     this.registerKeyEvents = function () {
@@ -183,7 +186,7 @@ function Engine() {
             newCollider = true;
         });
         $('.' + me.config.solidMovingClass + ':not(:has(>.' +
-                    me.config.solidColliderMovingClass + '))')
+                    me.config.solidColliderWrapperClass + '))')
         .each(function () {
             var jObject = $('<div id="' + me.config.solidColliderMovingClass +
                 me.colliderCnt + '" class="' +
@@ -312,6 +315,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.enable.crouchJumpHigh = true;
         me.enable.appear = true;
         me.enable.pickUp = true;
+        me.enable.alwaysCheckPosition = false;
 
         this.enableAttr = function (attr) {
             if (attr === 'jumpAbsolute') {
@@ -678,7 +682,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 }
             }).promise().done(function () {
                 if (collision) {
-                    me.checkPosition();
+                    if (!me.enable.alwaysCheckPosition) me.checkPosition();
                     me.collider.bottom.isColliding = true;
                     me.land(collidedObjects);
                 }
@@ -888,7 +892,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             else {
                 me.land(collidedObjects);
             }
-            me.checkPosition('bottom');
+            if (!me.enable.alwaysCheckPosition) me.checkPosition('bottom');
         }
         else {
             me.jumpAttr.count.actual += Math.round(
@@ -927,7 +931,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                         collidedObjects[0].solidPosition[1][1] -
                         $('#' + me.id).outerHeight());
             }
-            me.checkPosition('top');
+            if (!me.enable.alwaysCheckPosition) me.checkPosition('top');
         }
         return !me.collider.bottom.isColliding;
     };
@@ -999,7 +1003,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 me.positionsGet($('#' + me.id))[0][0]
             );
         }
-        me.checkPosition('left');
+        if (!me.enable.alwaysCheckPosition) me.checkPosition('left');
     };
 
     this.moveRight = function () {
@@ -1030,7 +1034,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 me.positionsGet($('#' + me.id))[0][1]
             );
         }
-        me.checkPosition('right');
+        if (!me.enable.alwaysCheckPosition) me.checkPosition('right');
     };
 
     this.overlaps = function (a, b) {
