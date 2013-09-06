@@ -8,6 +8,7 @@ $(document).ready(function() {
     $('#content').append('<div id="elevator1" class="elevator1 solid ' +
         'solidMoving"></div>');
     $('#stone6').addClass('solidOnlyTop');
+    $('#stone3').addClass('fallThroughBar');
     moveUp = function () {
         $('#elevator1').animate(
             {"bottom" : "+=450px"},
@@ -93,9 +94,15 @@ $(document).ready(function() {
         kobold.toggleEnableAttr('pickUp');
         $(this).toggleClass('disable');
     });
+    $('#enable-alwaysCheckPosition').click(function () {
+        kobold.toggleEnableAttr('alwaysCheckPosition');
+        $(this).toggleClass('disable');
+    });
 
     engine = new Engine();
     kobold = engine.newMovable();
+    kobold.setWindowOverflowCb('top', function () {
+    });
 
     engine.start();
     kobold.enableMe();
@@ -106,6 +113,22 @@ $(document).ready(function() {
                 $(this).addClass('disable');
             }
         }
+    });
+    $('#testStuff').click(function () {
+        engine.toggleEnableCollider($('#stone6'));
+        engine.toggleEnableCollider($('#elevator1'));
+    });
+    var delta = 100;
+    $(window).scroll(function () {
+        $('.fallThroughBar').each(function () {
+            var topVal = $(this).offset().top - $(window).scrollTop();
+            if (topVal < delta) {
+                engine.disableCollider($(this));
+            }
+            else {
+                engine.enableCollider($(this));
+            }
+        });
     });
 });
 

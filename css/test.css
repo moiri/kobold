@@ -19,6 +19,13 @@
     opacity:0.2;
 }
 
+.debug * .solidColliderIgnore, .debug > .solidColliderIgnore,
+    .debug * .solidColliderMoving.solidColliderOnlyTop.solidColliderIgnore,
+    .debug > .solidColliderMoving.solidColliderOnlyTop.solidColliderIgnore {
+    background-color:black;
+    opacity:0.2;
+}
+
 .debug * .collider, .debug > .collider {
     background-color:green;
     opacity:0.2;
@@ -107,6 +114,7 @@
     height:50px;
     width:300px;
     border:solid black 1px;
+    overflow:hidden;
 }
 
 .stone7 {
