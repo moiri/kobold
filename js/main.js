@@ -17,12 +17,15 @@ function Engine() {
         me.config.solidClass = 'solid';
         me.config.solidOnlyTopClass = me.config.solidClass + 'OnlyTop';
         me.config.solidMovingClass = me.config.solidClass + 'Moving';
-        me.config.solidColliderWrapperClass = 'solidColliderWrapper';
         me.config.solidColliderClass = 'solidCollider';
+        me.config.solidColliderWrapperClass =
+            me.config.solidColliderClass + 'Wrapper';
         me.config.solidColliderMovingClass =
             me.config.solidColliderClass + 'Moving';
         me.config.solidColliderOnlyTopClass =
             me.config.solidColliderClass + 'OnlyTop';
+        me.config.solidColliderIgnoreClass =
+            me.config.solidColliderClass + 'Ignore';
 
         this.setConfigAttr = function (attr, val) {
             me.config[attr] = val;
@@ -33,6 +36,20 @@ function Engine() {
     }
 
     // METHODS
+    this.disableCollider = function (obj) {
+        obj.find('.' + me.config.solidColliderWrapperClass + '>:first-child')
+        .addClass(me.config.solidColliderIgnoreClass);
+    };
+
+    this.enableCollider = function (obj) {
+        obj.find('.' + me.config.solidColliderWrapperClass + '>:first-child')
+        .removeClass(me.config.solidColliderIgnoreClass);
+    };
+
+    this.toggleEnableCollider = function (obj) {
+        obj.find('.' + me.config.solidColliderWrapperClass + '>:first-child')
+        .toggleClass(me.config.solidColliderIgnoreClass);
+    };
 
     this.newMovable = function (id, cssClass) {
         var newMovable = [];
@@ -537,9 +554,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 (Math.abs(me.speed.fall) * me.delta.time.actual)
             * 2 + 1); // internal
 
-        // Engine configurations
-        me.solidColliderClass = config.solidColliderClass; // internal
-        me.solidColliderMovingClass = config.solidColliderMovingClass;//internal
+        // Engine configurations, all internal
+        me.solidColliderClass = config.solidColliderClass;
+        me.solidColliderMovingClass = config.solidColliderMovingClass;
+        me.solidColliderOnlyTopClass = config.solidColliderOnlyTopClass;
+        me.solidColliderIgnoreClass = config.solidColliderIgnoreClass;
 
         // Overflow Behavior
         me.overflow.document.height = $(document).height(); // internal
@@ -673,12 +692,16 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         if (!me.action.jump) {
             me.solidsMoving.each(function (idx) {
                 var collisionInfo = [],
-                    collisionRes = me.overlaps(me.collider.bottom.jObject, $(this));
-                if (collisionRes.isColliding) {
-                    collisionInfo.jObject = $(this);
-                    collisionInfo.solidPosition = collisionRes.pos2;
-                    collision = true;
-                    collidedObjects.push(collisionInfo);
+                    collisionRes = null;
+                if (!$(this).hasClass(me.solidColliderIgnoreClass)) {
+                    collisionRes =
+                        me.overlaps(me.collider.bottom.jObject, $(this));
+                    if (collisionRes.isColliding) {
+                        collisionInfo.jObject = $(this);
+                        collisionInfo.solidPosition = collisionRes.pos2;
+                        collision = true;
+                        collidedObjects.push(collisionInfo);
+                    }
                 }
             }).promise().done(function () {
                 if (collision) {
@@ -697,9 +720,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.solids.each(function (idx) {
             var collisionInfo = [],
                 collisionRes = null;
-            if (($(this).hasClass(config.solidColliderOnlyTopClass) &&
-                (direction === 'bottom')) ||
-                !$(this).hasClass(config.solidColliderOnlyTopClass)) {
+            if (!$(this).hasClass(me.solidColliderIgnoreClass) &&
+                (($(this).hasClass(me.solidColliderOnlyTopClass) &&
+                    (direction === 'bottom')) ||
+                    !$(this).hasClass(me.solidColliderOnlyTopClass))) {
                 collisionRes =
                     me.overlaps(me.collider[direction].jObject, $(this));
                 if (collisionRes.isColliding) {
@@ -967,7 +991,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 (me.collider.bottom.activeId !== newColliderId)) {
             me.collider.bottom.activeId = newColliderId;
             newJObject = collidedObjects[0].jObject;
-            if (newJObject.hasClass(config.solidColliderMovingClass)) {
+            if (newJObject.hasClass(me.solidColliderMovingClass)) {
                 newJObject = newJObject.parent().parent();
             }
             me.changeToRelativePosition(newJObject);

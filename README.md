@@ -136,6 +136,26 @@ etc.)
 
     Engine.updateCollider();
 
+Disable a specific collider.
+
+    Engine.disableCollider(jObject);
+        jObject:
+            jQuery object of the solid, where the collider should be disabled
+            (ignored).
+
+Enable a specific collider. By default all created colliders are enabled.
+
+    Engine.enableCollider(jObject);
+        jObject:
+            jQuery object of the solid, where the collider should be enabled
+
+Toggle the enable statusof a specific collider.
+
+    Engine.toggleEnableCollider(jObject);
+        jObject:
+            jQuery object of the solid, where the collider enable status should
+            be toggled.
+
 Enable character
 
     Movable.enableMe();
