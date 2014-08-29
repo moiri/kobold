@@ -316,10 +316,17 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     {
         // CONFIGURATION
+        // Object
+        me.obj = $('#' + id);
+
         // IDs
         me.id = id;
         me.idImg = me.id + '-img'; // internal
         me.idCollider = me.id + "-collider"; // internal
+
+        this.getId = function () {
+            return me.id;
+        };
 
         // Enables
         me.enable.run = true;
@@ -399,7 +406,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.pos.overflowX; // internal
         me.pos.overflowY; // internal
         me.pos.absolute = true; // internal
-        me.pos.absoluteJObject = $('#' + me.id).parent(); // internal
+        me.pos.absoluteJObject = me.obj.parent(); // internal
         me.pos.appearCnt = 0;
 
         this.setInitialPosition = function (x, y) {
@@ -650,7 +657,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         if (me.enable.appear) {
             if (x === undefined) x = me.pos.x;
             if (y === undefined) y = me.pos.y;
-            $('#' + me.id).show();
+            me.obj.show();
             me.disableMe();
             if (me.pos.appearCnt > 0) {
                 x = me.pos.initX;
@@ -662,7 +669,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.stop();
             me.idle();
             me.standUp();
-            $('#' + me.id).css({'bottom': $(window).height() - y, 'left': x});
+            me.obj.css({'bottom': $(window).height() - y, 'left': x});
             me.overflow.document.heightVirtual = null;
             me.singleAnimation($('#' + me.idImg), 'appear', function () {
                 me.enableMe();
@@ -671,20 +678,20 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.changeToAbsolutePosition = function () {
-        me.cssSetX($('#' + me.id).offset().left, true);
-        me.cssSetY($(window).height() - $('#' + me.id).offset().top -
-                $('#' + me.id).height(), true);
-        $('#' + me.id).appendTo(me.pos.absoluteJObject);
+        me.cssSetX(me.obj.offset().left, true);
+        me.cssSetY($(window).height() - me.obj.offset().top -
+                me.obj.height(), true);
+        me.obj.appendTo(me.pos.absoluteJObject);
         me.positionRelativeObj = null;
         me.pos.absolute = true;
     };
 
     this.changeToRelativePosition = function (obj) {
-        me.cssSetX($('#' + me.id).offset().left - obj.offset().left, true);
+        me.cssSetX(me.obj.offset().left - obj.offset().left, true);
         me.cssSetY(parseInt(obj.height()) +
                 parseInt(obj.css('border-top-width')), true);
-        $('#' + me.id).css('top', '');
-        $('#' + me.id).appendTo(obj);
+        me.obj.css('top', '');
+        me.obj.appendTo(obj);
         me.positionRelativeObj = obj;
         me.pos.absolute = false;
     };
@@ -742,7 +749,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.checkPosition = function (direction) {
-        var pos = me.positionsGet($('#' + me.id)),
+        var pos = me.positionsGet(me.obj),
             posImg = me.positionsGet($('#' + me.idImg)),
             imgDiff = 0;
 
@@ -839,24 +846,24 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     this.cssMoveX = function (val) {
         me.overflow.document.width = $(document).width();
-        $('#' + me.id).css("left", "+=" + val + "px");
+        me.obj.css("left", "+=" + val + "px");
     };
 
     this.cssSetX = function (val, force) {
         me.overflow.document.width = $(document).width();
         if (me.pos.absolute || force)
-            $('#' + me.id).css("left", val + "px");
+            me.obj.css("left", val + "px");
     };
 
     this.cssMoveY = function (val) {
         me.overflow.document.height = $(document).height();
-        $('#' + me.id).css("bottom", "+=" + val + "px");
+        me.obj.css("bottom", "+=" + val + "px");
     };
 
     this.cssSetY = function (val, force) {
         me.overflow.document.height = $(document).height();
         if (me.pos.absolute || force)
-            $('#' + me.id).css("bottom", val + "px");
+            me.obj.css("bottom", val + "px");
     };
 
     this.disableMe = function () {
@@ -956,7 +963,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 }
                 me.cssSetY($(window).height() -
                         collidedObjects[0].solidPosition[1][1] -
-                        $('#' + me.id).outerHeight());
+                        me.obj.outerHeight());
             }
             if (!me.enable.alwaysCheckPosition) me.checkPosition('top');
         }
@@ -970,7 +977,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.jumpAttr.count.actual = 0;
             me.jumpAttr.count.last = 0;
             me.jumpAttr.height.actual = 0;
-            me.jumpAttr.height.start = $('#' + me.id).offset().top;
+            me.jumpAttr.height.start = me.obj.offset().top;
             $('#' + me.idImg).addClass('jump');
             if (!me.pos.absolute && me.enable.jumpAbsolute) {
                 me.changeToAbsolutePosition();
@@ -988,7 +995,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 return a.solidPosition[1][0] - b.solidPosition[1][0];
             });
         }
-        me.pos.y = $('#' + me.id).offset().top + $('#' + me.id).height();
+        me.pos.y = me.obj.offset().top + me.obj.height();
         newColliderId = collidedObjects[0].jObject.attr('id');
         if (me.pos.absolute ||
                 (me.collider.bottom.activeId !== newColliderId)) {
@@ -1015,7 +1022,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.cssMoveX(me.delta.move.x);
             if (me.collider.bottom.isColliding) {
                 me.pos.x =
-                    $('#' + me.id).offset().left + $('#' + me.id).width();
+                    me.obj.offset().left + me.obj.width();
             }
         }
         else {
@@ -1027,7 +1034,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.cssMoveX(
                 me.positionsGet(
                     collidedObjects[0].jObject.parent().parent())[0][1] -
-                me.positionsGet($('#' + me.id))[0][0]
+                me.positionsGet(me.obj)[0][0]
             );
         }
         if (!me.enable.alwaysCheckPosition) me.checkPosition('left');
@@ -1046,7 +1053,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.cssMoveX(me.delta.move.x);
             if (me.collider.bottom.isColliding) {
                 me.pos.x =
-                    $('#' + me.id).offset().left - $('#' + me.id).width();
+                    me.obj.offset().left - me.obj.width();
             }
         }
         else {
@@ -1058,7 +1065,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.cssMoveX(
                 me.positionsGet(
                     collidedObjects[0].jObject.parent().parent())[0][0] -
-                me.positionsGet($('#' + me.id))[0][1]
+                me.positionsGet(me.obj)[0][1]
             );
         }
         if (!me.enable.alwaysCheckPosition) me.checkPosition('right');
@@ -1078,7 +1085,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.pickUp = function () {
         var collisionRes = null;
         me.pickUpAttr.jObjects.each(function (idx) {
-            collisionRes = me.overlaps($('#' + me.id), $(this));
+            collisionRes = me.overlaps(me.obj, $(this));
             if (collisionRes.isColliding) {
                 me.pickUpAttr.jObjects.splice(idx, 1);
                 $(this).removeClass(me.pickUpAttr.cssClass);
@@ -1134,7 +1141,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.setup = function () {
-        $('#' + me.id)
+        me.obj
             .append('<div id="' + me.idCollider + '" class="colliderContainer">' +
                 '<div id="' + me.idCollider +
                     '-left" class="collider colliderLeft"></div>' +
@@ -1296,7 +1303,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             if (!me.pos.absolute)
                 me.changeToAbsolutePosition();
             me.singleAnimation($('#' + me.idImg), 'vanish', function () {
-                $('#' + me.id).hide();
+                me.obj.hide();
                 if(teleport) me.appear(x, y);
             });
         }
