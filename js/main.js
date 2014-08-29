@@ -217,6 +217,7 @@ function Engine() {
             .height($(this).outerHeight())
             .css({
                 'margin-bottom': -$(this).outerHeight(),
+                'margin-right': '-' + $(this).css('border-left-width'),
                 'left': '-' + $(this).css('border-left-width'),
                 'bottom': $(this).css('border-bottom-width')
             });
@@ -231,6 +232,7 @@ function Engine() {
             .height(myParent.outerHeight())
             .css({
                 'margin-bottom': -$(this).outerHeight(),
+                'margin-right': myParent.offset().left - $(this).offset().left,
                 'left': myParent.offset().left - $(this).offset().left,
                 'bottom': $(this).offset().top - myParent.offset().top
             });
