@@ -156,6 +156,10 @@ Toggle the enable statusof a specific collider.
             jQuery object of the solid, where the collider enable status should
             be toggled.
 
+Get Id of character
+
+    Movable.getId();
+
 Enable character
 
     Movable.enableMe();
@@ -228,9 +232,13 @@ Enable ability of the character
                 marked with the css class set by
                 Movable.setPickUpCssClass(cssClass).
 
-            "alwaysCheckPosition": false
+            "checkPositionAlways": false
                 With this enabled, the position of the character is checked on
                 every tick not only when the character moves, jumps and falls.
+
+            "checkPositionAllDirections": true
+                With this enabled, the position is checked in all direction instead
+                of only the direction of the command.
 
 Disable ability of the character
 

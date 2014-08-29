@@ -124,7 +124,7 @@ function Engine() {
         if (me.keyHandler.isAnyKeyPressed() || inAir || forcedCrouch) {
             movable.active();
         }
-        if (movable.getEnableStatus('alwaysCheckPosition')) {
+        if (movable.getEnableStatus('checkPositionAlways')) {
             movable.checkPosition();
         }
     };
@@ -142,6 +142,13 @@ function Engine() {
         });
         $(document).blur( function (event) {
             me.keyHandler.clearKeyCodeMap();
+        });
+        $(document).scroll( function () {
+            for (id in me.movable) {
+                if (me.movable[id].enable) {
+                    me.movable[id].obj.enable.checkPosition = false;
+                }
+            }
         });
     };
 
@@ -342,22 +349,24 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.enable.appear = true;
         me.enable.vanish = true;
         me.enable.pickUp = true;
-        me.enable.alwaysCheckPosition = false;
+        me.enable.checkPosition = true; // internal
+        me.enable.checkPositionAlways = false;
+        me.enable.checkPositionAllDirections = true;
 
         this.enableAttr = function (attr) {
-            if (attr === 'jumpAbsolute') {
+            if ((attr === 'jumpAbsolute') || (attr === 'checkPosition')) {
                 throw 'not allowed to set ' + attr + ' manually!';
             }
             me.enable[attr] = true;
         };
         this.disableAttr = function (attr) {
-            if (attr === 'jumpAbsolute') {
+            if ((attr === 'jumpAbsolute') || (attr === 'checkPosition')) {
                 throw 'not allowed to set ' + attr + ' manually!';
             }
             me.enable[attr] = false;
         };
         this.toggleEnableAttr = function (attr) {
-            if (attr === 'jumpAbsolute') {
+            if ((attr === 'jumpAbsolute') || (attr === 'checkPosition')) {
                 throw 'not allowed to set ' + attr + ' manually!';
             }
             me.enable[attr] = !me.enable[attr];
@@ -592,32 +601,40 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         };
         me.overflow.window.left.delta = 500;
         me.overflow.window.left.cb = function (deltaMove) {
-            if ($(document).scrollLeft() > 0) {
+            if ((deltaMove != 0) && ($(document).scrollLeft() > 0)) {
+                $(document).off('scroll');
                 $(document).scrollLeft(
                         $(document).scrollLeft() + deltaMove);
+                $(document).on('scroll');
             }
         };
         me.overflow.window.right.delta = 500;
         me.overflow.window.right.cb = function (deltaMove) {
-            if ($(document).width() >
-                    ($(document).scrollLeft() + $(window).width())) {
+            if ((deltaMove != 0) && ($(document).width() >
+                    ($(document).scrollLeft() + $(window).width()))) {
+                $(document).off('scroll');
                 $(document).scrollLeft(
                         $(document).scrollLeft() + deltaMove);
+                $(document).on('scroll');
             }
         };
         me.overflow.window.top.delta = 100;
         me.overflow.window.top.cb = function (deltaMove) {
-            if ($(document).scrollTop() > 0) {
+            if ((deltaMove != 0) && ($(document).scrollTop() > 0)) {
+                $(document).off('scroll');
                 $(document).scrollTop(
                         $(document).scrollTop() + deltaMove);
+                $(document).on('scroll');
             }
         };
         me.overflow.window.bottom.delta = 100;
         me.overflow.window.bottom.cb = function (deltaMove) {
-            if ($(document).height() >
-                    ($(document).scrollTop() + $(window).height())) {
+            if ((deltaMove != 0) && ($(document).height() >
+                    ($(document).scrollTop() + $(window).height()))) {
+                $(document).off('scroll');
                 $(document).scrollTop(
                         $(document).scrollTop() + deltaMove);
+                $(document).on('scroll');
             }
         };
 
@@ -652,6 +669,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.active = function () {
         $('#' + me.idImg).removeClass('rand');
         me.rand.count = 0;
+        me.enable.checkPosition = true;
     };
 
     this.appear = function (x, y) {
@@ -717,7 +735,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 }
             }).promise().done(function () {
                 if (collision) {
-                    if (!me.enable.alwaysCheckPosition) me.checkPosition();
+                    if (!me.enable.checkPositionAlways) me.checkPosition();
                     me.collider.bottom.isColliding = true;
                     me.land(collidedObjects);
                 }
@@ -756,17 +774,29 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             imgDiff = 0;
 
         // check left overflow
-        if ((direction === 'left') || (direction === undefined)) {
+        if (me.enable.checkPosition
+                && (((pos[0][0] - me.pos.overflowX) != 0)
+                    || (((pos[1][0] - me.pos.overflowY) != 0)
+                        && me.enable.checkPositionAllDirections))
+                && ((direction === 'left') || (direction === undefined)
+                    || me.enable.checkPositionAllDirections)) {
             if (pos[0][0] < me.overflow.document.left.delta) {
                 me.overflow.document.left.cb(-pos[0][0]);
             }
             else if (pos[0][0] <
                     ($(window).scrollLeft() + me.overflow.window.left.delta)) {
-                me.overflow.window.left.cb(pos[0][0] - me.pos.overflowX);
+                //me.overflow.window.left.cb(pos[0][0] - me.pos.overflowX);
+                me.overflow.window.left.cb(pos[0][0] -
+                    ($(window).scrollLeft() + me.overflow.window.left.delta));
             }
         }
         // check right overflow
-        if ((direction === 'right') || (direction === undefined)) {
+        if (me.enable.checkPosition
+                && (((pos[0][0] - me.pos.overflowX) != 0)
+                    || (((pos[1][0] - me.pos.overflowY) != 0)
+                        && me.enable.checkPositionAllDirections))
+                && ((direction === 'right') || (direction === undefined)
+                    || me.enable.checkPositionAllDirections)) {
             // check document boundaries
             if (me.overflow.document.widthVirtual >=
                     me.overflow.document.width) {
@@ -788,21 +818,35 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             else if (pos[0][1] > ($(window).scrollLeft() + $(window).width() -
                         me.overflow.window.right.delta)) {
-                me.overflow.window.right.cb(pos[0][0] - me.pos.overflowX);
+                //me.overflow.window.right.cb(pos[0][0] - me.pos.overflowX);
+                me.overflow.window.right.cb(pos[0][1] - ($(window).scrollLeft()
+                    + $(window).width() - me.overflow.window.right.delta));
             }
         }
         // check top overflow
-        if ((direction === 'top') || (direction === undefined)) {
+        if (me.enable.checkPosition
+                && (((pos[1][0] - me.pos.overflowY != 0))
+                    || (((pos[0][0] - me.pos.overflowX) != 0)
+                        && me.enable.checkPositionAllDirections))
+                && ((direction === 'top') || (direction === undefined)
+                    || me.enable.checkPositionAllDirections)) {
             if (pos[1][0] < me.overflow.document.top.delta) {
                 me.overflow.document.top.cb(-pos[1][0]);
             }
             else if (pos[1][0] <
                     ($(window).scrollTop() + me.overflow.window.top.delta)) {
-                me.overflow.window.top.cb(pos[1][0] - me.pos.overflowY);
+                //me.overflow.window.top.cb(pos[1][0] - me.pos.overflowY);
+                me.overflow.window.top.cb(pos[1][0] - ($(window).scrollTop()
+                    + me.overflow.window.top.delta));
             }
         }
         // check bottom overflow
-        if ((direction === 'bottom') || (direction === undefined)) {
+        if (me.enable.checkPosition
+                && (((pos[1][0] - me.pos.overflowY) != 0)
+                    || (((pos[0][0] - me.pos.overflowX) != 0)
+                        && me.enable.checkPositionAllDirections))
+                && ((direction === 'bottom') || (direction === undefined)
+                    || me.enable.checkPositionAllDirections)) {
             // check document boundaries
             if (me.overflow.document.heightVirtual >=
                     me.overflow.document.height) {
@@ -824,7 +868,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             else if (pos[1][1] > ($(window).scrollTop() + $(window).height() -
                         me.overflow.window.bottom.delta)) {
-                me.overflow.window.bottom.cb(pos[1][0] - me.pos.overflowY);
+                //me.overflow.window.bottom.cb(pos[1][0] - me.pos.overflowY);
+                me.overflow.window.bottom.cb(pos[1][1] - ($(window).scrollTop()
+                    + $(window).height() - me.overflow.window.bottom.delta));
             }
         }
         me.pos.overflowX = pos[0][0];
@@ -928,7 +974,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             else {
                 me.land(collidedObjects);
             }
-            if (!me.enable.alwaysCheckPosition) me.checkPosition('bottom');
+            if (!me.enable.checkPositionAlways) me.checkPosition('bottom');
         }
         else {
             me.jumpAttr.count.actual += Math.round(
@@ -967,7 +1013,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                         collidedObjects[0].solidPosition[1][1] -
                         me.obj.outerHeight());
             }
-            if (!me.enable.alwaysCheckPosition) me.checkPosition('top');
+            if (!me.enable.checkPositionAlways) me.checkPosition('top');
         }
         return !me.collider.bottom.isColliding;
     };
@@ -1039,7 +1085,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 me.positionsGet(me.obj)[0][0]
             );
         }
-        if (!me.enable.alwaysCheckPosition) me.checkPosition('left');
+        if (!me.enable.checkPositionAlways) me.checkPosition('left');
     };
 
     this.moveRight = function () {
@@ -1070,7 +1116,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 me.positionsGet(me.obj)[0][1]
             );
         }
-        if (!me.enable.alwaysCheckPosition) me.checkPosition('right');
+        if (!me.enable.checkPositionAlways) me.checkPosition('right');
     };
 
     this.overlaps = function (a, b) {
