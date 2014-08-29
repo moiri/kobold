@@ -4,7 +4,8 @@ body {
 }
 
 .movable {
-    position:absolute;
+   position:absolute;
+   pointer-events:auto;
 }
 
 .colliderContainer {
