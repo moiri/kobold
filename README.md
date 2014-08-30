@@ -645,7 +645,7 @@ callback function triggers.
             The same directions as in
             Movable.setWindowOverflowDelta(direction, delta).
 
-Define the behavior when the scroll event of the document triggers.
+<!---Define the behavior when the scroll event of the document triggers.
 
     Movable.setScrollEventCb(cb);
         cb:
@@ -660,4 +660,4 @@ if the default behavior should be extended, not overwritten completely.
 
     Movable.getScrollEventCb();
         return
-            function, definig the behavior if a document scroll event occures.
+            function, definig the behavior if a document scroll event occures.--->
