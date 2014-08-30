@@ -78,39 +78,40 @@ function Engine() {
         movable.setDeltaTime(me.ticker.getDeltaTime());
         onMovableSolid = movable.checkCollisionDynamic();
         if (movable.getEnableStatus('pickUp')) movable.pickUp();
-        if (movable.getEnableStatus('jump') &&
-                me.keyHandler.keyCodeMap[movable.getKeyCode('jump')] &&
-                (onMovableSolid && movable.getEnableStatus('jumpMovingSolid') ||
-                 !onMovableSolid)) {
+        if (movable.getEnableStatus('jump')
+                && me.keyHandler.keyCodeMap[movable.getKeyCode('jump')]
+                && (onMovableSolid && movable.getEnableStatus('jumpMovingSolid')
+                    || !onMovableSolid)) {
             if (!movable.getEnableStatus('crouchJump')) {
                 forcedCrouch = movable.standUp();
             }
             if (!forcedCrouch) movable.jump();
         }
-        if (movable.getEnableStatus('run') &&
-                me.keyHandler.keyCodeMap[movable.getKeyCode('run')]) {
+        if (movable.getEnableStatus('run')
+                && me.keyHandler.keyCodeMap[movable.getKeyCode('run')]) {
             movable.run();
         }
         else {
             movable.walk();
         }
         if (movable.getEnableStatus('crouch')) {
-            if (!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] ||
-                (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] &&
-                me.keyHandler.keyCodeMap[movable.getKeyCode('run')] &&
-                !movable.getEnableStatus('crouchRun'))) {
+            if ((!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')]
+                        && !movable.action.forcedCrouch)
+                    || (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')]
+                        && me.keyHandler.keyCodeMap[movable.getKeyCode('run')]
+                        && !movable.getEnableStatus('crouchRun'))) {
                 forcedCrouch = movable.standUp();
             }
-            if ((me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')] ||
-                    forcedCrouch) &&
-                (!me.keyHandler.keyCodeMap[movable.getKeyCode('run')] ||
-                    (movable.getEnableStatus('crouchRun') &&
-                        me.keyHandler.keyCodeMap[movable.getKeyCode('run')]))) {
+            if ((me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')]
+                        || forcedCrouch)
+                    && (!me.keyHandler.keyCodeMap[movable.getKeyCode('run')]
+                        || (me.keyHandler.keyCodeMap[movable.getKeyCode('run')]
+                            && movable.getEnableStatus('crouchRun')))) {
                 movable.crouch();
             }
         }
-        if (!me.keyHandler.keyCodeMap[movable.getKeyCode('left')] &&
-            !me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
+        if (!me.keyHandler.keyCodeMap[movable.getKeyCode('left')]
+                && !me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
             movable.stop();
             movable.idle();
         }
@@ -121,7 +122,7 @@ function Engine() {
         else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
             movable.moveRight();
         }
-        if (me.keyHandler.isAnyKeyPressed() || inAir || forcedCrouch) {
+        if (me.keyHandler.isAnyKeyPressed() || inAir) {
             movable.active();
         }
         if (movable.getEnableStatus('checkPositionAlways')) {
@@ -551,6 +552,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
         // Action Flags
         me.action.crouch = false; // internal
+        me.action.forcedCrouch = false; // internal
         me.action.run = false; // internal
         me.action.wink = false; // internal
         me.action.wave = false; // internal
@@ -670,6 +672,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         $('#' + me.idImg).removeClass('rand');
         me.rand.count = 0;
         me.enable.checkPosition = true;
+        me.action.forcedCrouch = false;
     };
 
     this.appear = function (x, y) {
@@ -785,7 +788,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             else if (pos[0][0] <
                     ($(window).scrollLeft() + me.overflow.window.left.delta)) {
-                //me.overflow.window.left.cb(pos[0][0] - me.pos.overflowX);
                 me.overflow.window.left.cb(pos[0][0] -
                     ($(window).scrollLeft() + me.overflow.window.left.delta));
             }
@@ -818,7 +820,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             else if (pos[0][1] > ($(window).scrollLeft() + $(window).width() -
                         me.overflow.window.right.delta)) {
-                //me.overflow.window.right.cb(pos[0][0] - me.pos.overflowX);
                 me.overflow.window.right.cb(pos[0][1] - ($(window).scrollLeft()
                     + $(window).width() - me.overflow.window.right.delta));
             }
@@ -835,7 +836,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             else if (pos[1][0] <
                     ($(window).scrollTop() + me.overflow.window.top.delta)) {
-                //me.overflow.window.top.cb(pos[1][0] - me.pos.overflowY);
                 me.overflow.window.top.cb(pos[1][0] - ($(window).scrollTop()
                     + me.overflow.window.top.delta));
             }
@@ -868,7 +868,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             else if (pos[1][1] > ($(window).scrollTop() + $(window).height() -
                         me.overflow.window.bottom.delta)) {
-                //me.overflow.window.bottom.cb(pos[1][0] - me.pos.overflowY);
                 me.overflow.window.bottom.cb(pos[1][1] - ($(window).scrollTop()
                     + $(window).height() - me.overflow.window.bottom.delta));
             }
@@ -1258,6 +1257,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             else {
                 forcedCrouch = true;
+                me.action.forcedCrouch = true;
             }
             me.updateCollider('top', colliderSize);
             me.checkCollisionStatic('top');
