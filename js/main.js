@@ -89,17 +89,17 @@ function Engine() {
         }
         if (movable.getEnableStatus('run')
                 && me.keyHandler.keyCodeMap[movable.getKeyCode('run')]) {
-            movable.run();
+            if (!movable.getEnableStatus('crouchRun')) {
+                forcedCrouch = movable.standUp();
+            }
+            if (!forcedCrouch) movable.run();
+            else movable.walk();
         }
         else {
             movable.walk();
         }
         if (movable.getEnableStatus('crouch')) {
-            if ((!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')]
-                        && !movable.action.forcedCrouch)
-                    || (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')]
-                        && me.keyHandler.keyCodeMap[movable.getKeyCode('run')]
-                        && !movable.getEnableStatus('crouchRun'))) {
+            if (!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')]) {
                 forcedCrouch = movable.standUp();
             }
             if ((me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')]
@@ -1247,7 +1247,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.standUp = function () {
         var colliderSize = 0,
             forcedCrouch = false;
-        if (me.action.crouch) {
+        if (me.action.crouch && !me.action.forcedCrouch) {
             colliderSize = $('#' + me.idCollider + '-top').height();
             me.updateCollider('top', colliderSize
                     + (me.size.heightStand - me.size.heightCrouch));
@@ -1423,7 +1423,6 @@ function Ticker (maxFps) {
     }
 
     // METHODS
-
     this.drawFps = function () {
         me.fps.real = Math.floor(1000 / me.tick.real);
         $('#fps').text(me.fps.real + " / " + me.fps.max );
