@@ -11,7 +11,7 @@ $(document).ready(function() {
             'solidMoving"></div>');
         $('#stone6').addClass('solidOnlyTop');
         $('#stone3').addClass('fallThroughBar');
-        moveUp = function () {
+        /*moveUp = function () {
             $('#elevator1').animate(
                 {"bottom" : "+=450px"},
                 //{"top" : "-=450px"},
@@ -46,7 +46,7 @@ $(document).ready(function() {
                 moveRight
             );
         };
-        moveRight();
+        moveRight();*/
         $('#content').append('<div id="pickUp1" class="pickUp1 pickUp"></div>');
         $('#content').append('<div id="pickUp2" class="pickUp2 pickUp"></div>');
         $('#solidCnt').text((i-1)*j);
@@ -71,6 +71,7 @@ $(document).ready(function() {
         $('#debug').click(function () {
             $('body').toggleClass('debug');
             $(this).toggleClass('disable');
+            $('#movableClass').toggle();
         });
 
         $('#enable').click(function () {
@@ -113,8 +114,12 @@ $(document).ready(function() {
             kobold.toggleEnableAttr('pickUp');
             $(this).toggleClass('disable');
         });
-        $('#enable-alwaysCheckPosition').click(function () {
-            kobold.toggleEnableAttr('alwaysCheckPosition');
+        $('#enable-checkPositionAlways').click(function () {
+            kobold.toggleEnableAttr('checkPositionAlways');
+            $(this).toggleClass('disable');
+        });
+        $('#enable-checkPositionAllDirections').click(function () {
+            kobold.toggleEnableAttr('checkPositionAllDirections');
             $(this).toggleClass('disable');
         });
 
@@ -132,5 +137,10 @@ $(document).ready(function() {
             engine.toggleEnableCollider($('#elevator1'));
         });
     }
+    refresh = function () {
+        $('#movableClass').html($('#kobold-img').attr('class'));
+        setTimeout(refresh, 100);
+    }
+    refresh();
 });
 
