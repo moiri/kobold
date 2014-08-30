@@ -156,6 +156,7 @@ function Engine() {
     this.setEnableMovable = function (id, val) {
         if (val === undefined) val = !me.movable[id].enable;
         me.movable[id].enable = val;
+        return val;
     };
 
     this.setKeyCode = function (keyCode) {
@@ -290,6 +291,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.enable = [];
         me.enable.crouch = [];
         me.enable.jump = [];
+        me.enable.cb = [];
         me.keyCode = [];
         me.pickUpAttr = [];
         me.speed = [];
@@ -354,6 +356,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.enable.checkPosition = true; // internal
         me.enable.checkPositionAlways = false;
         me.enable.checkPositionAllDirections = true;
+        me.enable.cb.enable = function() {};
+        me.enable.cb.disable = function () {};
 
         this.enableAttr = function (attr) {
             if ((attr === 'jumpAbsolute') || (attr === 'checkPosition')) {
@@ -375,6 +379,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         };
         this.getEnableStatus = function (attr) {
             return me.enable[attr];
+        };
+        this.setEnableCb = function (cb) {
+            me.enable.cb.enable = cb;
+        };
+        this.setDisableCb = function (cb) {
+            me.enable.cb.disable = cb;
         };
 
         // KeyCodes
@@ -928,14 +938,17 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     this.disableMe = function () {
         setEnableMeCb(me.id, false);
+        me.enable.cb.disable();
     };
 
     this.enableMe = function () {
         setEnableMeCb(me.id, true);
+        me.enable.cb.enable();
     };
 
     this.toggleEnableMe = function () {
-        setEnableMeCb(me.id);
+        if (setEnableMeCb(me.id)) me.enable.cb.enable();
+        else me.enable.cb.disable();
     };
 
     this.genJumpLut = function () {

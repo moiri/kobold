@@ -172,6 +172,20 @@ Toggle enable status of the character
 
     Movable.toggleEnableMe();
 
+Define behavior after the method Movable.enableMe() has completed. Note that
+Movable.appear() will execute this function as well.
+
+    Movable.setEnableCb(cb);
+        cb:
+            Devine the behaviour. By default nothing is executed.
+
+Define behavior after the method Movable.disableMe() has completed. Note that
+Movable.appear() and Movable.vanish() will execute this function as well.
+
+    Movable.setDisableCb(cb);
+        cb:
+            Devine the behaviour. By default nothing is executed.
+
 Enable ability of the character
 
     Movable.enableAttr(attr);

@@ -75,7 +75,7 @@ $(document).ready(function() {
         });
 
         $('#enable').click(function () {
-            engine.setEnableMovable('kobold');
+            kobold.toggleEnableMe();
             $(this).toggleClass('disable');
         });
         $('#enable-run').click(function () {
