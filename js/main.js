@@ -147,7 +147,7 @@ function Engine() {
         $(document).scroll( function () {
             for (id in me.movable) {
                 if (me.movable[id].enable) {
-                    me.movable[id].obj.enable.checkPosition = false;
+                    me.movable[id].obj.overflow.scrollEventCb();
                 }
             }
         });
@@ -641,6 +641,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 $(document).on('scroll');
             }
         };
+        me.overflow.scrollEventCb = function () {
+            me.enable.checkPosition = false;
+        };
 
         this.setDocumentOverflowCb = function (direction, cb) {
             me.overflow.document[direction].cb = cb;
@@ -665,6 +668,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         };
         this.getWindowOverflowDelta = function (direction) {
             return me.overflow.window[direction].delta;
+        };
+        this.setScrollEventCb = function (cb) {
+            me.overflow.scrollEventCb = cb;
+        };
+        this.getScrollEventCb = function () {
+            return me.overflow.scrollEventCb.cb;
         };
     }
 

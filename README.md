@@ -630,3 +630,20 @@ callback function triggers.
         direction:
             The same directions as in
             Movable.setWindowOverflowDelta(direction, delta).
+
+Define the behavior when the scroll event of the document triggers.
+
+    Movable.setScrollEventCb(cb);
+        cb:
+            definition of the callback function if the default behaviour should
+            be overridden. The default operation is to turn of the position
+            check. This allows to scroll the screen without an automatic
+            recentering on the character. The position check is turned on again
+            when the character is activated (any character relevant key is pressed)
+
+Get the behavior when the scroll event of the document triggers. This could be useful
+if the default behavior should be extended, not overwritten completely.
+
+    Movable.getScrollEventCb();
+        return
+            function, definig the behavior if a document scroll event occures.
