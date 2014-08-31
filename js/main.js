@@ -11,6 +11,7 @@ function Engine() {
 
     {
         me.colliderCnt = 0;
+        me.movingColliderCnt = 0;
 
         // CONFIGURATION
         me.config.maxFps = 40;
@@ -74,9 +75,13 @@ function Engine() {
     this.movableHandler = function (movable) {
         var inAir = false,
             onMovableSolid = false,
+            onStaticSolid = false,
+            collidedObjects = null;
             forcedCrouch = false;
         movable.setDeltaTime(me.ticker.getDeltaTime());
-        onMovableSolid = movable.checkCollisionDynamic();
+        if (me.movingColliderCnt > 0) {
+            onMovableSolid = movable.checkCollisionDynamic();
+        }
         if (movable.getEnableStatus('pickUp')) movable.pickUp();
         if (movable.getEnableStatus('jump')
                 && me.keyHandler.keyCodeMap[movable.getKeyCode('jump')]
@@ -115,7 +120,7 @@ function Engine() {
             movable.stop();
             movable.idle();
         }
-        if (!onMovableSolid) inAir = movable.inAir();
+        if (!onMovableSolid) inAir = movable.gravitation();
         if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')]) {
             movable.moveLeft();
         }
@@ -225,6 +230,7 @@ function Engine() {
                 'bottom': $(this).css('border-bottom-width')
             });
             me.colliderCnt++;
+            me.movingColliderCnt++;
             newCollider = true;
         });
         $('.' + me.config.solidColliderClass)
@@ -562,6 +568,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.action.jump = false; // internal
         me.action.moveLeft = false; // internal
         me.action.moveRight = false; // internal
+        me.action.inAir = false; // internal
 
         // Temporal Information Needed for the Next Frame
         me.delta.time.min = 1 / config.maxFps; // internal
@@ -945,6 +952,24 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         else me.enable.cb.disable();
     };
 
+    this.fall = function () {
+        // calculate next falling distance
+        me.speed.inAir += me.delta.dist.down
+            * me.delta.time.actual / me.delta.time.min;
+        me.delta.move.y = Math.round(me.speed.inAir * me.delta.time.actual);
+        // update collider and position
+        me.updateCollider("bottom", Math.abs(me.delta.move.y) + 1);
+        me.collider.bottom.activeId = 'inAir';
+        if (!me.pos.absolute && me.enable.jumpAbsolute) {
+            me.changeToAbsolutePosition();
+        }
+        me.cssMoveY(me.delta.move.y);
+        if (me.speed.inAir < me.speed.fall) {
+            me.speed.inAir = me.speed.fall;
+        }
+        if (!me.enable.checkPositionAlways) me.checkPosition('bottom');
+    };
+
     this.genJumpLut = function () {
         var pos = 0,
             speed = me.speed.jump,
@@ -956,6 +981,38 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.jumpAttr.lut[i] = Math.ceil(pos);
             i++;
         }
+    };
+
+    this.gravitation = function () {
+        var collidedObjects = null;
+        if (me.action.jump) {
+            collidedObjects = me.checkCollisionStatic('top');
+            if (me.collider.top.isColliding) {
+                if (me.action.inAir) {
+                    // hitting the head
+                    me.headache(collidedObjects);
+                    me.action.inAir = false;
+                }
+            }
+            else {
+                me.action.inAir = true;
+                me.rise();
+            }
+        }
+        else {
+            collidedObjects = me.checkCollisionStatic('bottom');
+            if (me.collider.bottom.isColliding) {
+                if (me.action.inAir) {
+                    me.land(collidedObjects);
+                    me.action.inAir = false;
+                }
+            }
+            else {
+                me.action.inAir = true;
+                me.fall();
+            }
+        }
+        return me.action.inAir;
     };
 
     this.idle = function () {
@@ -970,71 +1027,18 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.rand.count++;
     };
 
-    this.inAir = function () {
-        var collidedObjects = null,
-            lastElem = false,
-            jumpDiff = 0;
-        if (!me.action.jump) {
-            me.speed.inAir += me.delta.dist.down
-                * me.delta.time.actual / me.delta.time.min;
-            me.delta.move.y = Math.round(me.speed.inAir * me.delta.time.actual);
-            me.updateCollider("bottom", Math.abs(me.delta.move.y) + 1);
-            collidedObjects = me.checkCollisionStatic('bottom');
-            if (!me.collider.bottom.isColliding) {
-                me.collider.bottom.activeId = 'inAir';
-                if (!me.pos.absolute && me.enable.jumpAbsolute) {
-                    me.changeToAbsolutePosition();
-                }
-                me.cssMoveY(me.delta.move.y);
-                if (me.speed.inAir < me.speed.fall) {
-                    me.speed.inAir = me.speed.fall;
-                }
-            }
-            else {
-                me.land(collidedObjects);
-            }
-            if (!me.enable.checkPositionAlways) me.checkPosition('bottom');
+    this.headache = function (collidedObjects) {
+        me.action.jump = false;
+        me.collider.top.isColliding = false;
+        me.jumpAttr.height.actual = 0;
+        if (collidedObjects.length > 1) {
+            collidedObjects.sort(function(a,b) {
+                return b.solidPosition[1][1] - a.solidPosition[1][1];
+            });
         }
-        else {
-            me.jumpAttr.count.actual += Math.round(
-                me.delta.time.actual / me.delta.time.min);
-            if (me.jumpAttr.count.actual > (me.jumpAttr.lut.length - 1)) {
-                me.jumpAttr.count.actual = me.jumpAttr.lut.length - 1;
-                lastElem = true;
-            }
-            me.delta.move.y = me.jumpAttr.lut[me.jumpAttr.count.actual]
-                - me.jumpAttr.lut[me.jumpAttr.count.last];
-            me.jumpAttr.height.actual += me.delta.move.y;
-            if (lastElem
-                    || (me.jumpAttr.height.actual > me.jumpAttr.height.max)) {
-                jumpDiff = me.jumpAttr.height.max - me.jumpAttr.height.actual;
-                if (jumpDiff != 0)
-                    me.delta.move.y += jumpDiff;
-                me.jumpAttr.height.actual = 0;
-                me.action.jump = false;
-            }
-            me.jumpAttr.count.last = me.jumpAttr.count.actual;
-            me.updateCollider("top", me.delta.move.y + 1);
-            collidedObjects = me.checkCollisionStatic('top');
-            if (!me.collider.top.isColliding) {
-                me.cssMoveY(me.delta.move.y);
-            }
-            else {
-                me.action.jump = false;
-                me.collider.top.isColliding = false;
-                me.jumpAttr.height.actual = 0;
-                if (collidedObjects.length > 1) {
-                    collidedObjects.sort(function(a,b) {
-                        return b.solidPosition[1][1] - a.solidPosition[1][1];
-                    });
-                }
-                me.cssSetY($(window).height()
-                        - collidedObjects[0].solidPosition[1][1]
-                        - me.obj.outerHeight());
-            }
-            if (!me.enable.checkPositionAlways) me.checkPosition('top');
-        }
-        return !me.collider.bottom.isColliding;
+        me.cssSetY($(window).height()
+                - collidedObjects[0].solidPosition[1][1]
+                - me.obj.outerHeight());
     };
 
     this.jump = function () {
@@ -1186,6 +1190,36 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         height = elem.outerHeight();
         return [ [ pos.left, pos.left + width ],
                [ pos.top, pos.top + height ] ];
+    };
+
+    this.rise = function () {
+        var lastElem = false,
+            jumpDiff = 0;
+        // calculate the height of the next rising step using a LUT
+        me.jumpAttr.count.actual += Math.round(
+            me.delta.time.actual / me.delta.time.min);
+        if (me.jumpAttr.count.actual > (me.jumpAttr.lut.length - 1)) {
+            me.jumpAttr.count.actual = me.jumpAttr.lut.length - 1;
+            lastElem = true;
+        }
+        me.delta.move.y = me.jumpAttr.lut[me.jumpAttr.count.actual]
+            - me.jumpAttr.lut[me.jumpAttr.count.last];
+        me.jumpAttr.height.actual += me.delta.move.y;
+        // on last rising step adjust to max height in order to keep jump height
+        // constant
+        if (lastElem
+                || (me.jumpAttr.height.actual > me.jumpAttr.height.max)) {
+            jumpDiff = me.jumpAttr.height.max - me.jumpAttr.height.actual;
+            if (jumpDiff != 0)
+                me.delta.move.y += jumpDiff;
+            me.jumpAttr.height.actual = 0;
+            me.action.jump = false;
+        }
+        me.jumpAttr.count.last = me.jumpAttr.count.actual;
+        // update collider and update position
+        me.updateCollider("top", me.delta.move.y + 1);
+        me.cssMoveY(me.delta.move.y);
+        if (!me.enable.checkPositionAlways) me.checkPosition('top');
     };
 
     this.run = function () {

@@ -7,11 +7,11 @@ $(document).ready(function() {
                 $('#content')
                 .append('<div id="stone' + i*(j+1) + '" class="stone' + i +
                     ' solid"></div>');
-        $('#content').append('<div id="elevator1" class="elevator1 solid ' +
-            'solidMoving"></div>');
-        $('#stone6').addClass('solidOnlyTop');
         $('#stone3').addClass('fallThroughBar');
-        /*moveUp = function () {
+        $('#stone6').addClass('solidOnlyTop');
+        /*$('#content').append('<div id="elevator1" class="elevator1 solid ' +
+            'solidMoving"></div>');
+        moveUp = function () {
             $('#elevator1').animate(
                 {"bottom" : "+=450px"},
                 //{"top" : "-=450px"},
