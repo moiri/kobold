@@ -328,9 +328,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     {
         // CONFIGURATION
-        // Object
-        me.obj = $('#' + id);
-
         // IDs
         me.id = id;
         me.idImg = me.id + '-img'; // internal
@@ -339,6 +336,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         this.getId = function () {
             return me.id;
         };
+
+        // Object
+        me.obj = $('#' + id);
+        me.objImg = $('#' + me.idImg);
 
         // Enables
         me.enable.run = true;
@@ -460,7 +461,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
         this.setZIndex = function (zIndex) {
             me.zIndex = zIndex;
-            $('#' + me.idImg).css('z-index', zIndex);
+            me.objImg.css('z-index', zIndex);
         };
         this.getZIndex = function () {
             return me.zIndex;
@@ -693,7 +694,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     // METHODS
 
     this.active = function () {
-        $('#' + me.idImg).removeClass('rand');
+        me.objImg.removeClass('rand');
         me.rand.count = 0;
         me.action.forcedCrouch = false;
     };
@@ -717,7 +718,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.standUp();
             me.obj.css({'bottom': $(window).height() - y, 'left': x});
             me.overflow.document.heightVirtual = null;
-            me.singleAnimation($('#' + me.idImg), 'appear', function () {
+            me.singleAnimation(me.objImg, 'appear', function () {
                 me.enableMe();
             });
         }
@@ -796,7 +797,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     this.checkPosition = function (direction) {
         var pos = me.positionsGet(me.obj),
-            posImg = me.positionsGet($('#' + me.idImg)),
+            posImg = me.positionsGet(me.objImg),
             imgDiff = 0,
             deltaMoveX = 0,
             deltaMoveY = 0,
@@ -902,9 +903,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 && (me.collider.bottom.isColliding
                     || (!me.collider.bottom.isColliding
                         && me.enable.crouchJump))) {
-            $('#' + me.idImg).addClass('crouch');
-            $('#' + me.idImg)
-                .css('top', (parseInt($('#' + me.idImg).css('top'))
+            me.objImg.addClass('crouch');
+            me.objImg
+                .css('top', (parseInt(me.objImg.css('top'))
                             - (me.size.heightStand - me.size.heightCrouch))
                         + 'px');
             $('#' + me.idCollider).height(me.size.heightCrouch + 'px');
@@ -1018,9 +1019,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.idle = function () {
         if (me.rand.nextVal < 0)
             this.setNextRandVal();
-        $('#' + me.idImg).addClass('idle');
+        me.objImg.addClass('idle');
         if (me.rand.count === me.rand.nextVal) {
-            me.singleAnimation($('#' + me.idImg), 'rand', function () {
+            me.singleAnimation(me.objImg, 'rand', function () {
                 me.setNextRandVal();
             });
         }
@@ -1049,7 +1050,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.jumpAttr.count.last = 0;
             me.jumpAttr.height.actual = 0;
             me.jumpAttr.height.start = me.obj.offset().top;
-            $('#' + me.idImg).addClass('jump');
+            me.objImg.addClass('jump');
             if (!me.pos.absolute && me.enable.jumpAbsolute) {
                 me.changeToAbsolutePosition();
             }
@@ -1077,15 +1078,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             me.changeToRelativePosition(newJObject);
         }
-        $('#' + me.idImg).removeClass('jump');
+        me.objImg.removeClass('jump');
     };
 
     this.moveLeft = function () {
         var collidedObjects,
             speed = (me.action.run) ? me.speed.leftRun : me.speed.left;
         me.action.moveLeft = true;
-        $('#' + me.idImg).removeClass('idle right');
-        $('#' + me.idImg).addClass('left');
+        me.objImg.removeClass('idle right');
+        me.objImg.addClass('left');
         me.delta.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("left", Math.abs(me.delta.move.x) + 1);
         collidedObjects = me.checkCollisionStatic('left');
@@ -1115,8 +1116,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         var collidedObjects,
             speed = (me.action.run) ? me.speed.rightRun : me.speed.right;
         me.action.moveRight = true;
-        $('#' + me.idImg).removeClass('idle left');
-        $('#' + me.idImg).addClass('right');
+        me.objImg.removeClass('idle left');
+        me.objImg.addClass('right');
         me.delta.move.x = Math.floor(speed * me.delta.time.actual);
         me.updateCollider("right", me.delta.move.x + 1);
         collidedObjects = me.checkCollisionStatic('right');
@@ -1225,8 +1226,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.run = function () {
         if (!me.action.run) {
             me.action.run = true;
-            $('#' + me.idImg).removeClass('walk');
-            $('#' + me.idImg).addClass('run');
+            me.objImg.removeClass('walk');
+            me.objImg.addClass('run');
         }
     };
 
@@ -1303,8 +1304,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                     + (me.size.heightStand - me.size.heightCrouch));
             me.checkCollisionStatic('top');
             if (!me.collider.top.isColliding) {
-                $('#' + me.idImg).removeClass('crouch');
-                $('#' + me.idImg).removeAttr('style');
+                me.objImg.removeClass('crouch');
+                me.objImg.removeAttr('style');
                 if (me.collider.top.isColliding)
                     me.cssMoveY(me.size.heightCrouch - me.size.heightStand);
                 $('#' + me.idCollider).height(me.size.heightStand + 'px');
@@ -1322,7 +1323,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.stop = function () {
-        $('#' + me.idImg).removeClass('walk run');
+        me.objImg.removeClass('walk run');
         me.action.moveLeft = false;
         me.action.moveRight = false;
         me.action.run = false;
@@ -1406,7 +1407,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.standUp();
             if (!me.pos.absolute)
                 me.changeToAbsolutePosition();
-            me.singleAnimation($('#' + me.idImg), 'vanish', function () {
+            me.singleAnimation(me.objImg, 'vanish', function () {
                 me.obj.hide();
                 if(teleport) me.appear(x, y);
             });
@@ -1414,8 +1415,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.walk = function () {
-        $('#' + me.idImg).removeClass('run');
-        $('#' + me.idImg).addClass('walk');
+        me.objImg.removeClass('run');
+        me.objImg.addClass('walk');
         me.action.run = false;
     };
 
