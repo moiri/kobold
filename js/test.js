@@ -106,6 +106,14 @@ $(document).ready(function() {
             kobold.toggleEnableAttr('crouchJumpHigh');
             $(this).toggleClass('disable');
         });
+        $('#enable-forceStand').click(function () {
+            kobold.toggleEnableAttr('forceStand');
+            $(this).toggleClass('disable');
+        });
+        $('#enable-forceWalk').click(function () {
+            kobold.toggleEnableAttr('forceWalk');
+            $(this).toggleClass('disable');
+        });
         $('#enable-appear').click(function () {
             kobold.toggleEnableAttr('appear');
             $(this).toggleClass('disable');

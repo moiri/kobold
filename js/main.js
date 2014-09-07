@@ -73,66 +73,67 @@ function Engine() {
     };
 
     this.movableHandler = function (movable) {
-        var inAir = false,
-            onMovableSolid = false,
-            onStaticSolid = false,
-            collidedObjects = null;
-            forcedCrouch = false;
+        // set tick-time period. This is needed to calculate speeds
         movable.setDeltaTime(me.ticker.getDeltaTime());
-        if (me.movingColliderCnt > 0) {
-            onMovableSolid = movable.checkCollisionDynamic();
+
+        // evaluate keyboard commands
+        switch (movable.getState('locomotion')) {
+            case 'walk':
+                if (me.keyHandler.keyCodeMap[movable.getKeyCode('run')])
+                    movable.doRun();
+                break;
+            case 'run':
+                if (!me.keyHandler.keyCodeMap[movable.getKeyCode('run')])
+                    movable.doWalk();
+                break;
+            default:
+                throw 'bad locomotion argument: ' + movable.getState('locomotion');
         }
-        if (movable.getEnableStatus('pickUp')) movable.pickUp();
-        if (movable.getEnableStatus('jump')
-                && me.keyHandler.keyCodeMap[movable.getKeyCode('jump')]
-                && (onMovableSolid && movable.getEnableStatus('jumpMovingSolid')
-                    || !onMovableSolid)) {
-            if (!movable.getEnableStatus('crouchJump')) {
-                forcedCrouch = movable.standUp();
-            }
-            if (!forcedCrouch) movable.jump();
+
+        switch (movable.getState('direction')) {
+            case 'idle':
+                if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
+                    movable.doMove('left');
+                else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
+                    movable.doMove('right');
+                break;
+            case 'left':
+                if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
+                    movable.doMove('right');
+                else if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
+                    movable.doMove('left');
+                else if (!me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
+                    movable.idle();
+                break;
+            case 'right':
+                if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
+                    movable.doMove('left');
+                else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
+                    movable.doMove('right');
+                else if (!me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
+                    movable.idle();
+                break;
+            default:
+                throw 'bad direction argument: ' + movable.getState('direction');
         }
-        if (movable.getEnableStatus('run')
-                && me.keyHandler.keyCodeMap[movable.getKeyCode('run')]) {
-            if (!movable.getEnableStatus('crouchRun')) {
-                forcedCrouch = movable.standUp();
-            }
-            if (!forcedCrouch) movable.run();
-            else movable.walk();
+
+        switch (movable.getState('stance')) {
+            case 'stand':
+                if (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')])
+                    movable.doCrouch();
+                break;
+            case 'crouch':
+                if (!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')])
+                    movable.doStand();
+                break;
+            default:
+                throw 'bad stance argument: ' + movable.getState('stance');
         }
-        else {
-            movable.walk();
-        }
-        if (movable.getEnableStatus('crouch')) {
-            if (!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')]) {
-                forcedCrouch = movable.standUp();
-            }
-            if ((me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')]
-                        || forcedCrouch)
-                    && (!me.keyHandler.keyCodeMap[movable.getKeyCode('run')]
-                        || (me.keyHandler.keyCodeMap[movable.getKeyCode('run')]
-                            && movable.getEnableStatus('crouchRun')))) {
-                movable.crouch();
-            }
-        }
-        if (!me.keyHandler.keyCodeMap[movable.getKeyCode('left')]
-                && !me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
-            movable.stop();
-            movable.idle();
-        }
-        if (!onMovableSolid) inAir = movable.gravitation();
-        if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')]) {
-            movable.moveLeft();
-        }
-        else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')]) {
-            movable.moveRight();
-        }
-        if (me.keyHandler.isAnyKeyPressed() || inAir) {
-            movable.active();
-        }
-        if (movable.getEnableStatus('checkPositionAlways')) {
-            movable.checkPosition();
-        }
+
+        if (me.keyHandler.keyCodeMap[movable.getKeyCode('jump')])
+            movable.jump();
+
+        movable.gravitation();
     };
 
     this.registerKeyEvents = function () {
@@ -287,6 +288,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     var me = this;
     {
         // INITIALISATION
+        me.state = [];
+        me.state.direction = [];
+        me.state.locomotion = [];
+        me.state.stance = [];
         me.enable = [];
         me.enable.crouch = [];
         me.enable.jump = [];
@@ -294,6 +299,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.keyCode = [];
         me.pickUpAttr = [];
         me.speed = [];
+        me.speed.walk = [];
+        me.speed.run = [];
         me.pos = [];
         me.size = [];
         me.collider = [];
@@ -331,7 +338,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // IDs
         me.id = id;
         me.idImg = me.id + '-img'; // internal
-        me.idCollider = me.id + "-collider"; // internal
+        me.idCollider = me.id + '-collider'; // internal
 
         this.getId = function () {
             return me.id;
@@ -342,6 +349,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.objImg = $('#' + me.idImg);
 
         // Enables
+        me.enable.forceDirection = true;
         me.enable.run = true;
         me.enable.jump = true;
         me.enable.jumpMovingSolid = false;
@@ -350,6 +358,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.enable.crouchRun = false;
         me.enable.crouchJump = true;
         me.enable.crouchJumpHigh = true;
+        me.enable.forceStand = true;
+        me.enable.forceWalk = true;
         me.enable.appear = true;
         me.enable.vanish = true;
         me.enable.pickUp = true;
@@ -402,16 +412,17 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.setKeyCode('crouch', 17);
 
         // Speed
-        me.speed.right = 200;
-        me.speed.rightRun = 300;
-        me.speed.left = -200;
-        me.speed.leftRun = -300;
+        me.speed.walk.right = 200;
+        me.speed.run.right = 300;
+        me.speed.walk.left = -200;
+        me.speed.run.left = -300;
         me.speed.jump = 1200;
         me.speed.fall = -1200;
         me.speed.inAir = 0; // internal
+        me.speed.type = 'walk'; // internal
 
         this.setSpeed = function (attr, speed) {
-            if (attr === 'inAir') {
+            if (attr === 'inAir') { 
                 throw 'not allowed to set ' + attr + 'manually!';
             }
             else me.speed[attr] = speed;
@@ -557,6 +568,22 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             ret.min = me.rand.minVal;
             ret.max = me.rand.maxVal;
             return ret;
+        };
+
+        // State
+        me.state.direction.type = 'idle'; // internal
+        me.state.direction.forced = false; // internal
+        me.state.locomotion.type = 'walk'; // internal
+        me.state.locomotion.forced = false; // internal
+        me.state.stance.type = 'stand'; // internal
+        me.state.stance.forced = false; // internal
+
+        this.getState = function (attr) {
+            return me.state[attr].type;
+        };
+
+        this.setState = function (attr, val) {
+            me.state[attr].type = val;
         };
 
         // Action Flags
@@ -713,9 +740,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.pos.appearCnt++;
             if (!me.pos.absolute)
                 me.changeToAbsolutePosition();
-            me.stop();
             me.idle();
-            me.standUp();
+            me.doStand();
             me.obj.css({'bottom': $(window).height() - y, 'left': x});
             me.overflow.document.heightVirtual = null;
             me.singleAnimation(me.objImg, 'appear', function () {
@@ -898,44 +924,26 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.pos.overflowY = pos[1][0];
     };
 
-    this.crouch = function () {
-        if (!me.action.crouch
-                && (me.collider.bottom.isColliding
-                    || (!me.collider.bottom.isColliding
-                        && me.enable.crouchJump))) {
-            me.objImg.addClass('crouch');
-            me.objImg
-                .css('top', (parseInt(me.objImg.css('top'))
-                            - (me.size.heightStand - me.size.heightCrouch))
-                        + 'px');
-            $('#' + me.idCollider).height(me.size.heightCrouch + 'px');
-            if (me.enable.crouchJumpHigh && !me.collider.bottom.isColliding)
-                me.cssMoveY(me.size.heightCrouch);
-            me.updateCollider();
-            me.action.crouch = true;
-        }
-    };
-
     this.cssMoveX = function (val) {
         me.overflow.document.width = $(document).width();
-        me.obj.css("left", "+=" + val + "px");
+        me.obj.css('left', '+=' + val + 'px');
     };
 
     this.cssSetX = function (val, force) {
         me.overflow.document.width = $(document).width();
         if (me.pos.absolute || force)
-            me.obj.css("left", val + "px");
+            me.obj.css('left', val + 'px');
     };
 
     this.cssMoveY = function (val) {
         me.overflow.document.height = $(document).height();
-        me.obj.css("bottom", "+=" + val + "px");
+        me.obj.css('bottom', '+=' + val + 'px');
     };
 
     this.cssSetY = function (val, force) {
         me.overflow.document.height = $(document).height();
         if (me.pos.absolute || force)
-            me.obj.css("bottom", val + "px");
+            me.obj.css('bottom', val + 'px');
     };
 
     this.disableMe = function () {
@@ -954,20 +962,16 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.fall = function () {
-        // calculate next falling distance
-        me.speed.inAir += me.delta.dist.down
-            * me.delta.time.actual / me.delta.time.min;
-        me.delta.move.y = Math.round(me.speed.inAir * me.delta.time.actual);
-        // update collider and position
-        me.updateCollider("bottom", Math.abs(me.delta.move.y) + 1);
+        var dist;
+        dist = me.getMovingDistance('bottom');
+        // update collider
+        me.updateCollider('bottom', Math.abs(dist) + 1);
         me.collider.bottom.activeId = 'inAir';
+        // update position
         if (!me.pos.absolute && me.enable.jumpAbsolute) {
             me.changeToAbsolutePosition();
         }
-        me.cssMoveY(me.delta.move.y);
-        if (me.speed.inAir < me.speed.fall) {
-            me.speed.inAir = me.speed.fall;
-        }
+        me.cssMoveY(dist);
         if (!me.enable.checkPositionAlways) me.checkPosition('bottom');
     };
 
@@ -982,6 +986,52 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.jumpAttr.lut[i] = Math.ceil(pos);
             i++;
         }
+    };
+
+    this.getMovingDistance = function (direction) {
+        var lastElem = false,
+            jumpDiff = 0,
+            dist = 0;
+        if (direction === 'top') {
+            // calculate the height of the next rising step using a LUT
+            me.jumpAttr.count.actual += Math.round(
+                me.delta.time.actual / me.delta.time.min);
+            if (me.jumpAttr.count.actual > (me.jumpAttr.lut.length - 1)) {
+                me.jumpAttr.count.actual = me.jumpAttr.lut.length - 1;
+                lastElem = true;
+            }
+            dist = me.jumpAttr.lut[me.jumpAttr.count.actual]
+                - me.jumpAttr.lut[me.jumpAttr.count.last];
+            me.jumpAttr.height.actual += dist;
+            // on last rising step adjust to max height in order to keep jump
+            // height constant
+            if (lastElem
+                    || (me.jumpAttr.height.actual > me.jumpAttr.height.max)) {
+                jumpDiff = me.jumpAttr.height.max - me.jumpAttr.height.actual;
+                if (jumpDiff != 0)
+                    dist += jumpDiff;
+                me.jumpAttr.height.actual = 0;
+                me.action.jump = false;
+            }
+            me.jumpAttr.count.last = me.jumpAttr.count.actual;
+        }
+        else if (direction === 'bottom') {
+            // calculate next falling distance
+            me.speed.inAir += me.delta.dist.down
+                * me.delta.time.actual / me.delta.time.min;
+            dist = Math.round(me.speed.inAir * me.delta.time.actual);
+            // cap the speed at the defined falling speed
+            if (me.speed.inAir < me.speed.fall) {
+                me.speed.inAir = me.speed.fall;
+            }
+        }
+        else if (direction === 'left') {
+
+        }
+        else if (direction === 'right') {
+
+        }
+        return dist;
     };
 
     this.gravitation = function () {
@@ -1081,68 +1131,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.objImg.removeClass('jump');
     };
 
-    this.moveLeft = function () {
-        var collidedObjects,
-            speed = (me.action.run) ? me.speed.leftRun : me.speed.left;
-        me.action.moveLeft = true;
-        me.objImg.removeClass('idle right');
-        me.objImg.addClass('left');
-        me.delta.move.x = Math.floor(speed * me.delta.time.actual);
-        me.updateCollider("left", Math.abs(me.delta.move.x) + 1);
-        collidedObjects = me.checkCollisionStatic('left');
-        if (!me.collider.left.isColliding) {
-            me.cssMoveX(me.delta.move.x);
-            if (me.collider.bottom.isColliding) {
-                me.pos.x =
-                    me.obj.offset().left + me.obj.width();
-            }
-        }
-        else {
-            if (collidedObjects.length > 1) {
-                collidedObjects.sort(function(a,b) {
-                    return b.solidPosition[0][1] - a.solidPosition[0][1];
-                });
-            }
-            me.cssMoveX(
-                me.positionsGet(
-                    collidedObjects[0].jObject.parent().parent())[0][1]
-                - me.positionsGet(me.obj)[0][0]
-            );
-        }
-        if (!me.enable.checkPositionAlways) me.checkPosition('left');
-    };
-
-    this.moveRight = function () {
-        var collidedObjects,
-            speed = (me.action.run) ? me.speed.rightRun : me.speed.right;
-        me.action.moveRight = true;
-        me.objImg.removeClass('idle left');
-        me.objImg.addClass('right');
-        me.delta.move.x = Math.floor(speed * me.delta.time.actual);
-        me.updateCollider("right", me.delta.move.x + 1);
-        collidedObjects = me.checkCollisionStatic('right');
-        if (!me.collider.right.isColliding) {
-            me.cssMoveX(me.delta.move.x);
-            if (me.collider.bottom.isColliding) {
-                me.pos.x = me.obj.offset().left
-                    - me.obj.width();
-            }
-        }
-        else {
-            if (collidedObjects.length > 1) {
-                collidedObjects.sort(function(a,b) {
-                    return a.solidPosition[0][0] - b.solidPosition[0][0];
-                });
-            }
-            me.cssMoveX(
-                me.positionsGet(
-                    collidedObjects[0].jObject.parent().parent())[0][0]
-                - me.positionsGet(me.obj)[0][1]
-            );
-        }
-        if (!me.enable.checkPositionAlways) me.checkPosition('right');
-    };
-
     this.overlaps = function (a, b) {
         var pos1 = me.positionsGet(a),
             pos2 = me.positionsGet(b),
@@ -1194,41 +1182,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.rise = function () {
-        var lastElem = false,
-            jumpDiff = 0;
-        // calculate the height of the next rising step using a LUT
-        me.jumpAttr.count.actual += Math.round(
-            me.delta.time.actual / me.delta.time.min);
-        if (me.jumpAttr.count.actual > (me.jumpAttr.lut.length - 1)) {
-            me.jumpAttr.count.actual = me.jumpAttr.lut.length - 1;
-            lastElem = true;
-        }
-        me.delta.move.y = me.jumpAttr.lut[me.jumpAttr.count.actual]
-            - me.jumpAttr.lut[me.jumpAttr.count.last];
-        me.jumpAttr.height.actual += me.delta.move.y;
-        // on last rising step adjust to max height in order to keep jump height
-        // constant
-        if (lastElem
-                || (me.jumpAttr.height.actual > me.jumpAttr.height.max)) {
-            jumpDiff = me.jumpAttr.height.max - me.jumpAttr.height.actual;
-            if (jumpDiff != 0)
-                me.delta.move.y += jumpDiff;
-            me.jumpAttr.height.actual = 0;
-            me.action.jump = false;
-        }
-        me.jumpAttr.count.last = me.jumpAttr.count.actual;
-        // update collider and update position
-        me.updateCollider("top", me.delta.move.y + 1);
-        me.cssMoveY(me.delta.move.y);
+        var dist;
+        dist = me.getMovingDistance('top');
+        me.updateCollider('top', dist + 1);
+        // update position
+        me.cssMoveY(dist);
         if (!me.enable.checkPositionAlways) me.checkPosition('top');
-    };
-
-    this.run = function () {
-        if (!me.action.run) {
-            me.action.run = true;
-            me.objImg.removeClass('walk');
-            me.objImg.addClass('run');
-        }
     };
 
     this.setDeltaTime = function (val) {
@@ -1241,6 +1200,153 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             (1 / me.delta.time.actual)
             * ((Math.random() * me.rand.maxVal) + me.rand.minVal)
         );
+    };
+
+    this.doCrouch = function (forced) {
+        if (forced === undefined) forced = false;
+        if ((me.state.stance.type != 'crouch') && !me.state.stance.forced) {
+            if (forced) me.state.stance.forced = true;
+            else me.state.stance.forced = false;
+            if ((me.state.locomotion.type === 'run') && !me.enable.crouchRun) {
+                // running and crouchRun is disabled
+                if (me.enable.forceWalk) me.doWalk(true); // force walk
+                else return false; // or ignore crouch command
+            }
+            // TODO: crouchJump
+            me.state.stance.type = 'crouch';
+            me.objImg.addClass('crouch');
+            me.objImg
+                .css('top', (parseInt(me.objImg.css('top'))
+                            - (me.size.heightStand - me.size.heightCrouch))
+                        + 'px');
+            $('#' + me.idCollider).height(me.size.heightCrouch + 'px');
+            if (me.enable.crouchJumpHigh && !me.collider.bottom.isColliding)
+                me.cssMoveY(me.size.heightCrouch);
+            me.updateCollider();
+            return true;
+        }
+    };
+
+    this.doMove = function (direction) {
+        var speed, collidedObjects, otherDirection,
+            width = 0,
+            idx1 = 1,
+            idx2 = 0,
+            sign = -1;
+        if ((direction != 'right') && (direction != 'left'))
+            return;
+        else if (direction === 'left') {
+            otherDirection = 'right';
+        }
+        else if (direction === 'right') {
+            otherDirection = 'left';
+        }
+        me.state.direction.type = direction;
+        speed = me.speed[me.state.locomotion.type][direction];
+        me.objImg.removeClass('idle ' + otherDirection);
+        me.objImg.addClass(direction);
+        me.delta.move.x = Math.floor(speed * me.delta.time.actual);
+        me.updateCollider(direction, Math.abs(me.delta.move.x) + 1);
+        collidedObjects = me.checkCollisionStatic(direction);
+        if (!me.collider[direction].isColliding) {
+            me.cssMoveX(me.delta.move.x);
+            width = (direction === 'left') ? me.obj.width() : -me.obj.width();
+            if (me.collider.bottom.isColliding) {
+                me.pos.x =
+                    me.obj.offset().left + width;
+            }
+        }
+        else {
+            if (direction === 'right') {
+                idx1 = 0;
+                idx2 = 1;
+                sign = 1;
+            }
+            if (collidedObjects.length > 1) {
+                collidedObjects.sort(function(a,b) {
+                    return sign
+                        * (a.solidPosition[0][idx1] - b.solidPosition[0][idx1]);
+                });
+            }
+            me.cssMoveX(
+                me.positionsGet(
+                    collidedObjects[0].jObject.parent().parent())[0][idx1]
+                - me.positionsGet(me.obj)[0][idx2]
+            );
+        }
+        if (!me.enable.checkPositionAlways) me.checkPosition(direction);
+    };
+
+    this.doRun = function (forced) {
+        var res = true;
+        if (forced === undefined) forced = false;
+        if ((me.state.stance.type === 'crouch') && !me.enable.crouchRun
+                && !me.state.locomotion.forced) {
+            // crouchRun is disabled and locomotion is not forced
+            if (me.enable.forceStand) {
+                // force stand
+                if(!me.doStand(true)) {
+                    // cannot doStand, force walk and ignore run command
+                    me.doWalk(true);
+                    res = false;
+                }
+            }
+        }
+        else if ((me.state.locomotion != 'run') && !me.state.locomotion.forced) {
+            // is not yet running and locomotion is not forced
+            me.state.locomotion.type = 'run';
+            if (forced) me.state.locomotion.forced = true;
+            else me.state.locomotion.forced = false;
+            me.objImg.removeClass('walk');
+            me.objImg.addClass('run');
+        }
+        return res;
+    };
+
+    this.doStand = function (forced) {
+        var colliderSize = 0,
+            res = true;
+        if (forced === undefined) forced = false;
+        if (me.state.stance.type === 'crouch') {
+            colliderSize = $('#' + me.idCollider + '-top').height();
+            me.updateCollider('top', colliderSize
+                    + (me.size.heightStand - me.size.heightCrouch));
+            me.checkCollisionStatic('top');
+            if (!me.collider.top.isColliding) {
+                me.state.stance.type = 'stand';
+                if (forced) me.state.stance.forced = true;
+                else me.state.stance.forced = false;
+                me.objImg.removeClass('crouch');
+                me.objImg.removeAttr('style');
+                if (me.collider.top.isColliding)
+                    me.cssMoveY(me.size.heightCrouch - me.size.heightStand);
+                $('#' + me.idCollider).height(me.size.heightStand + 'px');
+                me.updateCollider();
+                // crouch button was released, locomotion is not forced anymore
+                if (me.state.locomotion.forced && !forced)
+                    me.state.locomotion.forced = false;
+            }
+            else {
+                me.doCrouch(true);
+                res = false;
+            }
+            me.updateCollider('top', colliderSize);
+            me.checkCollisionStatic('top');
+        }
+        return res;
+    };
+
+    this.doWalk = function (forced) {
+        if ((me.state.locomotion != 'walk') || forced) {
+            me.state.locomotion.type = 'walk';
+            if (forced) me.state.locomotion.forced = true;
+            else me.state.locomotion.forced = false;
+            me.objImg.removeClass('run');
+            me.objImg.addClass('walk');
+            // run button was released, stance is not forced anymore
+            if (me.state.stance.forced) me.state.stance.forced = false;
+        }
+        return true;
     };
 
     this.setup = function () {
@@ -1265,6 +1371,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.updateSolidCollider();
         me.updateCollider();
         me.genJumpLut();
+        me.objImg.addClass('walk');
     };
 
     this.singleAnimation = function (obj, cssClass, cb) {
@@ -1295,40 +1402,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }, animationDuration * animationIterationCount * 1000);
     };
 
-    this.standUp = function () {
-        var colliderSize = 0,
-            forcedCrouch = false;
-        if (me.action.crouch && !me.action.forcedCrouch) {
-            colliderSize = $('#' + me.idCollider + '-top').height();
-            me.updateCollider('top', colliderSize
-                    + (me.size.heightStand - me.size.heightCrouch));
-            me.checkCollisionStatic('top');
-            if (!me.collider.top.isColliding) {
-                me.objImg.removeClass('crouch');
-                me.objImg.removeAttr('style');
-                if (me.collider.top.isColliding)
-                    me.cssMoveY(me.size.heightCrouch - me.size.heightStand);
-                $('#' + me.idCollider).height(me.size.heightStand + 'px');
-                me.updateCollider();
-                me.action.crouch = false;
-            }
-            else {
-                forcedCrouch = true;
-                me.action.forcedCrouch = true;
-            }
-            me.updateCollider('top', colliderSize);
-            me.checkCollisionStatic('top');
-        }
-        return forcedCrouch;
-    };
-
-    this.stop = function () {
-        me.objImg.removeClass('walk run');
-        me.action.moveLeft = false;
-        me.action.moveRight = false;
-        me.action.run = false;
-    };
-
     this.teleport = function (x, y) {
         me.vanish(true, x, y);
     };
@@ -1342,34 +1415,34 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         if ((direction === undefined) || (direction === 'left')) {
             if (colliderSize === undefined)
                 colliderSize = Math.abs(Math.floor(
-                            me.delta.time.actual * me.speed.left));
+                            me.delta.time.actual * me.speed.walk.left));
             if (me.collider.bottom.isColliding) {
                 tolerance.bottom.left = me.collider.left.tolerance.bottom;
             }
             $('#' + me.id + '-collider-left')
-            .width(colliderSize  + "px")
+            .width(colliderSize  + 'px')
             .height(($('#' + me.idCollider).height() - tolerance.bottom.left
-                        - me.collider.left.tolerance.top) + "px")
+                        - me.collider.left.tolerance.top) + 'px')
             .css({
-                "left": "-" + colliderSize + "px",
-                "top": me.collider.left.tolerance.top + "px"
+                'left': '-' + colliderSize + 'px',
+                'top': me.collider.left.tolerance.top + 'px'
             });
         }
 
         if ((direction === undefined) || (direction === 'right')) {
             if (colliderSize === undefined)
                 colliderSize = Math.abs(
-                    Math.floor(me.delta.time.actual * me.speed.right));
+                    Math.floor(me.delta.time.actual * me.speed.walk.right));
             if (me.collider.bottom.isColliding) {
                 tolerance.bottom.right = me.collider.right.tolerance.bottom;
             }
             $('#' + me.id + '-collider-right')
-            .width(colliderSize + "px")
+            .width(colliderSize + 'px')
             .height(($('#' + me.idCollider).height() - tolerance.bottom.right
-                        - me.collider.right.tolerance.top) + "px")
+                        - me.collider.right.tolerance.top) + 'px')
             .css({
-                "left": ($('#' + me.idCollider).width()) + "px",
-                "top": me.collider.right.tolerance.top + "px"
+                'left': ($('#' + me.idCollider).width()) + 'px',
+                'top': me.collider.right.tolerance.top + 'px'
             });
         }
 
@@ -1378,9 +1451,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 colliderSize = Math.abs(Math.floor(
                             me.delta.time.actual * me.speed.jump));
             $('#' + me.id + '-collider-top')
-            .height((colliderSize) + "px")
-            .width($('#' + me.idCollider).width() + "px")
-            .css("top", "-" + colliderSize + "px");
+            .height((colliderSize) + 'px')
+            .width($('#' + me.idCollider).width() + 'px')
+            .css('top', '-' + colliderSize + 'px');
         }
 
         if ((direction === undefined) || (direction === 'bottom')) {
@@ -1388,9 +1461,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 colliderSize = Math.abs(Math.floor(
                             me.delta.time.actual * me.speed.fall));
             $('#' + me.id + '-collider-bottom')
-            .height(colliderSize + "px")
-            .width($('#' + me.idCollider).width() + "px")
-            .css("top", $('#' + me.idCollider).height() + "px");
+            .height(colliderSize + 'px')
+            .width($('#' + me.idCollider).width() + 'px')
+            .css('top', $('#' + me.idCollider).height() + 'px');
         }
     };
 
@@ -1404,7 +1477,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         if (me.enable.vanish) {
             me.disableMe();
             me.active();
-            me.standUp();
+            me.doStand();
             if (!me.pos.absolute)
                 me.changeToAbsolutePosition();
             me.singleAnimation(me.objImg, 'vanish', function () {
@@ -1412,12 +1485,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 if(teleport) me.appear(x, y);
             });
         }
-    };
-
-    this.walk = function () {
-        me.objImg.removeClass('run');
-        me.objImg.addClass('walk');
-        me.action.run = false;
     };
 
     this.setup();
@@ -1476,7 +1543,7 @@ function Ticker (maxFps) {
     // METHODS
     this.drawFps = function () {
         me.fps.real = Math.floor(1000 / me.tick.real);
-        $('#fps').text(me.fps.real + " / " + me.fps.max );
+        $('#fps').text(me.fps.real + ' / ' + me.fps.max );
 
     };
 

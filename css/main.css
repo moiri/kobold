@@ -97,7 +97,7 @@ body {
      to { background-position: -800px -505px; }
 }
 
-.koboldImg.walk {
+.koboldImg.walk:not(.idle) {
     animation: walk 0.4s steps(9) infinite;
     -webkit-animation: walk 0.4s steps(9) infinite;
 }
@@ -110,7 +110,7 @@ body {
      to { background-position: -900px -404px; }
 }
 
-.koboldImg.run {
+.koboldImg.run:not(.idle) {
     animation: run 0.6s steps(6) infinite;
     -webkit-animation: run 0.6s steps(6) infinite;
 }
@@ -135,7 +135,7 @@ body {
    from { background-position:    0px -101px; }
      to { background-position: -200px -101px; }
 }
-.koboldImg.walk.crouch {
+.koboldImg.walk.crouch:not(.idle) {
     animation: crouch 0.4s steps(8) infinite;
     -webkit-animation: crouch 0.4s steps(8) infinite;
 }
@@ -147,7 +147,7 @@ body {
    from { background-position:    0px -101px; }
      to { background-position: -800px -101px; }
 }
-.koboldImg.run.crouch {
+.koboldImg.run.crouch:not(.idle) {
     animation: runCrouch 0.25s steps(8) infinite;
     -webkit-animation: runCrouch 0.25s steps(8) infinite;
 }
