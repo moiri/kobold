@@ -93,23 +93,23 @@ function Engine() {
         switch (movable.getState('direction')) {
             case 'idle':
                 if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
-                    movable.doMove('left');
+                    movable.doMoveLeft();
                 else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
-                    movable.doMove('right');
+                    movable.doMoveRight();
                 break;
             case 'left':
                 if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
-                    movable.doMove('right');
+                    movable.doMoveRight();
                 else if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
-                    movable.doMove('left');
+                    movable.doMoveLeft();
                 else if (!me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
                     movable.idle();
                 break;
             case 'right':
                 if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
-                    movable.doMove('left');
+                    movable.doMoveLeft();
                 else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
-                    movable.doMove('right');
+                    movable.doMoveRight();
                 else if (!me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
                     movable.idle();
                 break;
@@ -1070,6 +1070,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         if (me.rand.nextVal < 0)
             this.setNextRandVal();
         me.objImg.addClass('idle');
+        me.state.direction.type = 'idle';
         if (me.rand.count === me.rand.nextVal) {
             me.singleAnimation(me.objImg, 'rand', function () {
                 me.setNextRandVal();
@@ -1227,54 +1228,106 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
     };
 
-    this.doMove = function (direction) {
-        var speed, collidedObjects, otherDirection,
-            width = 0,
-            idx1 = 1,
-            idx2 = 0,
-            sign = -1;
-        if ((direction != 'right') && (direction != 'left'))
-            return;
-        else if (direction === 'left') {
-            otherDirection = 'right';
+    this.doMoveLeft = function (forced) {
+        var speed, collidedObjects;
+        if (forced === undefined) forced = false;
+        if ((me.state.direction.type === 'right') && me.state.direction.forced) {
+            // the moveRight method just indicated that right must be forced
+            me.doMoveRight(true);
+            // trick the moveRight method in order to set the force flag again
+            me.state.direction.type = 'left';
+            me.state.direction.forced = false;
+            return false;
         }
-        else if (direction === 'right') {
-            otherDirection = 'left';
+        else if (forced || (me.enable.forceDirection
+                && (me.state.direction.type === 'right'))) {
+            // was moving to the right when moveLeft was pressed
+            // -> indicate to the moveRight method to forcing left
+            me.state.direction.forced = true;
         }
-        me.state.direction.type = direction;
-        speed = me.speed[me.state.locomotion.type][direction];
-        me.objImg.removeClass('idle ' + otherDirection);
-        me.objImg.addClass(direction);
+        else {
+            // everything is normal
+            me.state.direction.forced = false;
+        }
+        me.state.direction.type = 'left';
+        speed = me.speed[me.state.locomotion.type].left;
+        me.objImg.removeClass('idle right');
+        me.objImg.addClass('left');
         me.delta.move.x = Math.floor(speed * me.delta.time.actual);
-        me.updateCollider(direction, Math.abs(me.delta.move.x) + 1);
-        collidedObjects = me.checkCollisionStatic(direction);
-        if (!me.collider[direction].isColliding) {
+        me.updateCollider('right', Math.abs(me.delta.move.x) + 1);
+        collidedObjects = me.checkCollisionStatic('left');
+        if (!me.collider.left.isColliding) {
             me.cssMoveX(me.delta.move.x);
-            width = (direction === 'left') ? me.obj.width() : -me.obj.width();
             if (me.collider.bottom.isColliding) {
                 me.pos.x =
-                    me.obj.offset().left + width;
+                    me.obj.offset().left + me.obj.width();
             }
         }
         else {
-            if (direction === 'right') {
-                idx1 = 0;
-                idx2 = 1;
-                sign = 1;
-            }
             if (collidedObjects.length > 1) {
                 collidedObjects.sort(function(a,b) {
-                    return sign
-                        * (a.solidPosition[0][idx1] - b.solidPosition[0][idx1]);
+                    return b.solidPosition[0][1] - a.solidPosition[0][1];
                 });
             }
             me.cssMoveX(
                 me.positionsGet(
-                    collidedObjects[0].jObject.parent().parent())[0][idx1]
-                - me.positionsGet(me.obj)[0][idx2]
+                    collidedObjects[0].jObject.parent().parent())[0][1]
+                - me.positionsGet(me.obj)[0][0]
             );
         }
-        if (!me.enable.checkPositionAlways) me.checkPosition(direction);
+        if (!me.enable.checkPositionAlways) me.checkPosition('left');
+        return true;
+    };
+
+    this.doMoveRight = function (forced) {
+        var speed, collidedObjects;
+        if (forced === undefined) forced = false;
+        if ((me.state.direction.type === 'left') && me.state.direction.forced) {
+            // the moveLeft method just indicated that left must be forced
+            me.doMoveLeft(true);
+            // trick the moveLeft method in order to set the force flag
+            me.state.direction.type = 'right';
+            me.state.direction.forced = false;
+            return false;
+        }
+        else if (forced || (me.enable.forceDirection
+                && (me.state.direction.type === 'left'))) {
+            // was moving to the left when moveRight was pressed
+            // -> indicate to the moveLeft method to forcing right
+            me.state.direction.forced = true;
+        }
+        else {
+            // everything is normal
+            me.state.direction.forced = false;
+        }
+        me.state.direction.type = 'right';
+        speed = me.speed[me.state.locomotion.type].right;
+        me.objImg.removeClass('idle left');
+        me.objImg.addClass('right');
+        me.delta.move.x = Math.floor(speed * me.delta.time.actual);
+        me.updateCollider('right', Math.abs(me.delta.move.x) + 1);
+        collidedObjects = me.checkCollisionStatic('right');
+        if (!me.collider.right.isColliding) {
+            me.cssMoveX(me.delta.move.x);
+            if (me.collider.bottom.isColliding) {
+                me.pos.x =
+                    me.obj.offset().left - me.obj.width();
+            }
+        }
+        else {
+            if (collidedObjects.length > 1) {
+                collidedObjects.sort(function(a,b) {
+                    return a.solidPosition[0][0] - b.solidPosition[0][0];
+                });
+            }
+            me.cssMoveX(
+                me.positionsGet(
+                    collidedObjects[0].jObject.parent().parent())[0][0]
+                - me.positionsGet(me.obj)[0][1]
+            );
+        }
+        if (!me.enable.checkPositionAlways) me.checkPosition('right');
+        return true;
     };
 
     this.doRun = function (forced) {

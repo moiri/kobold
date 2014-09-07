@@ -78,6 +78,10 @@ $(document).ready(function() {
             kobold.toggleEnableMe();
             $(this).toggleClass('disable');
         });
+        $('#enable-forceDirection').click(function () {
+            kobold.toggleEnableAttr('forceDirection');
+            $(this).toggleClass('disable');
+        });
         $('#enable-run').click(function () {
             kobold.toggleEnableAttr('run');
             $(this).toggleClass('disable');
