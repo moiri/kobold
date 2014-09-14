@@ -38,8 +38,7 @@ function Engine() {
 
         me.enable.forceDirection = true;
         me.enable.crouchRun = false;
-        me.enable.forceStand = true;
-        me.enable.forceWalk = true;
+        me.enable.forceRun = false;
         me.enable.crouchJump = true;
         me.enable.crouchJumpHigh = true;
         me.enable.jumpMovingSolid = false;
@@ -133,8 +132,8 @@ function Engine() {
             right = false,
             jump = false,
             forceDirection = false,
-            forceStand = false,
-            ignoreRun = false,
+            forceRun = false,
+            forceWalk = false,
             forceCrouch = false;
 
         // set tick-time period. This is needed to calculate speeds
@@ -149,32 +148,34 @@ function Engine() {
 
         // check multi-key enables
         forceDirection = me.enable.forceDirection && left && right;
-        forceStand = !me.enable.crouchRun && me.enable.forceStand && crouch
+        forceRun = !me.enable.crouchRun && me.enable.forceRun && crouch
             && run;
-        ignoreRun = !me.enable.crouchRun && !me.enable.forceStand && crouch
+        forceWalk = !me.enable.crouchRun && !me.enable.forceRun && crouch
             && run;
 
         // handle movable state
         switch (movable.getState('stance')) {
             case 'stand':
-                if (crouch && !forceStand) movable.doCrouch();
+                if (crouch && !forceRun) movable.doCrouch();
                 break;
             case 'crouch':
-                if (crouch && !forceStand) movable.doCrouch();
-                else if (!crouch || forceStand) forceCrouch = !movable.doStand(forceStand);
+                if (crouch && !forceRun) movable.doCrouch();
+                else if (!crouch || forceRun)
+                    forceCrouch = !movable.doStand(forceRun);
                 break;
             default:
                 throw 'bad stance argument: ' + movable.getState('stance');
         }
 
-        ignoreRun = ignoreRun || (forceCrouch && !me.enable.crouchRun);
+        // update forceWalk, if movable cannot stand up
+        forceWalk = forceWalk || (forceCrouch && !me.enable.crouchRun);
 
         switch (movable.getState('locomotion')) {
             case 'walk':
-                if (run && !ignoreRun) movable.doRun();
+                if (run && !forceWalk) movable.doRun();
                 break;
             case 'run':
-                if (!run) movable.doWalk();
+                if (!run || forceWalk) movable.doWalk();
                 break;
             default:
                 throw 'bad locomotion argument: '
@@ -427,10 +428,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.enable.jumpMovingSolid = false;
         me.enable.jumpAbsolute = !me.enable.jumpMovingSolid; // internal
         me.enable.crouch = true;
-        me.enable.crouchRun = false;
         me.enable.crouchJump = true;
         me.enable.crouchJumpHigh = true;
-        me.enable.forceWalk = true;
         me.enable.appear = true;
         me.enable.vanish = true;
         me.enable.pickUp = true;
@@ -1299,8 +1298,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.doCrouch = function (forced) {
+        var res = true;
         if (forced === undefined) forced = false;
-        if (me.state.stance.type != 'crouch') {
+        if (!me.enable.crouch) res = false;
+        else if (me.state.stance.type != 'crouch') {
             me.state.stance.type = 'crouch';
             me.objImg.addClass('crouch');
             me.objImg
@@ -1310,29 +1311,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             $('#' + me.idCollider).height(me.size.heightCrouch + 'px');
             me.updateCollider();
         }
-        return true;
-
-        //if ((me.state.stance.type != 'crouch') && !me.state.stance.forced) {
-        //    if (forced) me.state.stance.forced = true;
-        //    else me.state.stance.forced = false;
-        //    if ((me.state.locomotion.type === 'run') && !me.enable.crouchRun) {
-        //        // running and crouchRun is disabled
-        //        if (me.enable.forceWalk) me.doWalk(true); // force walk
-        //        else return false; // or ignore crouch command
-        //    }
-        //    // TODO: crouchJump
-        //    me.state.stance.type = 'crouch';
-        //    me.objImg.addClass('crouch');
-        //    me.objImg
-        //        .css('top', (parseInt(me.objImg.css('top'))
-        //                    - (me.size.heightStand - me.size.heightCrouch))
-        //                + 'px');
-        //    $('#' + me.idCollider).height(me.size.heightCrouch + 'px');
-        //    if (me.enable.crouchJumpHigh && !me.collider.bottom.isColliding)
-        //        me.cssMoveY(me.size.heightCrouch);
-        //    me.updateCollider();
-        //    return true;
-        //}
+        return res;
     };
 
     this.doMoveLeft = function (forced) {
@@ -1403,10 +1382,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return true;
     };
 
-    this.doRun = function (forced) {
+    this.doRun = function () {
         var res = true;
-        if (forced === undefined) forced = false;
-        if (me.state.locomotion != 'run') {
+        if (!me.enable.run) res = false;
+        else if (me.state.locomotion != 'run') {
             me.state.locomotion.type = 'run';
             me.objImg.removeClass('walk');
             me.objImg.addClass('run');
@@ -1436,15 +1415,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return true;
     };
 
-    this.doWalk = function (forced) {
-        if ((me.state.locomotion != 'walk') || forced) {
+    this.doWalk = function () {
+        if (me.state.locomotion != 'walk') {
             me.state.locomotion.type = 'walk';
-            if (forced) me.state.locomotion.forced = true;
-            else me.state.locomotion.forced = false;
             me.objImg.removeClass('run');
             me.objImg.addClass('walk');
-            // run button was released, stance is not forced anymore
-            if (me.state.stance.forced) me.state.stance.forced = false;
         }
         return true;
     };
