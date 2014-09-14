@@ -37,7 +37,7 @@ function Engine() {
         };
 
         me.enable.forceDirection = true;
-        me.enable.crouchRun = true;
+        me.enable.crouchRun = false;
         me.enable.forceStand = true;
         me.enable.forceWalk = true;
         me.enable.crouchJump = true;
@@ -45,28 +45,52 @@ function Engine() {
         me.enable.jumpMovingSolid = false;
 
         this.enableAttr = function (attr) {
-            if (me.enable.attr === undefined)
+            if (me.enable[attr] === undefined)
                 throw 'attribute ' + attr + ' is undefined';
             me.enable[attr] = true;
         };
         this.disableAttr = function (attr) {
-            if (me.enable.attr === undefined)
+            if (me.enable[attr] === undefined)
                 throw 'attribute ' + attr + ' is undefined';
             me.enable[attr] = false;
         };
         this.toggleEnableAttr = function (attr) {
-            if (me.enable.attr === undefined)
+            if (me.enable[attr] === undefined)
                 throw 'attribute ' + attr + ' is undefined';
             me.enable[attr] = !me.enable[attr];
         };
         this.getEnableStatus = function (attr) {
-            if (me.enable.attr === undefined)
+            if (me.enable[attr] === undefined)
                 throw 'attribute ' + attr + ' is undefined';
             return me.enable[attr];
         };
     }
 
     // METHODS
+    this.debug = function () {
+        var cssClass = '', elem = null, id = 'engineDebug';
+        $('body').append('<div id="' + id
+                + '" class="engineDebug"></div>');
+        $('<div class="engine-debug-title">Engine Config</div>')
+            .appendTo('#' + id)
+            .click(function (e) {
+                $('#engine-debug-content').toggle();
+            });
+        $('#' + id).append('<div id="engine-debug-content"'
+                + ' class="engine-debug-content"></div>');
+        for (elem in me.enable) {
+            cssClass = '';
+            if (!me.getEnableStatus(elem)) cssClass = ' disable';
+            $('<div class="configElem clickable' + cssClass + '">' + elem
+                    + '</div>')
+                .appendTo('#engine-debug-content')
+                .click(function (e) {
+                    me.toggleEnableAttr($(this).text());
+                    $(this).toggleClass('disable');
+                });
+        }
+    };
+
     this.disableCollider = function (obj) {
         obj.find('.' + me.config.solidColliderWrapperClass + '>:first-child')
         .addClass(me.config.solidColliderIgnoreClass);
@@ -112,6 +136,7 @@ function Engine() {
             forceStand = false,
             ignoreRun = false,
             forceCrouch = false;
+
         // set tick-time period. This is needed to calculate speeds
         movable.setDeltaTime(me.ticker.getDeltaTime());
 
@@ -142,7 +167,7 @@ function Engine() {
                 throw 'bad stance argument: ' + movable.getState('stance');
         }
 
-        ignoreRun = ignoreRun && forceCrouch && me.enable.crouchRun;
+        ignoreRun = ignoreRun || (forceCrouch && !me.enable.crouchRun);
 
         switch (movable.getState('locomotion')) {
             case 'walk':
@@ -329,6 +354,7 @@ function Engine() {
     };
 
     me.setup();
+    me.debug();
 }
 
 function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
@@ -991,6 +1017,30 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.obj.css('bottom', val + 'px');
     };
 
+    this.debug = function () {
+        var cssClass = '', elem = null, id = me.id + 'Debug';
+        $('#' + me.id).append('<div id="' + id
+                + '" class="movableDebug"></div>');
+        $('<div class="movable-debug-title">Config</div>')
+            .appendTo('#' + id)
+            .click(function (e) {
+                $('#' + me.id + '-debug-content').toggle();
+            });
+        $('#' + id).append('<div id="' + me.id
+                + '-debug-content" class="movable-debug-content"></div>');
+        for (elem in me.enable) {
+            cssClass = '';
+            if (!me.getEnableStatus(elem)) cssClass = ' disable';
+            $('<div class="configElem clickable' + cssClass + '">' + elem
+                    + '</div>')
+                .appendTo('#' + me.id + '-debug-content')
+                .click(function (e) {
+                    me.toggleEnableAttr($(this).text());
+                    $(this).toggleClass('disable');
+                });
+        }
+    };
+
     this.disableMe = function () {
         setEnableMeCb(me.id, false);
         me.enable.cb.disable();
@@ -1537,7 +1587,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
     };
 
-    this.setup();
+    me.setup();
+    me.debug();
 }
 
 function KeyHandler () {

@@ -1,0 +1,59 @@
+.engineDebug {
+    visibility:hidden;
+    position: fixed;
+    top:5px;
+    left:5px;
+}
+
+.movableDebug {
+    visibility:hidden;
+    position:absolute;
+    top:-20px;
+    left:73px;
+}
+
+.debug > .engineDebug, .debug * .movableDebug {
+    visibility:visible;
+}
+
+.engine-debug-title, .movable-debug-title {
+    cursor:pointer;
+}
+
+.engine-debug-content, .movable-debug-content {
+    display:none;
+    padding:5px;
+}
+
+.debug * .colliderContainer, .debug > .colliderContainer {
+    overflow:visible;
+    z-index:9;
+}
+
+.debug * .solidCollider, .debug > .solidCollider {
+    background-color:red;
+    opacity:0.2;
+}
+
+.debug * .solidColliderMoving.solidColliderOnlyTop,
+    .debug > .solidColliderMoving.solidColliderOnlyTop {
+    background-color:blue;
+    opacity:0.2;
+}
+
+.debug * .solidColliderOnlyTop, .debug > .solidColliderOnlyTop {
+    background-color:yellow;
+    opacity:0.2;
+}
+
+.debug * .solidColliderIgnore, .debug > .solidColliderIgnore,
+    .debug * .solidColliderMoving.solidColliderOnlyTop.solidColliderIgnore,
+    .debug > .solidColliderMoving.solidColliderOnlyTop.solidColliderIgnore {
+    background-color:black;
+    opacity:0.2;
+}
+
+.debug * .collider, .debug > .collider {
+    background-color:green;
+    opacity:0.2;
+}

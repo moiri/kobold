@@ -59,7 +59,7 @@ $(document).ready(function() {
         engine.start();
         kobold.enableMe();
 
-        $('#' + kobold.getId())
+        $('#' + kobold.getId() + '-img')
             .click(function () {
                 alert("Kobold: Hey, I was just clicked!");
             })
@@ -76,62 +76,6 @@ $(document).ready(function() {
 
         $('#enable').click(function () {
             kobold.toggleEnableMe();
-            $(this).toggleClass('disable');
-        });
-        $('#enable-forceDirection').click(function () {
-            kobold.toggleEnableAttr('forceDirection');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-run').click(function () {
-            kobold.toggleEnableAttr('run');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-jump').click(function () {
-            kobold.toggleEnableAttr('jump');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-jumpMovingSolid').click(function () {
-            kobold.toggleEnableAttr('jumpMovingSolid');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-crouch').click(function () {
-            kobold.toggleEnableAttr('crouch');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-crouchRun').click(function () {
-            kobold.toggleEnableAttr('crouchRun');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-crouchJump').click(function () {
-            kobold.toggleEnableAttr('crouchJump');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-crouchJumpHigh').click(function () {
-            kobold.toggleEnableAttr('crouchJumpHigh');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-forceStand').click(function () {
-            kobold.toggleEnableAttr('forceStand');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-forceWalk').click(function () {
-            kobold.toggleEnableAttr('forceWalk');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-appear').click(function () {
-            kobold.toggleEnableAttr('appear');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-pickUp').click(function () {
-            kobold.toggleEnableAttr('pickUp');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-checkPositionAlways').click(function () {
-            kobold.toggleEnableAttr('checkPositionAlways');
-            $(this).toggleClass('disable');
-        });
-        $('#enable-checkPositionAllDirections').click(function () {
-            kobold.toggleEnableAttr('checkPositionAllDirections');
             $(this).toggleClass('disable');
         });
 
