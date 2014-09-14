@@ -3,6 +3,7 @@ function Engine() {
     {
         // INITIALISATION
         me.config = [];
+        me.enable = [];
         me.movable = [];
         me.keyCodes = [];
         me.ticker = null;
@@ -10,10 +11,10 @@ function Engine() {
     }
 
     {
+        // CONFIGURATION
         me.colliderCnt = 0;
         me.movingColliderCnt = 0;
 
-        // CONFIGURATION
         me.config.maxFps = 40;
         me.config.solidClass = 'solid';
         me.config.solidOnlyTopClass = me.config.solidClass + 'OnlyTop';
@@ -33,6 +34,35 @@ function Engine() {
         };
         this.getConfigAttr = function (attr) {
             return me.config[attr];
+        };
+
+        me.enable.forceDirection = true;
+        me.enable.crouchRun = false;
+        me.enable.forceStand = true;
+        me.enable.forceWalk = true;
+        me.enable.crouchJump = true;
+        me.enable.crouchJumpHigh = true;
+        me.enable.jumpMovingSolid = false;
+
+        this.enableAttr = function (attr) {
+            if (me.enable.attr === undefined)
+                throw 'attribute ' + attr + ' is undefined';
+            me.enable[attr] = true;
+        };
+        this.disableAttr = function (attr) {
+            if (me.enable.attr === undefined)
+                throw 'attribute ' + attr + ' is undefined';
+            me.enable[attr] = false;
+        };
+        this.toggleEnableAttr = function (attr) {
+            if (me.enable.attr === undefined)
+                throw 'attribute ' + attr + ' is undefined';
+            me.enable[attr] = !me.enable[attr];
+        };
+        this.getEnableStatus = function (attr) {
+            if (me.enable.attr === undefined)
+                throw 'attribute ' + attr + ' is undefined';
+            return me.enable[attr];
         };
     }
 
@@ -73,65 +103,71 @@ function Engine() {
     };
 
     this.movableHandler = function (movable) {
+        var run = false,
+            crouch = false,
+            left = false,
+            right = false,
+            jump = false;
         // set tick-time period. This is needed to calculate speeds
         movable.setDeltaTime(me.ticker.getDeltaTime());
 
         // evaluate keyboard commands
+        run = me.keyHandler.keyCodeMap[movable.getKeyCode('run')];
+        crouch = me.keyHandler.keyCodeMap[movable.getKeyCode('croach')];
+        left = me.keyHandler.keyCodeMap[movable.getKeyCode('left')];
+        right = me.keyHandler.keyCodeMap[movable.getKeyCode('right')];
+        jump = me.keyHandler.keyCodeMap[movable.getKeyCode('jump')];
+
+        // check multi-key enables
+        forceDirection = me.enable.forceDirection && left && right;
+
+        // handle movable state
         switch (movable.getState('locomotion')) {
             case 'walk':
-                if (me.keyHandler.keyCodeMap[movable.getKeyCode('run')])
-                    movable.doRun();
+                if (run) movable.doRun();
                 break;
             case 'run':
-                if (!me.keyHandler.keyCodeMap[movable.getKeyCode('run')])
-                    movable.doWalk();
+                if (!run) movable.doWalk();
                 break;
             default:
-                throw 'bad locomotion argument: ' + movable.getState('locomotion');
+                throw 'bad locomotion argument: '
+                    + movable.getState('locomotion');
         }
 
         switch (movable.getState('direction')) {
             case 'idle':
-                if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
-                    movable.doMoveLeft();
-                else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
-                    movable.doMoveRight();
+                if (left) movable.doMoveLeft();
+                else if (right) movable.doMoveRight();
                 break;
             case 'left':
-                if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
-                    movable.doMoveRight();
-                else if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
-                    movable.doMoveLeft();
-                else if (!me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
-                    movable.idle();
+                if (left && !forceDirection) movable.doMoveLeft();
+                else if (right || forceDirection)
+                    movable.doMoveRight(forceDirection);
+                else if (!left) movable.idle();
                 break;
             case 'right':
-                if (me.keyHandler.keyCodeMap[movable.getKeyCode('left')])
-                    movable.doMoveLeft();
-                else if (me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
-                    movable.doMoveRight();
-                else if (!me.keyHandler.keyCodeMap[movable.getKeyCode('right')])
-                    movable.idle();
+                if (right && !forceDirection) movable.doMoveRight();
+                else if (left || forceDirection)
+                    movable.doMoveLeft(forceDirection);
+                else if (!right) movable.idle();
                 break;
             default:
-                throw 'bad direction argument: ' + movable.getState('direction');
+                throw 'bad direction argument: '
+                    + movable.getState('direction');
         }
 
         switch (movable.getState('stance')) {
             case 'stand':
-                if (me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')])
-                    movable.doCrouch();
+                if (crouch) movable.doCrouch();
                 break;
             case 'crouch':
-                if (!me.keyHandler.keyCodeMap[movable.getKeyCode('crouch')])
-                    movable.doStand();
+                if (!crouch) movable.doStand();
                 break;
             default:
                 throw 'bad stance argument: ' + movable.getState('stance');
         }
 
-        if (me.keyHandler.keyCodeMap[movable.getKeyCode('jump')])
-            movable.jump();
+        if (jump) movable.jump();
 
         movable.gravitation();
     };
@@ -363,8 +399,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.enable.appear = true;
         me.enable.vanish = true;
         me.enable.pickUp = true;
-        me.enable.checkPositionAlways = false;
-        me.enable.checkPositionAllDirections = true;
+        me.enable.checkPositionAlways = false; // make this internal (only when moving stuff)
+        me.enable.checkPositionAllDirections = true; // make this internal (only when moving stuff)
         me.enable.cb.enable = function() {};
         me.enable.cb.disable = function () {};
 
@@ -1231,25 +1267,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.doMoveLeft = function (forced) {
         var speed, collidedObjects;
         if (forced === undefined) forced = false;
-        if ((me.state.direction.type === 'right') && me.state.direction.forced) {
-            // the moveRight method just indicated that right must be forced
-            me.doMoveRight(true);
-            // trick the moveRight method in order to set the force flag again
-            me.state.direction.type = 'left';
-            me.state.direction.forced = false;
-            return false;
-        }
-        else if (forced || (me.enable.forceDirection
-                && (me.state.direction.type === 'right'))) {
-            // was moving to the right when moveLeft was pressed
-            // -> indicate to the moveRight method to forcing left
-            me.state.direction.forced = true;
-        }
-        else {
-            // everything is normal
-            me.state.direction.forced = false;
-        }
-        me.state.direction.type = 'left';
+        me.state.direction.forced = forced;
+        if (!forced) me.state.direction.type = 'left';
         speed = me.speed[me.state.locomotion.type].left;
         me.objImg.removeClass('idle right');
         me.objImg.addClass('left');
@@ -1282,25 +1301,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.doMoveRight = function (forced) {
         var speed, collidedObjects;
         if (forced === undefined) forced = false;
-        if ((me.state.direction.type === 'left') && me.state.direction.forced) {
-            // the moveLeft method just indicated that left must be forced
-            me.doMoveLeft(true);
-            // trick the moveLeft method in order to set the force flag
-            me.state.direction.type = 'right';
-            me.state.direction.forced = false;
-            return false;
-        }
-        else if (forced || (me.enable.forceDirection
-                && (me.state.direction.type === 'left'))) {
-            // was moving to the left when moveRight was pressed
-            // -> indicate to the moveLeft method to forcing right
-            me.state.direction.forced = true;
-        }
-        else {
-            // everything is normal
-            me.state.direction.forced = false;
-        }
-        me.state.direction.type = 'right';
+        me.state.direction.forced = forced;
+        if (!forced) me.state.direction.type = 'right';
         speed = me.speed[me.state.locomotion.type].right;
         me.objImg.removeClass('idle left');
         me.objImg.addClass('right');
