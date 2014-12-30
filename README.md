@@ -44,7 +44,7 @@ Configuration
 
 ### Engine
 
-Configure attributes of the engine such as classes ti identify colliders and
+Configure attributes of the engine such as classes to identify colliders and
 frame limiters.
 
     Engine.setConfigAttr(attr, val);
@@ -83,6 +83,15 @@ frame limiters.
         val:
             value to configure the attribute
 
+Get configuration attributes
+
+    Engine.getConfigAttr(attr);
+        attr:
+            the same attributes as in Engine.setConfigAttr(attr, val).
+
+        return
+            value of the attribute
+
 Create and add a new character to the engine. Example animations are provided.
 To add different animations for other characters, create new css definitions
 similar to the ones provided in main.css.
@@ -103,16 +112,6 @@ similar to the ones provided in main.css.
 Start the engine (frame manager, key bindings, etc)
 
     Engine.start();
-
-Enable or Disable character by id
-
-    Engine.setEnableMovable(id, val);
-        id:
-            id of the character to enable or diable
-
-        val:
-            true to enable character, false to disable character. If val is
-            not defined, the enable status of the character is toggled.
 
 Enable ability/behaviour of all characters
 
@@ -160,7 +159,7 @@ Toggle ability/behaviour of all characters
 
 Get the enable status of an ability/behaviour of all characters
 
-    Engine.getEnableStatus(attr);
+    Engine.getEnableStatusAttr(attr);
         attr:
             the same attributes as in Engine.enableAttr(attr).
 
@@ -272,7 +271,7 @@ Toggle ability enable status of the character
 
 Get the enable status of an ability
 
-    Movable.getEnableStatus(attr);
+    Movable.getEnableStatusAttr(attr);
         attr:
             the same attributes as in Movable.enableAttr(attr).
 
@@ -316,7 +315,7 @@ If "pickUp" is turned off, this parameter has no effect.
     Movable.setPickUpCounterId(id);
         id: "pickUpCnt"
 
-Get pick up counter idle
+Get pick up counter id
 
     Movable.getPickUpCounterId();
         return
