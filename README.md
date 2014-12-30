@@ -42,7 +42,10 @@ Fast Setup
 Configuration
 -------------
 
-Configure the engine
+### Engine
+
+Configure attributes of the engine such as classes ti identify colliders and
+frame limiters.
 
     Engine.setConfigAttr(attr, val);
         attr:
@@ -130,6 +133,59 @@ Enable or Disable character by id
             true to enable character, false to disable character. If val is
             not defined, the enable status of the character is toggled.
 
+Enable ability/behaviour of all characters
+
+    Engine.enableAttr(attr);
+        attr:
+            "forceDirection": true
+                When set, the character will move in the direction of the last
+                pushed direction button even if the former pressed direction
+                button is still pressed. In other words: when the left and
+                right buttons are pressed at the same time, with this attribute
+                set to true, the character will move in the direction of the
+                butten pressed last. If the attribute is set to false, the
+                character will stick to the direction it was already moving.
+
+            "crouchRun": false
+                Allows characters to crouch and run at the same time wothout
+                standing up. If turned off either crouch or run will be
+                prioritised. Check the attribute "forceRun" for more
+                information
+
+            "forceRun": false
+                This attribute allows to prioritize run or crouch if
+                "crouchRun" is off and both the crouch and the run buttons are
+                pressed. When turned off, crouch will be prioritised (the
+                charcter will always crouch when the crouch button is pressed)
+                If "crouchRun" is turned on, this parameter has no effect.
+
+            "crouchJumpHigh": true
+                This attribute determines whether the characters lift their
+                legs or duck while in the air. This changes the jump height of
+                the character. If this is turned off, the character jumps only
+                to the maximal height set by Movable.setMaxJumpHeight(maxHeight)
+
+Disable ability/behaviour of all characters
+
+    Engine.disableAttr(attr);
+        attr:
+            the same attributes as in Engine.enableAttr(attr).
+
+Toggle ability/behaviour of all characters
+
+    Engine.toggleEnableAttr(attr);
+        attr:
+            the same attributes as in Engine.enableAttr(attr).
+
+Get the enable status of an ability/behaviour of all characters
+
+    Engine.getEnableStatus(attr);
+        attr:
+            the same attributes as in Engine.enableAttr(attr).
+
+        return
+            true if enabled, false if disabled
+
 Update the collider. Always call this method, if the content of the page changes
 in such a way, that elements intended as solids are changed (size, new elements,
 etc.)
@@ -149,12 +205,14 @@ Enable a specific collider. By default all created colliders are enabled.
         jObject:
             jQuery object of the solid, where the collider should be enabled
 
-Toggle the enable statusof a specific collider.
+Toggle the enable status of a specific collider.
 
     Engine.toggleEnableCollider(jObject);
         jObject:
             jQuery object of the solid, where the collider enable status should
             be toggled.
+
+### Movable
 
 Get Id of character
 
@@ -172,14 +230,14 @@ Toggle enable status of the character
 
     Movable.toggleEnableMe();
 
-Define behavior after the method Movable.enableMe() has completed. Note that
+Define behaviour after the method Movable.enableMe() has completed. Note that
 Movable.appear() will execute this function as well.
 
     Movable.setEnableCb(cb);
         cb:
             Devine the behaviour. By default nothing is executed.
 
-Define behavior after the method Movable.disableMe() has completed. Note that
+Define behaviour after the method Movable.disableMe() has completed. Note that
 Movable.appear() and Movable.vanish() will execute this function as well.
 
     Movable.setDisableCb(cb);
@@ -217,21 +275,6 @@ Enable ability of the character
                 off, the character stands up as soon the run button is pressed.
                 If "crouch" is turned off, this parameter has no effect.
                 If "run" is turned off, this parameter has no effect.
-
-            "crouchJump": true
-                Enables the character to crouch when jumping. If this is turned
-                off, the character stands up as soon the character is in the
-                air.
-                If "crouch" is turned off, this parameter has no effect.
-                If "jump" is turned off, this parameter has no effect.
-
-            "crouchJumpHigh":true
-                Enables the character to jump higher when crouch is pressed
-                while jumping. If this is turned off, the character jumps Only
-                to the maximal height set by Movable.setMaxJumpHeight(maxHeight)
-                This works also if "crouchJump" is turned off.
-                If "crouch" is turned off, this parameter has no effect.
-                If "jump" is turned off, this parameter has no effect.
 
             "appear": true
                 With this enabled, the character is able to appear at a defined
@@ -276,7 +319,7 @@ Get the enable status of an ability
             true if enabled, false if disabled
 
 Define keyCodes to use the character abilities by pressing the keys.
-Keep in mind, that this will prevent the default browser behavior of the
+Keep in mind, that this will prevent the default browser behaviour of the
 keys.
  
     Movable.setKeyCode(attr, keyCode);
