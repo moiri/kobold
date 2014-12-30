@@ -1217,7 +1217,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.objImg.removeClass('idle right');
         me.objImg.addClass('left');
         me.delta.move.x = Math.floor(speed * me.delta.time.actual);
-        me.updateCollider('right', Math.abs(me.delta.move.x) + 1);
+        me.updateCollider('left', Math.abs(me.delta.move.x) + 1);
         collidedObjects = me.checkCollisionStatic('left');
         if (!me.collider.left.isColliding) {
             me.cssMoveX(me.delta.move.x);
@@ -1385,6 +1385,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 colliderSize = Math.abs(Math.floor(
                             me.delta.time.actual * me.speed.walk.left));
             if (me.collider.bottom.isColliding) {
+                // while jumping do not use tolerance
                 tolerance.bottom.left = me.collider.left.tolerance.bottom;
             }
             $('#' + me.id + '-collider-left')
@@ -1402,6 +1403,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 colliderSize = Math.abs(
                     Math.floor(me.delta.time.actual * me.speed.walk.right));
             if (me.collider.bottom.isColliding) {
+                // while jumping do not use tolerance
                 tolerance.bottom.right = me.collider.right.tolerance.bottom;
             }
             $('#' + me.id + '-collider-right')
