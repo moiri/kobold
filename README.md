@@ -259,12 +259,6 @@ Enable ability of the character
                 standing on a solid. The jump height can be set with
                 Movable.setMaxJumpHeight(maxHeight).
 
-            "jump.movingSolid": false
-                !!! This is experimental, please do not turn this feature on !!!
-                Enables character to jump on a moving solid, with the same
-                properties as with a normal jump.
-                If "jump" is turned off, this parameter has no effect.
-
             "crouch": true
                 Enables the character to crouch. The crouch height of the
                 character is set with setSize("heightCrouch", height). Keep in
@@ -288,14 +282,6 @@ Enable ability of the character
                 With this enabled, the character is able to pick up elements
                 marked with the css class set by
                 Movable.setPickUpCssClass(cssClass).
-
-            "checkPositionAlways": false
-                With this enabled, the position of the character is checked on
-                every tick not only when the character moves, jumps and falls.
-
-            "checkPositionAllDirections": true
-                With this enabled, the position is checked in all direction instead
-                of only the direction of the command.
 
 Disable ability of the character
 
