@@ -66,21 +66,6 @@ frame limiters.
                 jump on them. For this purpose the "solidMovingClass" is
                 needed.
 
-            "solidMovingClass": "solidMoving"
-                Class name defining which elements are moving. Only elements
-                using the animate function of jquery to change the position
-                (left, right, top, bottom) work properly. The animation must be
-                already defined.
-                A moving element with this class will collide with the character
-                only if the character falls/jumps on top of it.
-                The character is positioned realative to the element on which he
-                is standing and will move with it. The character will not
-                collide with other solid but may collide with other moving
-                solids. Note that moving solids should be placed in such a way
-                that they can not interfere with each other.
-                The "solidClass" is ignored if an element has the
-                "solidMovingClass".
-
             "solidOnlyTopClass": "solidOnlyTop"
                 Class name definig which elemets (already having the
                 "solidClass") will be solids that only check collision when the
@@ -88,10 +73,6 @@ frame limiters.
                 the collision is ignored.
 
             "solidColliderClass": "solidCollider"
-                Only used internaly, make sure this class is not used anywhere
-                else.
-
-            "solidColliderMovingClass": "solidColliderMoving"
                 Only used internaly, make sure this class is not used anywhere
                 else.
 
@@ -263,12 +244,6 @@ Enable ability of the character
                 Enables the character to crouch. The crouch height of the
                 character is set with setSize("heightCrouch", height). Keep in
                 mind that this depends on the size of the crouch animation.
-
-            "crouchRun": false
-                Enables the character to crouch while running. If this is turned
-                off, the character stands up as soon the run button is pressed.
-                If "crouch" is turned off, this parameter has no effect.
-                If "run" is turned off, this parameter has no effect.
 
             "appear": true
                 With this enabled, the character is able to appear at a defined
