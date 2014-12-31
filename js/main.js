@@ -956,18 +956,71 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return dist;
     };
 
-    function headache(collidedObjects) {
-        me.action.jump = false;
-        me.collider.top.isColliding = false;
-        me.jumpAttr.height.actual = 0;
-        if (collidedObjects.length > 1) {
-            collidedObjects.sort(function(a,b) {
-                return b.solidPosition[1][1] - a.solidPosition[1][1];
-            });
+    function doHit(direction, collidedObjects) {
+        var newColliderId,
+            newJObject;
+        if (direction === 'top') {
+            me.action.jump = false;
+            me.collider.top.isColliding = false;
+            me.jumpAttr.height.actual = 0;
+            if (collidedObjects.length > 1) {
+                collidedObjects.sort(function(a,b) {
+                    return b.solidPosition[1][1] - a.solidPosition[1][1];
+                });
+            }
+            cssSetY($(window).height()
+                    - collidedObjects[0].solidPosition[1][1]
+                    - me.obj.outerHeight());
         }
-        cssSetY($(window).height()
-                - collidedObjects[0].solidPosition[1][1]
-                - me.obj.outerHeight());
+        else if (direction === 'bottom') {
+            me.pos.appearCnt = 0;
+            me.speed.inAir = me.delta.dist.down;
+            if (collidedObjects.length > 1) {
+                collidedObjects.sort(function(a,b) {
+                    return a.solidPosition[1][0] - b.solidPosition[1][0];
+                });
+            }
+            me.pos.y = me.obj.offset().top + me.obj.height();
+            newColliderId = collidedObjects[0].jObject.attr('id');
+            if (me.pos.absolute
+                    || (me.collider.bottom.activeId !== newColliderId)) {
+                me.collider.bottom.activeId = newColliderId;
+                newJObject = collidedObjects[0].jObject;
+                if (newJObject.hasClass(me.solidColliderMovingClass)) {
+                    newJObject = newJObject.parent().parent();
+                }
+                changeToRelativePosition(newJObject);
+            }
+            me.objImg.removeClass('jump');
+        }
+        else if (direction === 'left') {
+            if (collidedObjects.length > 1) {
+                // multiple objects collide take the one furthest to the right
+                collidedObjects.sort(function(a,b) {
+                    return b.solidPosition[0][1] - a.solidPosition[0][1];
+                });
+            }
+            // update position to the edge of the object furthest to the right
+            speed = positionsGet(
+                    collidedObjects[0].jObject.parent().parent())[0][1]
+                - positionsGet(me.obj)[0][0];
+
+            cssMoveX(speed);
+        }
+        else if (direction === 'right') {
+            if (collidedObjects.length > 1) {
+                // multiple objects collide take the one furthest to the right
+                collidedObjects.sort(function(a,b) {
+                    return a.solidPosition[0][0] - b.solidPosition[0][0];
+                });
+            }
+            // update position to the edge of the object furthest to the right
+            speed = positionsGet(
+                    collidedObjects[0].jObject.parent().parent())[0][0]
+                - positionsGet(me.obj)[0][1];
+
+            cssMoveX(speed);
+        }
     };
 
     function overlaps(a, b) {
@@ -1150,7 +1203,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             if (me.collider.top.isColliding) {
                 if (me.action.inAir) {
                     // hitting the head
-                    headache(collidedObjects);
+                    doHit('top', collidedObjects);
                     me.action.inAir = false;
                 }
             }
@@ -1163,7 +1216,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             collidedObjects = checkCollisionStatic('bottom');
             if (me.collider.bottom.isColliding) {
                 if (me.action.inAir) {
-                    me.doLand(collidedObjects);
+                    doHit('bottom', collidedObjects);
                     me.action.inAir = false;
                 }
             }
@@ -1263,30 +1316,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
     };
 
-    this.doLand = function (collidedObjects) {
-        var newColliderId,
-            newJObject;
-        me.pos.appearCnt = 0;
-        me.speed.inAir = me.delta.dist.down;
-        if (collidedObjects.length > 1) {
-            collidedObjects.sort(function(a,b) {
-                return a.solidPosition[1][0] - b.solidPosition[1][0];
-            });
-        }
-        me.pos.y = me.obj.offset().top + me.obj.height();
-        newColliderId = collidedObjects[0].jObject.attr('id');
-        if (me.pos.absolute
-                || (me.collider.bottom.activeId !== newColliderId)) {
-            me.collider.bottom.activeId = newColliderId;
-            newJObject = collidedObjects[0].jObject;
-            if (newJObject.hasClass(me.solidColliderMovingClass)) {
-                newJObject = newJObject.parent().parent();
-            }
-            changeToRelativePosition(newJObject);
-        }
-        me.objImg.removeClass('jump');
-    };
-
     this.doMove = function (direction, forced) {
         var speed, collidedObjects;
         // check if direction must be forced
@@ -1303,7 +1332,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // check for collision
         collidedObjects = checkCollisionStatic(direction);
         if (!me.collider[direction].isColliding) {
-            // no collision update position
+            // no collision, update position
             cssMoveX(speed);
             if (me.collider.bottom.isColliding) {
                 // update last known position where movable was on ground
@@ -1312,26 +1341,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
         }
         else {
-            if (collidedObjects.length > 1) {
-                // multiple objects collide take the one furthest to the right
-                collidedObjects.sort(function(a,b) {
-                    if (direction === 'left')
-                        return b.solidPosition[0][1] - a.solidPosition[0][1];
-                    else
-                        return a.solidPosition[0][0] - b.solidPosition[0][0];
-                });
-            }
-            // update position to the edge of the object furthest to the right
-            if (direction === 'left')
-                speed = positionsGet(
-                    collidedObjects[0].jObject.parent().parent())[0][1]
-                - positionsGet(me.obj)[0][0];
-            else
-                speed = positionsGet(
-                    collidedObjects[0].jObject.parent().parent())[0][0]
-                - positionsGet(me.obj)[0][1];
-
-            cssMoveX(speed);
+            // collision, allign with object
+            doHit(direction, collidedObjects);
         }
         checkPosition(direction);
         return true;
