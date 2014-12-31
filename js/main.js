@@ -126,13 +126,13 @@ function Engine() {
                 if (left && !forceDirection) movable.doMove('left');
                 else if (right || forceDirection)
                     movable.doMove('right', forceDirection);
-                else if (!left) movable.idle();
+                else if (!left) movable.doIdle();
                 break;
             case 'right':
                 if (right && !forceDirection) movable.doMove('right');
                 else if (left || forceDirection)
                     movable.doMove('left', forceDirection);
-                else if (!right) movable.idle();
+                else if (!right) movable.doIdle();
                 break;
             default:
                 throw 'bad direction argument: '
@@ -140,8 +140,7 @@ function Engine() {
         }
 
         if (jump) movable.doJump();
-
-        movable.gravitation();
+        movable.updatePosition();
         movable.doPickUp();
     };
 
@@ -278,7 +277,7 @@ function Engine() {
         });
         if (newCollider) {
             for (id in me.movable) {
-                me.movable[id].obj.updateSolidCollider();
+                me.movable[id].obj.setSolidCollider();
             }
         }
     };
@@ -470,7 +469,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.collider.top.jObject = null; // internal
         me.collider.bottom.isColliding = false; // internal
         me.collider.bottom.jObject = null; // internal
-        me.collider.bottom.activeId = null; // internal
 
         this.setColliderToleranceTop = function (left, right) {
             me.collider.left.tolerance.top = left;
@@ -693,7 +691,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     // PRIVATE METHODS
     // =========================================================================
-    function checkCollisionStatic(direction) {
+    // check for colliding object
+    function checkCollision(direction) {
         var collision = false,
             collidedObjects = [];
         me.solids.each(function (idx) {
@@ -717,6 +716,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return collidedObjects;
     };
 
+    // check wether the character leaves window or document
     function checkPosition(direction) {
         var pos = positionsGet(me.obj),
             posImg = positionsGet(me.objImg),
@@ -818,26 +818,71 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.pos.overflowY = pos[1][0];
     };
 
+    // collision occurred -> handle it
+    function collision(direction, collidedObjects) {
+        var newColliderId,
+            newJObject;
+        if (direction === 'top') {
+            me.action.jump = false;
+            me.collider.top.isColliding = false;
+            me.jumpAttr.height.actual = 0;
+        }
+        else if (direction === 'bottom') {
+            me.pos.appearCnt = 0;
+            me.speed.inAir = me.delta.dist.down;
+            // update last known position where movable was on ground
+            me.pos.y = me.obj.offset().top + me.obj.height();
+            me.objImg.removeClass('jump');
+            me.action.inAir = false;
+        }
+
+        if (collidedObjects.length > 1) {
+            // multiple objects collide take the one with the biggest overlap
+            collidedObjects.sort(function(a,b) {
+                if (direction === 'top')
+                    return b.solidPosition[1][1] - a.solidPosition[1][1];
+                else if (direction === 'bottom')
+                    return a.solidPosition[1][0] - b.solidPosition[1][0];
+                else if (direction === 'left')
+                    return b.solidPosition[0][1] - a.solidPosition[0][1];
+                else if (direction === 'right')
+                    return a.solidPosition[0][0] - b.solidPosition[0][0];
+            });
+        }
+        // update position to the edge of the object with the biggest overlap
+        if (direction === 'top')
+            cssSetY($(window).height()
+                    - collidedObjects[0].solidPosition[1][1]
+                    - me.obj.outerHeight());
+        else if (direction === 'bottom')
+            cssSetY($(window).height()
+                    - collidedObjects[0].solidPosition[1][0]);
+        else if (direction === 'left')
+            cssSetX(collidedObjects[0].solidPosition[0][1]);
+        else if (direction === 'right')
+            cssSetX(collidedObjects[0].solidPosition[0][0]
+                    - me.obj.outerWidth());
+    };
+
+    // update css position values
     function cssMoveX(val) {
         me.overflow.document.width = $(document).width();
         me.obj.css('left', '+=' + val + 'px');
     };
-
-    function cssSetX(val) {
-        me.overflow.document.width = $(document).width();
-        me.obj.css('left', val + 'px');
-    };
-
     function cssMoveY(val) {
         me.overflow.document.height = $(document).height();
         me.obj.css('bottom', '+=' + val + 'px');
     };
-
+    function cssSetX(val) {
+        me.overflow.document.width = $(document).width();
+        me.obj.css('left', val + 'px');
+    };
     function cssSetY(val) {
         me.overflow.document.height = $(document).height();
         me.obj.css('bottom', val + 'px');
     };
 
+    // display debug stuff
     function debug() {
         var cssClass = '', elem = null, id = me.id + 'Debug';
         $('#' + me.id).append('<div id="' + id
@@ -862,6 +907,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
     };
 
+    // generate the LUT used for the jump function
     function genJumpLut() {
         var pos = 0,
             speed = me.speed.jump,
@@ -875,6 +921,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
     };
 
+    // calculate next moving distance
     function getMovingDistance(direction) {
         var lastElem = false,
             jumpDiff = 0,
@@ -923,65 +970,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return dist;
     };
 
-    function doHit(direction, collidedObjects) {
-        var newColliderId,
-            newJObject;
-        if (direction === 'top') {
-            me.action.jump = false;
-            me.collider.top.isColliding = false;
-            me.jumpAttr.height.actual = 0;
-            if (collidedObjects.length > 1) {
-                collidedObjects.sort(function(a,b) {
-                    return b.solidPosition[1][1] - a.solidPosition[1][1];
-                });
-            }
-            cssSetY($(window).height()
-                    - collidedObjects[0].solidPosition[1][1]
-                    - me.obj.outerHeight());
-        }
-        else if (direction === 'bottom') {
-            me.pos.appearCnt = 0;
-            me.speed.inAir = me.delta.dist.down;
-            if (collidedObjects.length > 1) {
-                collidedObjects.sort(function(a,b) {
-                    return a.solidPosition[1][0] - b.solidPosition[1][0];
-                });
-            }
-            me.pos.y = me.obj.offset().top + me.obj.height();
-            cssSetY($(window).height()
-                    - collidedObjects[0].solidPosition[1][0]);
-            me.objImg.removeClass('jump');
-        }
-        else if (direction === 'left') {
-            if (collidedObjects.length > 1) {
-                // multiple objects collide take the one furthest to the right
-                collidedObjects.sort(function(a,b) {
-                    return b.solidPosition[0][1] - a.solidPosition[0][1];
-                });
-            }
-            // update position to the edge of the object furthest to the right
-            speed = positionsGet(
-                    collidedObjects[0].jObject.parent().parent())[0][1]
-                - positionsGet(me.obj)[0][0];
-
-            cssMoveX(speed);
-        }
-        else if (direction === 'right') {
-            if (collidedObjects.length > 1) {
-                // multiple objects collide take the one furthest to the right
-                collidedObjects.sort(function(a,b) {
-                    return a.solidPosition[0][0] - b.solidPosition[0][0];
-                });
-            }
-            // update position to the edge of the object furthest to the right
-            speed = positionsGet(
-                    collidedObjects[0].jObject.parent().parent())[0][0]
-                - positionsGet(me.obj)[0][1];
-
-            cssMoveX(speed);
-        }
-    };
-
+    // used to check whether two divs overlap
     function overlaps(a, b) {
         var pos1 = positionsGet(a),
             pos2 = positionsGet(b),
@@ -993,6 +982,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return res;
     };
 
+    // compares positions, used in overlap method
     function positionsCompare(p1, p2) {
         var r1, r2;
         if (p1[0] <= p2[0]) {
@@ -1006,6 +996,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return (r1[1] > r2[0]);
     };
 
+    // get position of jquery element in a form used in overlap method
     function positionsGet(elem) {
         var pos, width, height, res;
         pos = elem.offset();
@@ -1015,6 +1006,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             [ pos.top, pos.top + height ] ];
     };
 
+    // set a new random value, used for random animation
     function setNextRandVal() {
         me.rand.count = 0;
         me.rand.nextVal = Math.floor(
@@ -1023,6 +1015,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         );
     };
 
+    // used to setup the character, somewhat a constructor
     function setup() {
         me.obj
             .append('<div id="' + me.idCollider + '" class="colliderContainer">'
@@ -1042,12 +1035,13 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         $('#' + me.idCollider).width(me.size.width);
         $('#' + me.idCollider).height(me.size.heightStand);
         me.setInitialPosition(me.pos.initX, me.pos.initY);
-        me.updateSolidCollider();
+        me.setSolidCollider();
         updateCollider();
         genJumpLut();
         me.objImg.addClass('walk');
     };
 
+    // used to produce an animation that triggers only once
     function singleAnimation(obj, cssClass, cb) {
         var animationDuration = 0,
             animationIterationCount = 0,
@@ -1076,6 +1070,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }, animationDuration * animationIterationCount * 1000);
     };
 
+    // update the colliders of the character according to its speed
     function updateCollider(direction, colliderSize) {
         var tolerance = [];
         tolerance.bottom = [];
@@ -1155,62 +1150,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         else me.enable.cb.disable();
     };
 
-    this.gravitation = function () {
-        var dist, collidedObjects = null;
-        if (me.action.jump) {
-            // rising
-            dist = getMovingDistance('top');
-            updateCollider('top', dist + 1);
-            collidedObjects = checkCollisionStatic('top');
-            if (!me.collider.top.isColliding) {
-                // no collision, update position
-                me.action.inAir = true;
-                cssMoveY(dist);
-            }
-            else if (me.action.inAir) {
-                // collision and in air
-                doHit('top', collidedObjects);
-                me.action.inAir = false; // why?
-            }
-            checkPosition('top');
-        }
-        else {
-            // falling
-            dist = getMovingDistance('bottom');
-            updateCollider('bottom', Math.abs(dist) + 1);
-            collidedObjects = checkCollisionStatic('bottom');
-            if (!me.collider.bottom.isColliding) {
-                // no collision, update position
-                me.action.inAir = true;
-                me.collider.bottom.activeId = 'inAir'; // what is that?
-                cssMoveY(dist);
-            }
-            else if (me.action.inAir) {
-                // collision and in air
-                doHit('bottom', collidedObjects);
-                me.action.inAir = false;
-            }
-            checkPosition('bottom');
-        }
-    };
-
-    this.idle = function () {
-        if (me.rand.nextVal < 0)
-            setNextRandVal();
-        me.objImg.addClass('idle');
-        me.state.direction.type = 'idle';
-        if (me.rand.count === me.rand.nextVal) {
-            singleAnimation(me.objImg, 'rand', function () {
-                setNextRandVal();
-            });
-        }
-        me.rand.count++;
-    };
-
-    this.setDeltaTime = function (val) {
-        me.delta.time.actual = val;
-    };
-
+    // Character Abilities
     this.doAppear = function (x, y) {
         var collidedObjects;
         if (me.enable.appear) {
@@ -1223,7 +1163,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 y = me.pos.initY;
             }
             me.pos.appearCnt++;
-            me.idle();
+            me.doIdle();
             me.doStand();
             me.obj.css({'bottom': $(window).height() - y, 'left': x});
             me.overflow.document.heightVirtual = null;
@@ -1232,7 +1172,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             });
         }
     };
-
     this.doCrouch = function (crouchJumpHigh) {
         var res = true;
         if (!me.enable.crouch) res = false;
@@ -1250,7 +1189,18 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return res;
     };
-
+    this.doIdle = function () {
+        if (me.rand.nextVal < 0)
+            setNextRandVal();
+        me.objImg.addClass('idle');
+        me.state.direction.type = 'idle';
+        if (me.rand.count === me.rand.nextVal) {
+            singleAnimation(me.objImg, 'rand', function () {
+                setNextRandVal();
+            });
+        }
+        me.rand.count++;
+    };
     this.doJump = function () {
         if (me.collider.bottom.isColliding && !me.action.jump) {
             me.action.jump = true;
@@ -1262,9 +1212,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.objImg.addClass('jump');
         }
     };
-
     this.doMove = function (direction, forced) {
-        var speed, collidedObjects;
         // check if direction must be forced
         if (forced === undefined) forced = false;
         me.state.direction.forced = forced;
@@ -1272,29 +1220,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // change annimation
         me.objImg.removeClass('idle right left');
         me.objImg.addClass(direction);
-        // calculate moving distance (speed)
-        speed = getMovingDistance(direction);
-        // update collider according to calculated speed
-        updateCollider(direction, Math.abs(speed) + 1);
-        // check for collision
-        collidedObjects = checkCollisionStatic(direction);
-        if (!me.collider[direction].isColliding) {
-            // no collision, update position
-            cssMoveX(speed);
-            if (me.collider.bottom.isColliding) {
-                // update last known position where movable was on ground
-                me.pos.x =
-                    me.obj.offset().left - Math.sign(speed) * me.obj.width();
-            }
-        }
-        else {
-            // collision, allign with object
-            doHit(direction, collidedObjects);
-        }
-        checkPosition(direction);
+        me.updatePosition(direction);
         return true;
     };
-
     this.doPickUp = function () {
         var collisionRes = null;
         if (me.enable.pickUp) {
@@ -1313,7 +1241,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             });
         }
     };
-
     this.doRun = function () {
         var res = true;
         if (!me.enable.run) res = false;
@@ -1324,14 +1251,13 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return res;
     };
-
     this.doStand = function () {
         var colliderSize = 0;
         if (me.state.stance.type === 'crouch') {
             colliderSize = $('#' + me.idCollider + '-top').height();
             updateCollider('top', colliderSize
                     + (me.size.heightStand - me.size.heightCrouch));
-            checkCollisionStatic('top');
+            checkCollision('top');
             if (me.collider.top.isColliding) {
                 // cannot stand up (object on top)
                 updateCollider('top', colliderSize);
@@ -1345,11 +1271,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return true;
     };
-
     this.doTeleport = function (x, y) {
         me.doVanish(true, x, y);
     };
-
     this.doVanish = function (teleport, x, y) {
         var collidedObjects;
         if (me.enable.vanish) {
@@ -1364,7 +1288,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             });
         }
     };
-
     this.doWalk = function () {
         if (me.state.locomotion != 'walk') {
             me.state.locomotion.type = 'walk';
@@ -1374,8 +1297,46 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return true;
     };
 
-    this.updateSolidCollider = function () {
+    // setter method for tick time
+    this.setDeltaTime = function (val) {
+        me.delta.time.actual = val;
+    };
+
+    // setter method to update collider of solids
+    this.setSolidCollider = function () {
         me.solids = $('.' + me.solidColliderClass); // internal
+    };
+
+    // calc new position, update collider, check collision, update position
+    this.updatePosition = function (direction) {
+        var dist, collidedObjects;
+        if (direction === undefined) {
+            if (me.action.jump) direction = 'top'; // rising
+            else direction = 'bottom'; // falling
+        }
+        dist = getMovingDistance(direction);
+        updateCollider(direction, Math.abs(dist) + 1);
+        collidedObjects = checkCollision(direction);
+        if (!me.collider[direction].isColliding) {
+            // no collision, update position
+            if ((direction === 'left') || (direction === 'right')) {
+                cssMoveX(dist);
+                if (me.collider.bottom.isColliding) {
+                    // update last known position where movable was on ground
+                    me.pos.x = me.obj.offset().left
+                        - Math.sign(dist) * me.obj.width();
+                }
+            }
+            else {
+                me.action.inAir = true;
+                cssMoveY(dist);
+            }
+        }
+        else {
+            // collision, allign with object
+            collision(direction, collidedObjects);
+        }
+        checkPosition(direction);
     };
 
     setup();
