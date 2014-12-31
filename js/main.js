@@ -935,7 +935,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             me.jumpAttr.count.last = me.jumpAttr.count.actual;
         }
-        else if (direction === 'bottom') {
+        else if ((direction === 'bottom') && me.action.inAir) {
             // calculate next falling distance
             me.speed.inAir += me.delta.dist.down
                 * me.delta.time.actual / me.delta.time.min;
@@ -1197,33 +1197,44 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     this.gravitation = function () {
-        var collidedObjects = null;
+        var dist, collidedObjects = null;
         if (me.action.jump) {
+            // rising
+            dist = getMovingDistance('top');
+            updateCollider('top', dist + 1);
             collidedObjects = checkCollisionStatic('top');
-            if (me.collider.top.isColliding) {
-                if (me.action.inAir) {
-                    // hitting the head
-                    doHit('top', collidedObjects);
-                    me.action.inAir = false;
-                }
-            }
-            else {
+            if (!me.collider.top.isColliding) {
+                // no collision, update position
                 me.action.inAir = true;
-                me.doRise();
+                cssMoveY(dist);
             }
+            else if (me.action.inAir) {
+                // collision and in air
+                doHit('top', collidedObjects);
+                me.action.inAir = false; // why?
+            }
+            checkPosition('top');
         }
         else {
+            // falling
+            dist = getMovingDistance('bottom');
+            updateCollider('bottom', Math.abs(dist) + 1);
             collidedObjects = checkCollisionStatic('bottom');
-            if (me.collider.bottom.isColliding) {
-                if (me.action.inAir) {
-                    doHit('bottom', collidedObjects);
-                    me.action.inAir = false;
-                }
-            }
-            else {
+            if (!me.collider.bottom.isColliding) {
+                // no collision, update position
                 me.action.inAir = true;
-                me.doFall();
+                me.collider.bottom.activeId = 'inAir'; // what is that?
+                if (!me.pos.absolute && me.enable.jumpAbsolute) {
+                    changeToAbsolutePosition();
+                }
+                cssMoveY(dist);
             }
+            else if (me.action.inAir) {
+                // collision and in air
+                doHit('bottom', collidedObjects);
+                me.action.inAir = false;
+            }
+            checkPosition('bottom');
         }
         return me.action.inAir;
     };
@@ -1285,20 +1296,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             updateCollider();
         }
         return res;
-    };
-
-    this.doFall = function () {
-        var dist;
-        dist = getMovingDistance('bottom');
-        // update collider
-        updateCollider('bottom', Math.abs(dist) + 1);
-        me.collider.bottom.activeId = 'inAir';
-        // update position
-        if (!me.pos.absolute && me.enable.jumpAbsolute) {
-            changeToAbsolutePosition();
-        }
-        cssMoveY(dist);
-        checkPosition('bottom');
     };
 
     this.doJump = function () {
@@ -1365,15 +1362,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 }
             });
         }
-    };
-
-    this.doRise = function () {
-        var dist;
-        dist = getMovingDistance('top');
-        updateCollider('top', dist + 1);
-        // update position
-        cssMoveY(dist);
-        checkPosition('top');
     };
 
     this.doRun = function () {
