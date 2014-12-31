@@ -351,7 +351,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // Enables
         me.enable.run = true;
         me.enable.jump = true;
-        me.enable.jumpAbsolute = true; // internal
         me.enable.crouch = true;
         me.enable.appear = true;
         me.enable.vanish = true;
@@ -360,21 +359,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.enable.cb.disable = function () {};
 
         this.enableAttr = function (attr) {
-            if (attr === 'jumpAbsolute') {
-                throw 'not allowed to set ' + attr + ' manually!';
-            }
             me.enable[attr] = true;
         };
         this.disableAttr = function (attr) {
-            if (attr === 'jumpAbsolute') {
-                throw 'not allowed to set ' + attr + ' manually!';
-            }
             me.enable[attr] = false;
         };
         this.toggleEnableAttr = function (attr) {
-            if (attr === 'jumpAbsolute') {
-                throw 'not allowed to set ' + attr + ' manually!';
-            }
             me.enable[attr] = !me.enable[attr];
         };
         this.getEnableStatusAttr = function (attr) {
@@ -429,8 +419,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.pos.y = 0; // internal
         me.pos.overflowX; // internal
         me.pos.overflowY; // internal
-        me.pos.absolute = true; // internal
-        me.pos.absoluteJObject = me.obj.parent(); // internal
         me.pos.appearCnt = 0;
 
         this.setInitialPosition = function (x, y) {
@@ -705,25 +693,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     // PRIVATE METHODS
     // =========================================================================
-    function changeToAbsolutePosition() {
-        cssSetX(me.obj.offset().left, true);
-        cssSetY($(window).height() - me.obj.offset().top
-                - me.obj.height(), true);
-        me.obj.appendTo(me.pos.absoluteJObject);
-        me.positionRelativeObj = null;
-        me.pos.absolute = true;
-    };
-
-    function changeToRelativePosition(obj) {
-        cssSetX(me.obj.offset().left - obj.offset().left, true);
-        cssSetY(parseInt(obj.height())
-                + parseInt(obj.css('border-top-width')), true);
-        me.obj.css('top', '');
-        me.obj.appendTo(obj);
-        me.positionRelativeObj = obj;
-        me.pos.absolute = false;
-    };
-
     function checkCollisionStatic(direction) {
         var collision = false,
             collidedObjects = [];
@@ -854,10 +823,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.obj.css('left', '+=' + val + 'px');
     };
 
-    function cssSetX(val, force) {
+    function cssSetX(val) {
         me.overflow.document.width = $(document).width();
-        if (me.pos.absolute || force)
-            me.obj.css('left', val + 'px');
+        me.obj.css('left', val + 'px');
     };
 
     function cssMoveY(val) {
@@ -865,10 +833,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.obj.css('bottom', '+=' + val + 'px');
     };
 
-    function cssSetY(val, force) {
+    function cssSetY(val) {
         me.overflow.document.height = $(document).height();
-        if (me.pos.absolute || force)
-            me.obj.css('bottom', val + 'px');
+        me.obj.css('bottom', val + 'px');
     };
 
     function debug() {
@@ -981,16 +948,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 });
             }
             me.pos.y = me.obj.offset().top + me.obj.height();
-            newColliderId = collidedObjects[0].jObject.attr('id');
-            if (me.pos.absolute
-                    || (me.collider.bottom.activeId !== newColliderId)) {
-                me.collider.bottom.activeId = newColliderId;
-                newJObject = collidedObjects[0].jObject;
-                if (newJObject.hasClass(me.solidColliderMovingClass)) {
-                    newJObject = newJObject.parent().parent();
-                }
-                changeToRelativePosition(newJObject);
-            }
+            cssSetY($(window).height()
+                    - collidedObjects[0].solidPosition[1][0]);
             me.objImg.removeClass('jump');
         }
         else if (direction === 'left') {
@@ -1224,9 +1183,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 // no collision, update position
                 me.action.inAir = true;
                 me.collider.bottom.activeId = 'inAir'; // what is that?
-                if (!me.pos.absolute && me.enable.jumpAbsolute) {
-                    changeToAbsolutePosition();
-                }
                 cssMoveY(dist);
             }
             else if (me.action.inAir) {
@@ -1236,7 +1192,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
             checkPosition('bottom');
         }
-        return me.action.inAir;
     };
 
     this.idle = function () {
@@ -1268,8 +1223,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 y = me.pos.initY;
             }
             me.pos.appearCnt++;
-            if (!me.pos.absolute)
-                changeToAbsolutePosition();
             me.idle();
             me.doStand();
             me.obj.css({'bottom': $(window).height() - y, 'left': x});
@@ -1307,9 +1260,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.jumpAttr.height.actual = 0;
             me.jumpAttr.height.start = me.obj.offset().top;
             me.objImg.addClass('jump');
-            if (!me.pos.absolute && me.enable.jumpAbsolute) {
-                changeToAbsolutePosition();
-            }
         }
     };
 
@@ -1408,8 +1358,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.objImg.removeClass('rand');
             me.rand.count = 0;
             me.doStand();
-            if (!me.pos.absolute)
-                changeToAbsolutePosition();
             singleAnimation(me.objImg, 'vanish', function () {
                 me.obj.hide();
                 if(teleport) me.doAppear(x, y);
