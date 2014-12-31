@@ -121,6 +121,7 @@ function Engine() {
             case 'idle':
                 if (left) movable.doMove('left');
                 else if (right) movable.doMove('right');
+                else movable.doIdle(); // needed for random idle animation
                 break;
             case 'left':
                 if (left && !forceDirection) movable.doMove('left');
