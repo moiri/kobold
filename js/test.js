@@ -87,10 +87,11 @@ $(document).ready(function() {
                 }
             }
         });
+        $('#testStuff').text('Teleport to 200, 200');
         $('#testStuff').click(function () {
-            kobold.teleport(200, 200);
-            engine.toggleEnableCollider($('#stone6'));
-            engine.toggleEnableCollider($('#elevator1'));
+            kobold.doTeleport(200, 200);
+            //engine.toggleEnableCollider($('#stone6'));
+            //engine.toggleEnableCollider($('#elevator1'));
         });
     }
     refresh = function () {

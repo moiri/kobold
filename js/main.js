@@ -1202,7 +1202,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.rand.count++;
     };
     this.doJump = function () {
-        if (me.collider.bottom.isColliding && !me.action.jump) {
+        if (me.collider.bottom.isColliding && !me.action.jump
+                && me.enable.jump) {
             me.action.jump = true;
             me.collider.bottom.isColliding = false;
             me.jumpAttr.count.actual = 0;
@@ -1343,7 +1344,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     debug();
 }
 
-function KeyHandler () {
+function KeyHandler() {
     var me = this;
     me.keyCodeMap = [];
 
@@ -1378,7 +1379,7 @@ function KeyHandler () {
     };
 }
 
-function Ticker (maxFps) {
+function Ticker(maxFps) {
     var me = this;
     {
         // INITIALISATION
