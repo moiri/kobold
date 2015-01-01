@@ -6,7 +6,7 @@
 }
 
 .movableDebug {
-    visibility:hidden;
+    display:none;
     position:absolute;
     top:-20px;
     left:73px;

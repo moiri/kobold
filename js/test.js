@@ -71,7 +71,7 @@ $(document).ready(function() {
         $('#debug').click(function () {
             $('body').toggleClass('debug');
             $(this).toggleClass('disable');
-            $('#movableClass').toggle();
+            $('.movableDebug').toggle();
         });
 
         $('#enable').click(function () {
