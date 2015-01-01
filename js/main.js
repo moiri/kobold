@@ -14,6 +14,7 @@ function Engine() {
     {
         // CONFIGURATION
         me.config.maxFps = 40;
+        me.config.skyBoxId = 'skyBox';
         me.config.solidClass = 'solid';
         me.config.solidOnlyTopClass = me.config.solidClass + 'OnlyTop';
         me.config.solidColliderClass = 'solidCollider';
@@ -218,7 +219,7 @@ function Engine() {
         if (id === undefined) id = 'kobold';
         if (me.movable[id] === undefined) {
             if (cssClass === undefined) cssClass = 'koboldImg';
-            $('body')
+            $('#skyBox')
                 .append('<div id="' + id + '" class="movable"><div id="'
                         + id + '-img" class="' + cssClass
                         + ' idle right"></div></div>');
@@ -285,6 +286,10 @@ function Engine() {
                 me.movable[id].obj.setSolidCollider();
             }
         }
+        $('#' + me.config.skyBoxId).remove();
+        $('<div id="' + me.config.skyBoxId + '"></div>').appendTo('body')
+            .width($(document).outerWidth())
+            .height($(document).outerHeight());
     };
 
     me.updateCollider();
@@ -464,10 +469,14 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // Collider
         me.collider.left.tolerance.top = 3;
         me.collider.left.tolerance.bottom = 10;
+        me.collider.left.tolerance.bottomActual
+            = me.collider.left.tolerance.bottom; // internal
         me.collider.left.isColliding = false; // internal
         me.collider.left.jObject = null; // internal
         me.collider.right.tolerance.top = 3;
         me.collider.right.tolerance.bottom = 10;
+        me.collider.right.tolerance.bottomActual
+            = me.collider.right.tolerance.bottom; // internal
         me.collider.right.isColliding = false; // internal
         me.collider.right.jObject = null; // internal
         me.collider.top.isColliding = false; // internal
@@ -840,11 +849,24 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             // update last known position where movable was on ground
             me.pos.y = me.obj.offset().top + me.obj.height();
             me.objImg.removeClass('jump');
+            // activate tolerance of collider
+            if (me.collider.left.tolerance.bottomActual
+                != me.collider.left.tolerance.bottom) {
+                me.collider.left.tolerance.bottomActual
+                    = me.collider.left.tolerance.bottom;
+                updateCollider('left');
+            }
+            if (me.collider.right.tolerance.bottomActual
+                != me.collider.right.tolerance.bottom) {
+                me.collider.right.tolerance.bottomActual
+                    = me.collider.right.tolerance.bottom;
+                updateCollider('right');
+            }
             me.action.inAir = false;
         }
 
+        // if multiple objects collide take the one with the biggest overlap
         if (collidedObjects.length > 1) {
-            // multiple objects collide take the one with the biggest overlap
             collidedObjects.sort(function(a,b) {
                 if (direction === 'top')
                     return b.solidPosition[1][1] - a.solidPosition[1][1];
@@ -1079,22 +1101,14 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     // update the colliders of the character according to its speed
     function updateCollider(direction, colliderSize) {
-        var tolerance = [];
-        tolerance.bottom = [];
-        tolerance.bottom.left = 0;
-        tolerance.bottom.right = 0;
-
         if ((direction === undefined) || (direction === 'left')) {
             if (colliderSize === undefined)
                 colliderSize = Math.abs(Math.floor(
                             me.delta.time.actual * me.speed.walk.left));
-            if (me.collider.bottom.isColliding) {
-                // while jumping do not use tolerance
-                tolerance.bottom.left = me.collider.left.tolerance.bottom;
-            }
             $('#' + me.id + '-collider-left')
             .width(colliderSize  + 'px')
-            .height(($('#' + me.idCollider).height() - tolerance.bottom.left
+            .height(($('#' + me.idCollider).height()
+                        - me.collider.left.tolerance.bottomActual
                         - me.collider.left.tolerance.top) + 'px')
             .css({
                 'left': '-' + colliderSize + 'px',
@@ -1104,15 +1118,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
         if ((direction === undefined) || (direction === 'right')) {
             if (colliderSize === undefined)
-                colliderSize = Math.abs(
-                    Math.floor(me.delta.time.actual * me.speed.walk.right));
-            if (me.collider.bottom.isColliding) {
-                // while jumping do not use tolerance
-                tolerance.bottom.right = me.collider.right.tolerance.bottom;
-            }
+                colliderSize = Math.abs(Math.floor(
+                            me.delta.time.actual * me.speed.walk.right));
             $('#' + me.id + '-collider-right')
             .width(colliderSize + 'px')
-            .height(($('#' + me.idCollider).height() - tolerance.bottom.right
+            .height(($('#' + me.idCollider).height()
+                        - me.collider.right.tolerance.bottomActual
                         - me.collider.right.tolerance.top) + 'px')
             .css({
                 'left': ($('#' + me.idCollider).width()) + 'px',
@@ -1218,6 +1229,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.jumpAttr.height.actual = 0;
             me.jumpAttr.height.start = me.obj.offset().top;
             me.objImg.addClass('jump');
+            // remove collider tolerance when jumping
+            me.collider.left.tolerance.bottomActual = 0;
+            me.collider.right.tolerance.bottomActual = 0;
+            updateCollider('left');
+            updateCollider('right');
         }
     };
     this.doMove = function (direction, forced) {
@@ -1324,6 +1340,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         dist = getMovingDistance(direction);
         if (me.collider[direction].last != dist) {
+            // moving dist changed
             updateCollider(direction, Math.abs(dist) + 1);
             me.collider[direction].last = dist;
         }

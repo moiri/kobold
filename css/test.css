@@ -128,7 +128,7 @@
 
 .stone8 {
     position:absolute;
-    bottom:-50px;
+    bottom:50px;
     height:10px;
     width:2000px;
     left:150px;
