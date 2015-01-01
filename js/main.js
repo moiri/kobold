@@ -32,6 +32,7 @@ function Engine() {
 
     // PRIVATE METHODS
     // =========================================================================
+    // display debug stuff
     function debug() {
         var cssClass = '', elem = null, id = 'engineDebug';
         $('body').append('<div id="' + id
@@ -56,6 +57,7 @@ function Engine() {
         }
     };
 
+    // handle key events and trigger abilities of movable
     function movableHandler(movable) {
         var run = false,
             crouch = false,
@@ -145,12 +147,14 @@ function Engine() {
         movable.doPickUp();
     };
 
+    // add keyCode to keyCode array
     function setKeyCode(keyCode) {
         if (!(keyCode in me.keyCodes)) {
             me.keyCodes.push(keyCode);
         }
     };
 
+    // enable movable by id
     function setEnableMovable(id, val) {
         if (val === undefined) val = !me.movable[id].enable;
         me.movable[id].enable = val;
@@ -334,7 +338,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     }
 
     {
-        // CONFIGURATION
+        // CONFIGURATION (incl privileged configuartion methods)
         // IDs
         me.id = id;
         me.idImg = me.id + '-img'; // internal
@@ -736,10 +740,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         if (hasMovedX
                 && ((direction === 'left') || (direction === undefined))) {
             if (pos[0][0] < me.overflow.document.left.delta) {
+                // crossed left document border margin
                 me.overflow.document.left.cb(-pos[0][0]);
             }
             else if (pos[0][0] < ($(window).scrollLeft()
                         + me.overflow.window.left.delta)) {
+                // crossed left window border margin
                 deltaMoveX = pos[0][0] -
                     ($(window).scrollLeft() + me.overflow.window.left.delta);
                 me.overflow.window.left.cb(deltaMoveX);
@@ -1317,7 +1323,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             else direction = 'bottom'; // falling
         }
         dist = getMovingDistance(direction);
-        updateCollider(direction, Math.abs(dist) + 1);
+        if (me.collider[direction].last != dist) {
+            updateCollider(direction, Math.abs(dist) + 1);
+            me.collider[direction].last = dist;
+        }
         collidedObjects = checkCollision(direction);
         if (!me.collider[direction].isColliding) {
             // no collision, update position

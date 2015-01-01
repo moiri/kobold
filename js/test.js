@@ -94,10 +94,10 @@ $(document).ready(function() {
             //engine.toggleEnableCollider($('#elevator1'));
         });
     }
-    refresh = function () {
-        $('#movableClass').html($('#kobold-img').attr('class'));
-        setTimeout(refresh, 100);
-    }
-    refresh();
+    //refresh = function () {
+    //    $('#movableClass').html($('#kobold-img').attr('class'));
+    //    setTimeout(refresh, 100);
+    //}
+    //refresh();
 });
 
