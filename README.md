@@ -449,19 +449,15 @@ collision. This can be turned off by setting both values to zero. Note that
 due to imprecision when zooming functionnality of the browsers is used, this
 values should not be set lower than 3.
 
-    Movable.setColliderToleranceBottom(left, right);
-        left: 10
-            Tolarance (in pixel) for the left collider.
+    Movable.setColliderToleranceBottom(tol);
+        tol: 10
+            Bottom tolarance (in pixel) for the left and right collider.
 
-        right: 10
-            Tolarance (in pixel) for the right collider. If this value is not
-            set, both colliders are set to the left value.
-
-Get the bottom collider tolerance values.
+Get the bottom collider tolerance value.
 
     Movable.getColliderToleranceBottom();
         return
-            object with attributes left and right as pixel values.
+            Bottom tolerance as pixel value.
 
 Setting these parameters allows the character to move below objects of small
 heights hanging down from the ceiling, without colliding.The value is the
@@ -470,19 +466,15 @@ collision. This can be turned off by setting both values to zero. Note that
 due to imprecision when zooming functionnality of the browsers is used, this
 values should not be set lower than 3.
 
-    Movable.setColliderToleranceTop(left, right);
+    Movable.setColliderToleranceTop(tol);
         left: 3
-            Tolarance (in pixel) for the left collider.
+            Top tolarance (in pixel) for the lefti and right collider.
 
-        right: 3
-            Tolarance (in pixel) for the right collider. If this value is not
-            set, both colliders are set to the left value.
-
-Get the top collider tolerance values.
+Get the top collider tolerance value.
 
     Movable.getColliderToleranceTop();
         return
-            object with attributes left and right as pixel values.
+            Top tolerance as pixel value.
 
 Define the maximal height (in pixel) the character can jump. One exception to
 surpass this height is by enabling "crouchJumpHeight". Please check the comments

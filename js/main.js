@@ -315,9 +315,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.size = [];
         me.collider = [];
         me.collider.left = [];
-        me.collider.left.tolerance = [];
         me.collider.right = [];
-        me.collider.right.tolerance = [];
         me.collider.top = [];
         me.collider.bottom = [];
         me.jumpAttr = [];
@@ -467,44 +465,28 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         };
 
         // Collider
-        me.collider.left.tolerance.top = 3;
-        me.collider.left.tolerance.bottom = 10;
-        me.collider.left.tolerance.bottomActual
-            = me.collider.left.tolerance.bottom; // internal
         me.collider.left.isColliding = false; // internal
         me.collider.left.jObject = null; // internal
-        me.collider.right.tolerance.top = 3;
-        me.collider.right.tolerance.bottom = 10;
-        me.collider.right.tolerance.bottomActual
-            = me.collider.right.tolerance.bottom; // internal
         me.collider.right.isColliding = false; // internal
         me.collider.right.jObject = null; // internal
         me.collider.top.isColliding = false; // internal
         me.collider.top.jObject = null; // internal
+        me.collider.top.tolerance = 3;
         me.collider.bottom.isColliding = false; // internal
         me.collider.bottom.jObject = null; // internal
+        me.collider.bottom.tolerance = 10;
 
-        this.setColliderToleranceTop = function (left, right) {
-            me.collider.left.tolerance.top = left;
-            me.collider.right.tolerance.top =
-                (right === undefined) ? left : right;
+        this.setColliderToleranceTop = function (tol) {
+            me.collider.top.tolerance = tol;
         };
         this.getColliderToleranceTop = function () {
-            var ret = [];
-            ret.left = me.collider.left.tolerance.top;
-            ret.right = me.collider.right.tolerance.top;
-            return ret;
+            return me.collider.top.tolerance;
         };
-        this.setColliderToleranceBottom = function (left, right) {
-            me.collider.left.tolerance.bottom = left;
-            me.collider.right.tolerance.bottom =
-                (right === undefined) ? left : right;
+        this.setColliderToleranceBottom = function (tol) {
+            me.collider.bottom.tolerance = tol;
         };
         this.getColliderToleranceBottom = function () {
-            var ret = [];
-            ret.left = me.collider.left.tolerance.bottom;
-            ret.right = me.collider.right.tolerance.bottom;
-            return ret;
+            return me.collider.bottom.tolerance;
         };
 
         // PickUp Attributes
@@ -850,18 +832,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.pos.y = me.obj.offset().top + me.obj.height();
             me.objImg.removeClass('jump');
             // activate tolerance of collider
-            if (me.collider.left.tolerance.bottomActual
-                != me.collider.left.tolerance.bottom) {
-                me.collider.left.tolerance.bottomActual
-                    = me.collider.left.tolerance.bottom;
-                updateCollider('left');
-            }
-            if (me.collider.right.tolerance.bottomActual
-                != me.collider.right.tolerance.bottom) {
-                me.collider.right.tolerance.bottomActual
-                    = me.collider.right.tolerance.bottom;
-                updateCollider('right');
-            }
+            updateColliderTolerance(me.collider.bottom.tolerance,
+                    me.collider.top.tolerance);
             me.action.inAir = false;
         }
 
@@ -1106,14 +1078,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 colliderSize = Math.abs(Math.floor(
                             me.delta.time.actual * me.speed.walk.left));
             $('#' + me.id + '-collider-left')
-            .width(colliderSize  + 'px')
-            .height(($('#' + me.idCollider).height()
-                        - me.collider.left.tolerance.bottomActual
-                        - me.collider.left.tolerance.top) + 'px')
-            .css({
-                'left': '-' + colliderSize + 'px',
-                'top': me.collider.left.tolerance.top + 'px'
-            });
+                .width(colliderSize  + 'px')
+                .css({'left': '-' + colliderSize + 'px'});
         }
 
         if ((direction === undefined) || (direction === 'right')) {
@@ -1121,14 +1087,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 colliderSize = Math.abs(Math.floor(
                             me.delta.time.actual * me.speed.walk.right));
             $('#' + me.id + '-collider-right')
-            .width(colliderSize + 'px')
-            .height(($('#' + me.idCollider).height()
-                        - me.collider.right.tolerance.bottomActual
-                        - me.collider.right.tolerance.top) + 'px')
-            .css({
-                'left': ($('#' + me.idCollider).width()) + 'px',
-                'top': me.collider.right.tolerance.top + 'px'
-            });
+                .width(colliderSize + 'px')
+                .css({'left': ($('#' + me.idCollider).width()) + 'px'});
         }
 
         if ((direction === undefined) || (direction === 'top')) {
@@ -1150,6 +1110,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             .width($('#' + me.idCollider).width() + 'px')
             .css('top', $('#' + me.idCollider).height() + 'px');
         }
+    };
+
+    function updateColliderTolerance(tolBot, tolTop) {
+        $('#' + me.id + '-collider-left')
+            .height(($('#' + me.idCollider).height() - tolBot - tolTop) + 'px')
+            .css({'top': tolTop + 'px'});
+        $('#' + me.id + '-collider-right')
+            .height(($('#' + me.idCollider).height() - tolBot - tolTop) + 'px')
+            .css({'top': tolTop + 'px'});
     };
 
     // PRIVILEGED METHODS
@@ -1230,10 +1199,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.jumpAttr.height.start = me.obj.offset().top;
             me.objImg.addClass('jump');
             // remove collider tolerance when jumping
-            me.collider.left.tolerance.bottomActual = 0;
-            me.collider.right.tolerance.bottomActual = 0;
-            updateCollider('left');
-            updateCollider('right');
+            updateColliderTolerance(0, 0);
         }
     };
     this.doMove = function (direction, forced) {
