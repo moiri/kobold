@@ -1173,6 +1173,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             if (crouchJumpHigh && !me.collider.bottom.isColliding)
                 cssMoveY(me.size.heightCrouch);
             updateCollider();
+            updateColliderTolerance(me.collider.bottom.tolerance,
+                    me.collider.top.tolerance);
         }
         return res;
     };
