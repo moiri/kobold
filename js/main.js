@@ -1303,7 +1303,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     // calc new position, update collider, check collision, update position
     this.updatePosition = function (direction) {
-        var dist, collidedObjects;
+        var dist, collidedObjects, sign;
         if (direction === undefined) {
             if (me.action.jump) direction = 'top'; // rising
             else direction = 'bottom'; // falling
@@ -1321,8 +1321,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 cssMoveX(dist);
                 if (me.collider.bottom.isColliding) {
                     // update last known position where movable was on ground
-                    me.pos.x = me.obj.offset().left
-                        - Math.sign(dist) * me.obj.width();
+                    sign = (dist < 0) ? -1 : 1; // Math.sign() unsupported in IE
+                    me.pos.x = me.obj.offset().left - sign * me.obj.width();
                 }
             }
             else {
