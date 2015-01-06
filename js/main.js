@@ -1260,6 +1260,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.objImg.removeAttr('style');
             $('#' + me.idCollider).height(me.size.heightStand + 'px');
             updateCollider();
+            updateColliderTolerance(me.collider.bottom.tolerance,
+                    me.collider.top.tolerance);
         }
         return true;
     };
