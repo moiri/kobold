@@ -14,6 +14,7 @@ function Engine() {
     {
         // CONFIGURATION
         me.config.maxFps = 40;
+        me.config.skyBox = false;
         me.config.skyBoxId = 'skyBox';
         me.config.solidClass = 'solid';
         me.config.solidOnlyTopClass = me.config.solidClass + 'OnlyTop';
@@ -215,11 +216,13 @@ function Engine() {
 
     // create new movable
     this.newMovable = function (id, cssClass) {
-        var newMovable = [];
+        var newMovable = [],
+            appendMovableSelector = 'body';
+        if (me.config.skyBox) appendMovableSelector = '#' + me.config.skyBoxId;
         if (id === undefined) id = 'kobold';
         if (me.movable[id] === undefined) {
             if (cssClass === undefined) cssClass = 'koboldImg';
-            $('#skyBox')
+            $(appendMovableSelector)
                 .append('<div id="' + id + '" class="movable"><div id="'
                         + id + '-img" class="' + cssClass
                         + ' idle right"></div></div>');
@@ -286,10 +289,12 @@ function Engine() {
                 me.movable[id].obj.setSolidCollider();
             }
         }
-        $('#' + me.config.skyBoxId).remove();
-        $('<div id="' + me.config.skyBoxId + '"></div>').appendTo('body')
-            .width($(document).outerWidth())
-            .height($(document).outerHeight());
+        if (me.config.skyBox) {
+            $('#' + me.config.skyBoxId).remove();
+            $('<div id="' + me.config.skyBoxId + '"></div>').appendTo('body')
+                .width($(document).outerWidth())
+                .height($(document).outerHeight());
+        }
     };
 
     me.updateCollider();
