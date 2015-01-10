@@ -1062,7 +1062,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     // Character Abilities
-    this.doAppear = function (x, y) {
+    this.doAppear = function (x, y, cb) {
         var collidedObjects;
         if (me.enable.appear) {
             if (x === undefined) x = me.pos.x;
@@ -1080,6 +1080,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.overflow.document.heightVirtual = null;
             singleAnimation(me.objImg, 'appear', function () {
                 me.enableMe();
+                if (cb != undefined) cb();
             });
         }
     };
@@ -1191,9 +1192,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return true;
     };
     this.doTeleport = function (x, y) {
-        me.doVanish(true, x, y);
+        me.doVanish(function () {
+            me.doAppear(x, y);
+        });
     };
-    this.doVanish = function (teleport, x, y) {
+    this.doVanish = function (cb) {
         var collidedObjects;
         if (me.enable.vanish) {
             me.disableMe();
@@ -1203,7 +1206,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.doStand();
             singleAnimation(me.objImg, 'vanish', function () {
                 me.obj.hide();
-                if(teleport) me.doAppear(x, y);
+                if (cb != undefined) cb();
             });
         }
     };

@@ -548,10 +548,10 @@ overflow callback function triggers.
             "right": 0
                 Distance in pixel to the right document border.
 
-            "top": -Movable.getSize('heightStand');
+            "top": 0
                 Distance in pixel to the top document border.
 
-            "bottom": -Movable.getSize('heightStand')
+            "bottom": 0
                 Distance in pixel to the bottom document border.
 
         delta:
