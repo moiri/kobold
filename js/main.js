@@ -32,31 +32,6 @@ function Engine() {
 
     // PRIVATE METHODS
     // =========================================================================
-    // display debug stuff
-    function debug() {
-        var cssClass = '', elem = null, id = 'engineDebug';
-        $('body').append('<div id="' + id
-                + '" class="engineDebug"></div>');
-        $('<div class="engine-debug-title">Engine Config</div>')
-            .appendTo('#' + id)
-            .click(function (e) {
-                $('#engine-debug-content').toggle();
-            });
-        $('#' + id).append('<div id="engine-debug-content"'
-                + ' class="engine-debug-content"></div>');
-        for (elem in me.enable) {
-            cssClass = '';
-            if (!me.getEnableStatusAttr(elem)) cssClass = ' disable';
-            $('<div class="configElem clickable' + cssClass + '">' + elem
-                    + '</div>')
-                .appendTo('#engine-debug-content')
-                .click(function (e) {
-                    me.toggleEnableAttr($(this).text());
-                    $(this).toggleClass('disable');
-                });
-        }
-    };
-
     // handle key events and trigger abilities of movable
     function movableHandler(movable) {
         var run = false,
@@ -288,8 +263,6 @@ function Engine() {
             }
         }
     };
-
-    debug();
 }
 
 function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
@@ -859,31 +832,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.obj.css('bottom', val + 'px');
     };
 
-    // display debug stuff
-    function debug() {
-        var cssClass = '', elem = null, id = me.id + 'Debug';
-        $('#' + me.id).append('<div id="' + id
-                + '" class="movableDebug"></div>');
-        $('<div class="movable-debug-title">Config</div>')
-            .appendTo('#' + id)
-            .click(function (e) {
-                $('#' + me.id + '-debug-content').toggle();
-            });
-        $('#' + id).append('<div id="' + me.id
-                + '-debug-content" class="movable-debug-content"></div>');
-        for (elem in me.enable) {
-            cssClass = '';
-            if (!me.getEnableStatusAttr(elem)) cssClass = ' disable';
-            $('<div class="configElem clickable' + cssClass + '">' + elem
-                    + '</div>')
-                .appendTo('#' + me.id + '-debug-content')
-                .click(function (e) {
-                    me.toggleEnableAttr($(this).text());
-                    $(this).toggleClass('disable');
-                });
-        }
-    };
-
     // generate the LUT used for the jump function
     function genJumpLut() {
         var pos = 0,
@@ -1315,7 +1263,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     setup();
-    debug();
 }
 
 function KeyHandler() {

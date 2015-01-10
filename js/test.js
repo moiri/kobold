@@ -55,8 +55,8 @@ $(document).ready(function() {
     // START ENGINE AND CUSTOMIZE
     {
         engine = new Engine();
-        engine.start();
         kobold = engine.newMovable();
+        engine.start();
         kobold.enableMe();
 
         $('#' + kobold.getId())
@@ -68,15 +68,13 @@ $(document).ready(function() {
 
     // DEBUG STUFF
     {
-        $('#debug').click(function () {
+        engine.debug();
+        kobold.debug();
+        $('#debug').click(function (event) {
             $('body').toggleClass('debug');
             $(this).toggleClass('disable');
             $('.movableDebug').toggle();
-        });
-
-        $('#enable').click(function () {
-            kobold.toggleEnableMe();
-            $(this).toggleClass('disable');
+            $('.engineDebug').toggle();
         });
 
         $('div[id^="enable"]').each(function () {

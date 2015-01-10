@@ -1,53 +1,9 @@
-.debug * .colliderContainer, .debug > .colliderContainer {
-    overflow:visible;
-    z-index:9;
-}
-
-.debug * .solidCollider, .debug > .solidCollider {
-    background-color:red;
-    opacity:0.2;
-}
-
-.debug * .solidColliderMoving.solidColliderOnlyTop,
-    .debug > .solidColliderMoving.solidColliderOnlyTop {
-    background-color:blue;
-    opacity:0.2;
-}
-
-.debug * .solidColliderOnlyTop, .debug > .solidColliderOnlyTop {
-    background-color:yellow;
-    opacity:0.2;
-}
-
-.debug * .solidColliderIgnore, .debug > .solidColliderIgnore,
-    .debug * .solidColliderMoving.solidColliderOnlyTop.solidColliderIgnore,
-    .debug > .solidColliderMoving.solidColliderOnlyTop.solidColliderIgnore {
-    background-color:black;
-    opacity:0.2;
-}
-
-.debug * .collider, .debug > .collider {
-    background-color:green;
-    opacity:0.2;
-}
-
-.enable {
-    position:fixed;
-    top:10px;
-    left:10px;
-    visibility:hidden;
-}
-
 .clickable {
     cursor:pointer;
 }
 
 .clickable.configElem.disable {
     color:red;
-}
-
-.debug * .enable, .debug > .enable {
-    visibility:visible;
 }
 
 .config {

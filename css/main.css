@@ -7,14 +7,6 @@ body {
    position:absolute;
 }
 
-.engineDebug {
-    visibility:hidden;
-}
-
-.movableDebug {
-    display:none;
-}
-
 .colliderContainer {
     overflow:hidden; /* hide collider boxes to prevent document overflow */
     position:relative;

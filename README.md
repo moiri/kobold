@@ -21,7 +21,7 @@ version, only consider the attached README to this version.
 Fast Setup
 ----------
 
-1.  add main.js, main.css and jQuery (for development jQuery 1.7.1 was used) to
+1.  add main.js, main.css and jQuery (for development jQuery 2.1.3 was used) to
     your page.
 
 2.  add the css class "solid" to the page elements you want the character to
@@ -34,6 +34,9 @@ Fast Setup
         var engine, kobold;
         engine = new Engine();
         kobold = engine.newMovable();
+        // START CONFIG
+        // configure engine and movable(s)
+        // END CONFIG
         engine.start();
         kobold.enableMe();
     });
