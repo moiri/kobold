@@ -57,14 +57,7 @@ frame limiters.
                 elements the character is colliding (lets call them
                 collidables). All elements on the web page intended to be a
                 collidable must have this css class.
-                The character is positioned realtive to the element on which he
-                is standing (colliding with the bottom collider). If this object
-                is moved, the character will move with it and still collide with
-                all the other solids. It is recommenden to disable the character
-                during the movements to prevent collisions. Anlso nNote, that
-                these elements should not move while the character is able to
-                jump on them. For this purpose the "solidMovingClass" is
-                needed.
+                Animated objects should not be declared as solid.
 
             "solidOnlyTopClass": "solidOnlyTop"
                 Class name definig which elemets (already having the
