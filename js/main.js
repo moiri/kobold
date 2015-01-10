@@ -14,8 +14,6 @@ function Engine() {
     {
         // CONFIGURATION
         me.config.maxFps = 40;
-        me.config.skyBox = false;
-        me.config.skyBoxId = 'skyBox';
         me.config.solidClass = 'solid';
         me.config.solidOnlyTopClass = me.config.solidClass + 'OnlyTop';
         me.config.solidColliderClass = 'solidCollider';
@@ -216,16 +214,15 @@ function Engine() {
 
     // create new movable
     this.newMovable = function (id, cssClass) {
-        var newMovable = [],
-            appendMovableSelector = 'body';
-        if (me.config.skyBox) appendMovableSelector = '#' + me.config.skyBoxId;
+        var newMovable = [];
         if (id === undefined) id = 'kobold';
         if (me.movable[id] === undefined) {
             if (cssClass === undefined) cssClass = 'koboldImg';
-            $(appendMovableSelector)
-                .append('<div id="' + id + '" class="movable"><div id="'
-                        + id + '-img" class="' + cssClass
-                        + ' idle right"></div></div>');
+            $('body')
+                .append('<div id="' + id + '" class="movable">'
+                        + '<div id="' + id + '-imgCont" class="imgCont right">'
+                        + '<div id="' + id + '-img" class="' + cssClass
+                        + ' idle"></div></div></div>');
             newMovable.enable = false;
             newMovable.obj = new Movable(id, me.config,
                     setEnableMovable, setKeyCode);
@@ -239,6 +236,7 @@ function Engine() {
 
     // start the engine
     this.start = function () {
+        me.updateCollider();
         me.ticker = new Ticker(me.config.maxFps);
         me.keyHandler = new KeyHandler();
         me.keyHandler.registerKeyEvents(me.keyCodes);
@@ -289,15 +287,8 @@ function Engine() {
                 me.movable[id].obj.setSolidCollider();
             }
         }
-        if (me.config.skyBox) {
-            $('#' + me.config.skyBoxId).remove();
-            $('<div id="' + me.config.skyBoxId + '"></div>').appendTo('body')
-                .width($(document).outerWidth())
-                .height($(document).outerHeight());
-        }
     };
 
-    me.updateCollider();
     debug();
 }
 
@@ -350,6 +341,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // IDs
         me.id = id;
         me.idImg = me.id + '-img'; // internal
+        me.idImgCont = me.id + '-imgCont'; // internal
         me.idCollider = me.id + '-collider'; // internal
 
         this.getId = function () {
@@ -359,6 +351,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // Object
         me.obj = $('#' + id);
         me.objImg = $('#' + me.idImg);
+        me.objImgCont = $('#' + me.idImgCont);
 
         // Enables
         me.enable.run = true;
@@ -597,17 +590,13 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.overflow.document.widthVirtual = null; // internal
 
         me.overflow.document.left.delta = 0;
-        me.overflow.document.left.cb = function (deltaBorder) {
-            cssMoveX(deltaBorder);
-        };
+        me.overflow.document.left.cb = function () {};
         me.overflow.document.right.delta = 0;
-        me.overflow.document.right.cb = function (deltaBorder) {
-            cssMoveX(deltaBorder);
-        };
-        me.overflow.document.top.delta = -me.size.heightStand;
-        me.overflow.document.top.cb = function (deltaBorder) {};
-        me.overflow.document.bottom.delta = -me.size.heightStand;;
-        me.overflow.document.bottom.cb = function (deltaBorder) {
+        me.overflow.document.right.cb = function () {};
+        me.overflow.document.top.delta = 0;
+        me.overflow.document.top.cb = function () {};
+        me.overflow.document.bottom.delta = 0;
+        me.overflow.document.bottom.cb = function () {
             me.doAppear();
         };
         me.overflow.window.left.delta = 500;
@@ -718,107 +707,89 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     // check wether the character leaves window or document
-    function checkPosition(direction) {
+    function checkPosition(direction, dist) {
         var pos = positionsGet(me.obj),
             posImg = positionsGet(me.objImg),
-            imgDiff = 0,
-            deltaMoveX = 0,
-            deltaMoveY = 0,
-            hasMovedX = false,
-            hasMovedY = false;
-
-        hasMovedX = (((pos[0][0] - me.pos.overflowX) != 0)
-                || ((pos[1][0] - me.pos.overflowY) != 0));
-        hasMovedY = (((pos[1][0] - me.pos.overflowY != 0))
-                || ((pos[0][0] - me.pos.overflowX) != 0));
+            overflow = [];
 
         // check left overflow
-        if (hasMovedX
-                && ((direction === 'left') || (direction === undefined))) {
-            if (pos[0][0] < me.overflow.document.left.delta) {
-                // crossed left document border margin
-                me.overflow.document.left.cb(-pos[0][0]);
+        if ((dist != 0) && (direction === 'left')) {
+            overflow.doc = pos[0][0] + dist - me.overflow.document.left.delta;
+            overflow.win = pos[0][0] + dist - ($(window).scrollLeft()
+                        + me.overflow.window.left.delta);
+            if (overflow.doc < 0) {
+                // will cross left document border margin
+                dist = dist - overflow.doc;
+                me.overflow.document.left.cb();
             }
-            else if (pos[0][0] < ($(window).scrollLeft()
-                        + me.overflow.window.left.delta)) {
-                // crossed left window border margin
-                deltaMoveX = pos[0][0] -
-                    ($(window).scrollLeft() + me.overflow.window.left.delta);
-                me.overflow.window.left.cb(deltaMoveX);
+            else if (overflow.win < 0) {
+                // will cross left window border margin
+                me.overflow.window.left.cb(overflow.win);
             }
         }
         // check right overflow
-        if (hasMovedX
-                && ((direction === 'right') || (direction === undefined))) {
-            // check document boundaries
-            if (me.overflow.document.widthVirtual
-                    >= me.overflow.document.width) {
-                me.overflow.document.widthVirtual = null;
+        if ((dist != 0) && (direction === 'right')) {
+            overflow.doc = pos[0][1] + dist
+                - (me.overflow.document.width - me.overflow.document.right.delta);
+            overflow.win = pos[0][1] + dist - ($(window).scrollLeft()
+                + $(window).width() - me.overflow.window.right.delta);
+            if (overflow.doc > 0) {
+                // will cross right document border margin
+                dist = dist - overflow.doc;
+                me.overflow.document.right.cb();
             }
-            if ((me.overflow.document.widthVirtual === null)
-                    && ((posImg[0][1] > me.overflow.document.width)
-                        || (pos[0][1] > me.overflow.document.width))) {
-                imgDiff = posImg[0][1] - pos[0][1];
-                if (imgDiff < 0) imgDiff = 0;
-                me.overflow.document.widthVirtual = me.overflow.document.width;
-            }
-            if ((me.overflow.document.widthVirtual != null)
-                    && (pos[0][1] > (me.overflow.document.widthVirtual
-                            - me.overflow.document.right.delta))) {
-                me.overflow.document.right.cb(
-                        me.overflow.document.widthVirtual - pos[0][1]);
-            }
-            else if (pos[0][1] > ($(window).scrollLeft() + $(window).width()
-                        - me.overflow.window.right.delta)) {
-                deltaMoveX = pos[0][1] - ($(window).scrollLeft()
-                    + $(window).width() - me.overflow.window.right.delta);
-                me.overflow.window.right.cb(deltaMoveX);
+            else if (overflow.win > 0) {
+                // will cross right window border margin
+                me.overflow.window.right.cb(overflow.win);
             }
         }
         // check top overflow
-        if (hasMovedY
-                && ((direction === 'top') || (direction === undefined))) {
-            if (pos[1][0] < me.overflow.document.top.delta) {
-                me.overflow.document.top.cb(-pos[1][0]);
+        if ((dist != 0) && (direction === 'top')) {
+            overflow.doc = pos[1][0] - dist - me.overflow.document.top.delta;
+            overflow.win = pos[1][0] - dist - ($(window).scrollTop()
+                        + me.overflow.window.top.delta);
+            if (overflow.doc < 0) {
+                // will cross top document border margin
+                me.overflow.document.top.cb();
             }
-            else if (pos[1][0] < ($(window).scrollTop()
-                        + me.overflow.window.top.delta)) {
-                deltaMoveY = pos[1][0] - ($(window).scrollTop()
-                    + me.overflow.window.top.delta);
-                me.overflow.window.top.cb(deltaMoveY);
+            else if (overflow.win < 0) {
+                // will cross top window border margin
+                me.overflow.window.top.cb(overflow.win);
             }
         }
         // check bottom overflow
-        if (hasMovedY
-                && ((direction === 'bottom') || (direction === undefined))) {
-            // check document boundaries
-            if (me.overflow.document.heightVirtual
-                    >= me.overflow.document.height) {
-                me.overflow.document.heightVirtual = null;
+        if ((dist != 0) && (direction === 'bottom')) {
+            overflow.doc = pos[1][1] - dist
+                - (me.overflow.document.height - me.overflow.document.bottom.delta);
+            overflow.win = pos[1][1] - dist - ($(window).scrollTop()
+                + $(window).height() - me.overflow.window.bottom.delta);
+            if (overflow.doc > 0) {
+                // will cross right document border margin
+                dist = 0;
+                me.overflow.document.bottom.cb();
             }
-            if ((me.overflow.document.heightVirtual === null)
-                    && ((posImg[1][1] > me.overflow.document.height)
-                        || (pos[1][1] > me.overflow.document.height))) {
-                imgDiff = posImg[1][1] - pos[1][1];
-                if (imgDiff < 0) imgDiff = 0;
-                me.overflow.document.heightVirtual = me.overflow.document.height
-                    - imgDiff;
-            }
-            if ((me.overflow.document.heightVirtual != null)
-                    && (pos[1][1] > (me.overflow.document.heightVirtual
-                            - me.overflow.document.bottom.delta))) {
-                me.overflow.document.bottom.cb(
-                        me.overflow.document.heightVirtual - pos[1][1]);
-            }
-            else if (pos[1][1] > ($(window).scrollTop() + $(window).height()
-                        - me.overflow.window.bottom.delta)) {
-                deltaMoveY = pos[1][1] - ($(window).scrollTop()
-                    + $(window).height() - me.overflow.window.bottom.delta);
-                me.overflow.window.bottom.cb(deltaMoveY);
+            else if (overflow.win > 0) {
+                // will cross right window border margin
+                me.overflow.window.bottom.cb(overflow.win);
             }
         }
-        me.pos.overflowX = pos[0][0];
-        me.pos.overflowY = pos[1][0];
+        // handle trimming of image
+        if ((dist != 0) && ((direction === 'left') || (direction === 'right'))) {
+            overflow.img = posImg[0][1] + dist
+                - (me.overflow.document.width - me.overflow.document.right.delta);
+            // when turning on the spot, we dont care about the future position
+            if (direction === 'left') overflow.img -= dist;
+            if (overflow.img > 0) {
+                // image container will cross right document border
+                // resize image container by overflow distance
+                me.objImgCont.width(me.objImg.width() - overflow.img);
+            }
+            else {
+                // reset to default when nothing is overlapping
+                me.objImgCont.width(me.objImg.width());
+            }
+        }
+        return dist;
     };
 
     // collision occurred -> handle it
@@ -1215,8 +1186,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.state.direction.forced = forced;
         if (!forced) me.state.direction.type = direction;
         // change annimation
-        me.objImg.removeClass('idle right left');
-        me.objImg.addClass(direction);
+        me.objImg.removeClass('idle');
+        me.objImgCont.removeClass('right left');
+        me.objImgCont.addClass(direction);
         me.updatePosition(direction);
         return true;
     };
@@ -1321,7 +1293,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         collidedObjects = checkCollision(direction);
         if (!me.collider[direction].isColliding) {
-            // no collision, update position
+            // no collision, check and update position
+            dist = checkPosition(direction, dist);
             if ((direction === 'left') || (direction === 'right')) {
                 cssMoveX(dist);
                 if (me.collider.bottom.isColliding) {
@@ -1339,7 +1312,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             // collision, allign with object
             collision(direction, collidedObjects);
         }
-        checkPosition(direction);
     };
 
     setup();

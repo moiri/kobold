@@ -3,27 +3,25 @@ body {
     padding:0px;
 }
 
-#skyBox {
-   overflow: hidden;
-   pointer-events: none;
-   position: absolute;
-   bottom:0;
-   left:0;
-}
-
 .movable {
    position:absolute;
-   pointer-events:auto;
+}
+
+.engineDebug {
+    visibility:hidden;
+}
+
+.movableDebug {
+    display:none;
 }
 
 .colliderContainer {
-    overflow:hidden;
+    overflow:hidden; /* hide collider boxes to prevent document overflow */
     position:relative;
 }
 
 .solidCollider, .solidColliderMoving {
    position:relative;
-   pointer-events:none;
 }
 
 .solidColliderWrapper {
@@ -34,23 +32,33 @@ body {
    position:absolute;
 }
 
+.imgCont, .koboldImg {
+   position:absolute;
+   height:100px;
+   width:100px;
+   pointer-events:none;
+}
+
+.imgCont {
+   top:-15px;
+   overflow:hidden;
+}
+
 .koboldImg {
-    position:absolute;
-    height:100px;
-    width:100px;
-    top:-15px;
-    z-index:10;
     background-image:url("../img/kobold.png");
 }
 
-.koboldImg.left {
+.imgCont.left {
     left:-15px;
-    transform:scaleX(-1);
-    -webkit-transform:scaleX(-1);
 }
 
-.koboldImg.right {
+.imgCont.right {
     left:-33px;
+}
+
+.imgCont.left > .koboldImg {
+    transform:scaleX(-1);
+    -webkit-transform:scaleX(-1);
 }
 
 .koboldImg.idle {

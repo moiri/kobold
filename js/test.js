@@ -55,11 +55,11 @@ $(document).ready(function() {
     // START ENGINE AND CUSTOMIZE
     {
         engine = new Engine();
-        kobold = engine.newMovable();
         engine.start();
+        kobold = engine.newMovable();
         kobold.enableMe();
 
-        $('#' + kobold.getId() + '-img')
+        $('#' + kobold.getId())
             .click(function () {
                 alert("Kobold: Hey, I was just clicked!");
             })

@@ -52,18 +52,6 @@ frame limiters.
             "maxFps": 40
                 frame cap
 
-            "skyBox": false
-                Enable or disable the skyBox. The skyBopx is a box that takes the size of the whole
-                document and is used to cut off overlapping elements of the
-                character in order to not modify the document size when walking
-                out of the document.
-                Attention: Due to the absolute positionning of the skyBox any
-                element with a negative absolute position will break the
-                position of the character.
-
-            "skyBoxId": "skyBox"
-                Id name of the skyBox.
-
             "solidClass": "solid"
                 Class name definig which elements are solid, i.e. with which
                 elements the character is colliding (lets call them
