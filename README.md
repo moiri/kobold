@@ -93,11 +93,11 @@ To add different animations for other characters, create new css definitions
 similar to the ones provided in main.css.
 
     Engine.newMovable(id, cssClass);
-        id: "kobold"
+        id: "kobold" [optional]
             id of the added character. This id must like any other id be unique.
             if no id is provided, the default value is set.
 
-        cssClass: "koboldImg"
+        cssClass: "koboldImg" [optional]
             name of the css class definig the size and animations of the
             character. One set for the default names is provided. If no cssClass
             is provided, the default value is set.
@@ -652,3 +652,110 @@ if the default behavior should be extended, not overwritten completely.
     Movable.getScrollEventCb();
         return
             function, definig the behavior if a document scroll event occures.--->
+
+Control the Character
+---------------------
+
+Let the character appear at a specific position on the screen with a fancy
+animation. Only works if appear is enabled.
+
+    Movable.doAppear(x, y, cb);
+        x: last valid x position of the character [optional]
+            x coordiante (in pixel) starting from the left document border
+
+        y: last valid y position of the character [optional]
+            y coordiante (in pixel) starting from the top document border
+
+        cb: [optional]
+            callback function which is executed on success, after the animation
+            as finished
+
+        return
+            true if success, false if not
+
+
+Let the character crouch. Only works if crouch is enabled.
+
+    Movable.doCrouch(crouchJumpHigh);
+        crouchJumpHigh: true [optional]
+            if set to true, the character will lift its feet instead of ducking
+            its head while in the air. If set to false the charactre will duck
+            its head when in the air. For more information check the comments
+            on Engine.enableAttr('crouchJumpHigh')
+
+        return
+            true if success, false if not
+
+
+Change the character into idle state which will enable the random idle
+animations.
+    Movable.doIdle();
+
+Let the Character Jump. Only works if jump is enabled.
+    Movable.doJump();
+        return
+            true if success, false if not
+
+Move the character in a direction by a distance. If an obstacle is in the way,
+the character will only move to the border of the obstacle. Even if the
+distance to move is larger than the obstacle.
+    Movable.doMove(direction, dist);
+        direction:
+            must be a string with the value of either 'left', 'right', 'top',
+            or 'bottom'.
+
+        dist: standard distance depending on speed and direction [optional]
+            must be a positive number (negative signes are ignored) indication
+            the distance in pixel the character will move in a given direction.
+            
+        return
+            true if success, false if there was a collision
+
+Make the character run. This changes the speed and the animation but does not
+move the character. To actually move it, Movable.doMove(direction, dist) must
+be invoked. This works only if run is enabled and there is no impact if the
+character is already running.
+    Movable.doRun();
+        return
+            true if success, false if not
+
+Let the character stand up. The character will only stand up if it is crouched
+and no obstacle is preventing it from standing up.
+    Movable.doStand();
+        return
+            true if success, false if not. If the character is already
+            standing, the method returns true.
+
+Let the character teleport to a specified location with fancy animations. This
+works only if both appear and vanish are enabled.
+    Movable.doTeleport(x, y)
+        x: last valid x position of the character [optional]
+            x coordiante (in pixel) starting from the left document border
+
+        y: last valid y position of the character [optional]
+            y coordiante (in pixel) starting from the top document border
+
+        cb: [optional]
+            callback function which is executed on success, after the animation
+            has finished
+
+        return
+            true if success, false if not
+
+Let the character vanish with a fancy animation. This only works if vanish is
+enabled.
+    Movable.doVanish(cb);
+        cb: [optional]
+            callback function which is executed on success, after the animation
+            has finished
+
+        return
+            true if success, false if not
+
+Make the character walk. This changes the speed and the animation but does not
+move the character. To actually move it, Movable.doMove(direction, dist) must
+be invoked. This has no impact when the character is already walking.
+    Movable.doWalk();
+        return true
+            This always returns true
+

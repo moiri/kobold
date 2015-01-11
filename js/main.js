@@ -1063,10 +1063,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     // Character Abilities
     this.doAppear = function (x, y, cb) {
-        var collidedObjects;
+        var collidedObjects, res = false;
+        // check arguments
+        if (x === undefined) x = me.pos.x;
+        else if (typeof x != 'number') throw 'bad argument type in x';
+        if (y === undefined) y = me.pos.y;
+        else if (typeof y != 'number') throw 'bad argument type in y';
+
         if (me.enable.appear) {
-            if (x === undefined) x = me.pos.x;
-            if (y === undefined) y = me.pos.y;
+            res = true;
             me.obj.show();
             me.disableMe();
             if (me.pos.appearCnt > 0) {
@@ -1083,9 +1088,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 if (cb != undefined) cb();
             });
         }
+        return res;
     };
     this.doCrouch = function (crouchJumpHigh) {
         var res = true;
+        // check arguments
+        if (crouchJumpHigh === undefined) crouchJumpHigh = true;
+        else if (typeof crouchJumpHigh != 'boolean')
+            throw 'bad argument type in crouchJumpHigh';
+
         if (!me.enable.crouch) res = false;
         else if (me.state.stance.type != 'crouch') {
             me.state.stance.type = 'crouch';
@@ -1116,8 +1127,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.rand.count++;
     };
     this.doJump = function () {
+        var res = false;
         if (me.collider.bottom.isColliding && !me.action.jump
                 && me.enable.jump) {
+            res = true;
             me.action.jump = true;
             me.collider.bottom.isColliding = false;
             me.jumpAttr.count.actual = 0;
@@ -1128,20 +1141,34 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             // remove collider tolerance when jumping
             updateColliderTolerance(0, 0);
         }
+        return res;
     };
-    this.doMove = function (direction, forced) {
-        // check if direction must be forced
-        if (forced === undefined) forced = false;
-        me.state.direction.forced = forced;
-        if (!forced) me.state.direction.type = direction;
-        // change annimation
-        me.objImg.removeClass('idle');
-        me.objImgCont.removeClass('right left');
-        me.objImgCont.addClass(direction);
-        me.updatePosition(direction);
-        return true;
+    this.doMove = function (direction, attr) {
+        var forced, dist;
+        // check argument
+        if (typeof attr === 'boolean') forced = attr;
+        else if (typeof attr === 'number') dist = Math.abs(attr);
+        else if (typeof attr === 'undefined') ; // do nothing
+        else throw "bad argument type in attr";
+        if ((direction === 'left') || (direction === 'right')) {
+            // check if direction must be forced
+            if (forced === undefined) forced = false;
+            me.state.direction.forced = forced;
+            if (!forced) me.state.direction.type = direction;
+            // change annimation
+            me.objImg.removeClass('idle');
+            me.objImgCont.removeClass('right left');
+            me.objImgCont.addClass(direction);
+            if ((direction === 'left') && (dist != 'undefined')) dist = -dist;
+        }
+        else if ((direction != 'top') && (direction != 'bottom'))
+            throw 'unknown direction "' + direction + '"';
+        return me.updatePosition(direction, dist);
     };
     this.doPickUp = function () {
+        // while this is an ability, it should not be invoked manually because
+        // it is run periodically. Hence this method is not documented in the
+        // README
         var collisionRes = null;
         if (me.enable.pickUp) {
             me.pickUpAttr.jObjects.each(function (idx) {
@@ -1154,7 +1181,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                     singleAnimation($(this), 'success', function () {
                         $(this).remove();
                     });
-                    return false;
                 }
             });
         }
@@ -1191,14 +1217,25 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return true;
     };
-    this.doTeleport = function (x, y) {
-        me.doVanish(function () {
-            me.doAppear(x, y);
-        });
+    this.doTeleport = function (x, y, cb) {
+        var res = false;
+        // check arguments (default values are handeled in doAppear)
+        if ((x != undefined) && (typeof x != 'number'))
+            throw 'bad argument type in x';
+        if ((y != undefined) && (typeof y != 'number'))
+            throw 'bad argument type in y';
+        if ((me.enable.vanish) && (me.enable.appear)) {
+            res = true;
+            me.doVanish(function () {
+                me.doAppear(x, y, cb);
+            });
+        }
+        return res;
     };
     this.doVanish = function (cb) {
-        var collidedObjects;
+        var collidedObjects, res = false;
         if (me.enable.vanish) {
+            res = true;
             me.disableMe();
             // prevent idle animation while vanishing
             me.objImg.removeClass('rand');
@@ -1209,6 +1246,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 if (cb != undefined) cb();
             });
         }
+        return res;
     };
     this.doWalk = function () {
         if (me.state.locomotion != 'walk') {
@@ -1230,13 +1268,13 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     // calc new position, update collider, check collision, update position
-    this.updatePosition = function (direction) {
-        var dist, collidedObjects, sign;
+    this.updatePosition = function (direction, dist) {
+        var collidedObjects, sign, res;
         if (direction === undefined) {
             if (me.action.jump) direction = 'top'; // rising
             else direction = 'bottom'; // falling
         }
-        dist = getMovingDistance(direction);
+        if (dist === undefined) dist = getMovingDistance(direction);
         if (me.collider[direction].last != dist) {
             // moving dist changed
             updateCollider(direction, Math.abs(dist) + 1);
@@ -1245,6 +1283,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         collidedObjects = checkCollision(direction);
         if (!me.collider[direction].isColliding) {
             // no collision, check and update position
+            res = true;
             dist = checkPosition(direction, dist);
             if ((direction === 'left') || (direction === 'right')) {
                 cssMoveX(dist);
@@ -1261,8 +1300,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         else {
             // collision, allign with object
+            res = false;
             collision(direction, collidedObjects);
         }
+        return res;
     };
 
     setup();

@@ -55,7 +55,9 @@ $(document).ready(function() {
     // START ENGINE AND CUSTOMIZE
     {
         engine = new Engine();
+        window.engine = engine;
         kobold = engine.newMovable();
+        window.kobold = kobold;
         engine.start();
         kobold.enableMe();
 
