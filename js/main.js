@@ -1159,7 +1159,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.objImg.removeClass('idle');
             me.objImgCont.removeClass('right left');
             me.objImgCont.addClass(direction);
-            if ((direction === 'left') && (dist != 'undefined')) dist = -dist;
+            if ((direction === 'left') && (dist != undefined)) dist = -dist;
         }
         else if ((direction != 'top') && (direction != 'bottom'))
             throw 'unknown direction "' + direction + '"';
