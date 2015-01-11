@@ -5,6 +5,16 @@ This project aims to provide an engine to design a jump and run on a web page.
 The key point is, that the character of the jump and run will be able to
 interact with standard elements on the web page.
 
+Table of Contents
+-----------------
+    * [License](#License)
+    * [Version](#Version)
+    * [Fast Setup](#Fast Setup)
+    * [Configuration](#Configuration)
+        * [Engine](#Engine)
+        * [Movable](#Movable)
+    *[Control the Movable](#Control the Movable)
+
 License
 -------
 
@@ -653,8 +663,8 @@ if the default behavior should be extended, not overwritten completely.
         return
             function, definig the behavior if a document scroll event occures.--->
 
-Control the Character
----------------------
+Control the Movable
+-------------------
 
 Let the character appear at a specific position on the screen with a fancy
 animation. Only works if appear is enabled.
