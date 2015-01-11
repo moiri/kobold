@@ -1,35 +1,31 @@
-Kobold
-======
+# Kobold
 
 This project aims to provide an engine to design a jump and run on a web page.
 The key point is, that the character of the jump and run will be able to
 interact with standard elements on the web page.
 
-Table of Contents
------------------
-    * [License](#License)
-    * [Version](#Version)
-    * [Fast Setup](#Fast Setup)
-    * [Configuration](#Configuration)
-        * [Engine](#Engine)
-        * [Movable](#Movable)
-    *[Control the Movable](#Control the Movable)
+## Table of Contents
 
-License
--------
+    * [License](#chapter-1)
+    * [Version](#chapter-2)
+    * [Fast Setup](#chapter-3)
+    * [Configuration](#chapter-4)
+        * [Engine](#chapter-41)
+        * [Movable](#chapter-42)
+    *[Control the Movable](#chapter-5)
+
+## License <a id="chapter-1"></a>
 
 The origin of this project is an idea of the Swiss game designer company
 [Koboldgames](http://www.koboldgames.ch/home/). The animations and images were
 provided by these nice people and are part of their corporate design.
 
-Version
--------
+## Version <a id="chapter-2"></a>
 
 This README should be up to date to the current commits. If you use a released
 version, only consider the attached README to this version.
 
-Fast Setup
-----------
+## Fast Setup <a id="chapter-3"></a>
 
 1.  add main.js, main.css and jQuery (for development jQuery 2.1.3 was used) to
     your page.
@@ -52,10 +48,9 @@ Fast Setup
     });
     ```
 
-Configuration
--------------
+## Configuration <a id="chapter-4"></a>
 
-### Engine
+### Engine <a id="chapter-41"></a>
 
 Configure attributes of the engine such as classes to identify colliders and
 frame limiters.
@@ -198,7 +193,7 @@ Toggle the enable status of a specific collider.
             jQuery object of the solid, where the collider enable status should
             be toggled.
 
-### Movable
+### Movable <a id="chapter-42"></a>
 
 Get Id of character
 
@@ -663,8 +658,7 @@ if the default behavior should be extended, not overwritten completely.
         return
             function, definig the behavior if a document scroll event occures.--->
 
-Control the Movable
--------------------
+## Control the Movable <a id="chapter-5"></a>
 
 Let the character appear at a specific position on the screen with a fancy
 animation. Only works if appear is enabled.
