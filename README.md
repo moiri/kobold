@@ -5,14 +5,13 @@ The key point is, that the character of the jump and run will be able to
 interact with standard elements on the web page.
 
 ## Table of Contents
-
-    * [License](#chapter-1)
-    * [Version](#chapter-2)
-    * [Fast Setup](#chapter-3)
-    * [Configuration](#chapter-4)
-        * [Engine](#chapter-41)
-        * [Movable](#chapter-42)
-    *[Control the Movable](#chapter-5)
+* [License](#chapter-1)
+* [Version](#chapter-2)
+* [Fast Setup](#chapter-3)
+* [Configuration](#chapter-4)
+  * [Engine](#chapter-41)
+  * [Movable](#chapter-42)
+*[Control the Movable](#chapter-5)
 
 ## License <a id="chapter-1"></a>
 
