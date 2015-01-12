@@ -395,8 +395,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.pos.initY = 100;
         me.pos.x = 0; // internal
         me.pos.y = 0; // internal
-        me.pos.overflowX; // internal
-        me.pos.overflowY; // internal
         me.pos.appearCnt = 0;
 
         this.setInitialPosition = function (x, y) {
@@ -605,9 +603,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
         };
         // not yet working
-        me.overflow.scrollEventCb = function () {
-            false;
-        };
+        me.overflow.scrollEventCb = function () {};
         // not yet working
         me.overflow.scrollAnimationCb = function (deltaMoveX, deltaMoveY) {
             $('html').animate({
@@ -1184,7 +1180,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // check argument
         if (typeof attr === 'boolean') forced = attr;
         else if (typeof attr === 'number') dist = Math.abs(attr);
-        else if (typeof attr === 'undefined') ; // do nothing
+        else if (attr === undefined) { /* do nothing */ }
         else throw "bad argument type in attr";
         if (direction === undefined) {
             if (me.action.jump) direction = 'top'; // rising
