@@ -17,12 +17,12 @@ function Engine() {
         me.config.solidClass = 'solid';
         me.config.solidOnlyTopClass = me.config.solidClass + 'OnlyTop';
         me.config.solidColliderClass = 'solidCollider';
-        me.config.solidColliderWrapperClass = me.config.solidColliderClass
-            + 'Wrapper';
-        me.config.solidColliderOnlyTopClass = me.config.solidColliderClass
-            + 'OnlyTop';
-        me.config.solidColliderIgnoreClass = me.config.solidColliderClass
-            + 'Ignore';
+        me.config.solidColliderWrapperClass = me.config.solidColliderClass +
+            'Wrapper';
+        me.config.solidColliderOnlyTopClass = me.config.solidColliderClass +
+            'OnlyTop';
+        me.config.solidColliderIgnoreClass = me.config.solidColliderClass +
+            'Ignore';
 
         me.enable.forceDirection = true;
         me.enable.crouchRun = false;
@@ -56,10 +56,10 @@ function Engine() {
 
         // check multi-key enables
         forceDirection = me.enable.forceDirection && left && right;
-        forceRun = !me.enable.crouchRun && me.enable.forceRun && crouch
-            && run;
-        forceWalk = !me.enable.crouchRun && !me.enable.forceRun && crouch
-            && run;
+        forceRun = !me.enable.crouchRun && me.enable.forceRun &&
+            crouch && run;
+        forceWalk = !me.enable.crouchRun && !me.enable.forceRun &&
+            crouch && run;
 
         // handle stance states
         switch (movable.getState('stance')) {
@@ -89,8 +89,8 @@ function Engine() {
                 if (!run || forceWalk) movable.doWalk();
                 break;
             default:
-                throw 'bad locomotion argument: '
-                    + movable.getState('locomotion');
+                throw 'bad locomotion argument: ' +
+                    movable.getState('locomotion');
         }
 
         // handle direction states
@@ -113,28 +113,28 @@ function Engine() {
                 else if (!right) movable.doIdle();
                 break;
             default:
-                throw 'bad direction argument: '
-                    + movable.getState('direction');
+                throw 'bad direction argument: ' +
+                    movable.getState('direction');
         }
 
         if (jump) movable.doJump();
         movable.doMove();
         movable.doPickUp();
-    };
+    }
 
     // add keyCode to keyCode array
     function setKeyCode(keyCode) {
         if (!(keyCode in me.keyCodes)) {
             me.keyCodes.push(keyCode);
         }
-    };
+    }
 
     // enable movable by id
     function setEnableMovable(id, val) {
         if (val === undefined) val = !me.movable[id].enable;
         me.movable[id].enable = val;
         return val;
-    };
+    }
 
 
     // PRIVILEGED METHODS
@@ -194,10 +194,10 @@ function Engine() {
         if (me.movable[id] === undefined) {
             if (cssClass === undefined) cssClass = 'koboldImg';
             $('body')
-                .append('<div id="' + id + '" class="movable">'
-                        + '<div id="' + id + '-imgCont" class="imgCont right">'
-                        + '<div id="' + id + '-img" class="' + cssClass
-                        + ' idle"></div></div></div>');
+                .append('<div id="' + id + '" class="movable">' +
+                        '<div id="' + id + '-imgCont" class="imgCont right">' +
+                        '<div id="' + id + '-img" class="' + cssClass +
+                        ' idle"></div></div></div>');
             newMovable.enable = false;
             newMovable.obj = new Movable(id, me.config,
                     setEnableMovable, setKeyCode);
@@ -211,6 +211,7 @@ function Engine() {
 
     // start the engine
     this.start = function () {
+        var id;
         me.updateCollider();
         me.ticker = new Ticker(me.config.maxFps);
         me.keyHandler = new KeyHandler();
@@ -227,14 +228,14 @@ function Engine() {
 
     // update collider of solids (used whenever the webpage changes)
     this.updateCollider = function () {
-        var newCollider = false;
+        var id, newCollider = false;
 
-        $('.' + me.config.solidClass + ':not(:has(>.'
-                    + me.config.solidColliderWrapperClass + '))')
+        $('.' + me.config.solidClass + ':not(:has(>.' +
+                        me.config.solidColliderWrapperClass + '))')
         .each(function () {
-            var jObject = $('<div id="' + me.config.solidColliderClass
-                + me.colliderCnt + '" class="' + me.config.solidColliderClass
-                + '"></div>');
+            var jObject = $('<div id="' + me.config.solidColliderClass +
+                me.colliderCnt + '" class="' + me.config.solidColliderClass +
+                '"></div>');
             $('<div class="' + me.config.solidColliderWrapperClass + '"></div>')
             .appendTo(this)
             .append(jObject);
@@ -259,7 +260,7 @@ function Engine() {
         });
         if (newCollider) {
             for (id in me.movable) {
-                me.movable[id].obj.setSolidCollider();
+                if (id in me.movable) me.movable[id].obj.setSolidCollider();
             }
         }
     };
@@ -539,14 +540,14 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // Temporal Information Needed for the Next Frame
         me.delta.time.min = 1 / config.maxFps; // internal
         me.delta.time.actual = me.delta.time.min; // internal
-        me.delta.dist.up = me.speed.jump
-            / (me.jumpAttr.height.max
-                    / (me.speed.jump * me.delta.time.actual)
-                    * 2 + 1); // internal
-        me.delta.dist.down = me.speed.fall
-            / (me.jumpAttr.height.max
-                    / (Math.abs(me.speed.fall) * me.delta.time.actual)
-                    * 2 + 1); // internal
+        me.delta.dist.up = me.speed.jump /
+            (me.jumpAttr.height.max /
+             (me.speed.jump * me.delta.time.actual) *
+             2 + 1); // internal
+        me.delta.dist.down = me.speed.fall /
+            (me.jumpAttr.height.max / 
+             (Math.abs(me.speed.fall) * me.delta.time.actual) *
+             2 + 1); // internal
 
         // Engine configurations, all internal
         me.solidColliderClass = config.solidColliderClass;
@@ -572,32 +573,32 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         };
         me.overflow.window.left.delta = 500;
         me.overflow.window.left.cb = function (deltaMove) {
-            if ((deltaMove != 0) && ($(document).scrollLeft() > 0)) {
+            if ((deltaMove !== 0) && ($(document).scrollLeft() > 0)) {
                 $(document).scrollLeft(
                         $(document).scrollLeft() + deltaMove);
             }
         };
         me.overflow.window.right.delta = 500;
         me.overflow.window.right.cb = function (deltaMove) {
-            if ((deltaMove != 0)
-                    && ($(document).width() > ($(document).scrollLeft()
-                            + $(window).width()))) {
+            if ((deltaMove !== 0) &&
+                    ($(document).width() > ($(document).scrollLeft() +
+                                            $(window).width()))) {
                 $(document).scrollLeft(
                         $(document).scrollLeft() + deltaMove);
             }
         };
         me.overflow.window.top.delta = 100;
         me.overflow.window.top.cb = function (deltaMove) {
-            if ((deltaMove != 0) && ($(document).scrollTop() > 0)) {
+            if ((deltaMove !== 0) && ($(document).scrollTop() > 0)) {
                 $(document).scrollTop(
                         $(document).scrollTop() + deltaMove);
             }
         };
         me.overflow.window.bottom.delta = 100;
         me.overflow.window.bottom.cb = function (deltaMove) {
-            if ((deltaMove != 0)
-                    && ($(document).height() > ($(document).scrollTop()
-                            + $(window).height()))) {
+            if ((deltaMove !== 0) &&
+                    ($(document).height() > ($(document).scrollTop() +
+                                             $(window).height()))) {
                 $(document).scrollTop(
                         $(document).scrollTop() + deltaMove);
             }
@@ -612,7 +613,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }, '400', 'swing', function () {
                 me.enable.animate = false;
             });
-        }
+        };
 
         this.setDocumentOverflowCb = function (direction, cb) {
             me.overflow.document[direction].cb = cb;
@@ -654,7 +655,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     function checkCollision(direction) {
         var collision = false,
             collidedObjects = [];
-        me.solids.each(function (idx) {
+        me.solids.each(function () {
             var collisionInfo = [],
                 collisionRes = null;
             if (!$(this).hasClass(me.solidColliderIgnoreClass) &&
@@ -673,7 +674,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         });
         me.collider[direction].isColliding = collision;
         return collidedObjects;
-    };
+    }
 
     // check wether the character leaves window or document
     function checkPosition(direction, dist) {
@@ -682,10 +683,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             overflow = [];
 
         // check left overflow
-        if ((dist != 0) && (direction === 'left')) {
+        if ((dist !== 0) && (direction === 'left')) {
             overflow.doc = pos[0][0] + dist - me.overflow.document.left.delta;
-            overflow.win = pos[0][0] + dist - ($(window).scrollLeft()
-                        + me.overflow.window.left.delta);
+            overflow.win = pos[0][0] + dist - ($(window).scrollLeft() +
+                    me.overflow.window.left.delta);
             if (overflow.doc < 0) {
                 // will cross left document border margin
                 dist = dist - overflow.doc;
@@ -697,11 +698,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
         }
         // check right overflow
-        if ((dist != 0) && (direction === 'right')) {
-            overflow.doc = pos[0][1] + dist
-                - (me.overflow.document.width - me.overflow.document.right.delta);
-            overflow.win = pos[0][1] + dist - ($(window).scrollLeft()
-                + $(window).width() - me.overflow.window.right.delta);
+        if ((dist !== 0) && (direction === 'right')) {
+            overflow.doc = pos[0][1] + dist -
+                (me.overflow.document.width - me.overflow.document.right.delta);
+            overflow.win = pos[0][1] + dist - ($(window).scrollLeft() +
+                    $(window).width() - me.overflow.window.right.delta);
             if (overflow.doc > 0) {
                 // will cross right document border margin
                 dist = dist - overflow.doc;
@@ -713,10 +714,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
         }
         // check top overflow
-        if ((dist != 0) && (direction === 'top')) {
+        if ((dist !== 0) && (direction === 'top')) {
             overflow.doc = pos[1][0] - dist - me.overflow.document.top.delta;
-            overflow.win = pos[1][0] - dist - ($(window).scrollTop()
-                        + me.overflow.window.top.delta);
+            overflow.win = pos[1][0] - dist - ($(window).scrollTop() +
+                    me.overflow.window.top.delta);
             if (overflow.doc < 0) {
                 // will cross top document border margin
                 me.overflow.document.top.cb();
@@ -727,11 +728,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
         }
         // check bottom overflow
-        if ((dist != 0) && (direction === 'bottom')) {
-            overflow.doc = pos[1][1] - dist
-                - (me.overflow.document.height - me.overflow.document.bottom.delta);
-            overflow.win = pos[1][1] - dist - ($(window).scrollTop()
-                + $(window).height() - me.overflow.window.bottom.delta);
+        if ((dist !== 0) && (direction === 'bottom')) {
+            overflow.doc = pos[1][1] - dist -
+                (me.overflow.document.height -
+                 me.overflow.document.bottom.delta);
+            overflow.win = pos[1][1] - dist - ($(window).scrollTop() +
+                    $(window).height() - me.overflow.window.bottom.delta);
             if (overflow.doc > 0) {
                 // will cross right document border margin
                 dist = 0;
@@ -743,9 +745,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
         }
         // handle trimming of image
-        if ((dist != 0) && ((direction === 'left') || (direction === 'right'))) {
-            overflow.img = posImg[0][1] + dist
-                - (me.overflow.document.width - me.overflow.document.right.delta);
+        if ((dist !== 0) && ((direction === 'left') ||
+                    (direction === 'right'))) {
+            overflow.img = posImg[0][1] + dist -
+                (me.overflow.document.width - me.overflow.document.right.delta);
             // when turning on the spot, we dont care about the future position
             if (direction === 'left') overflow.img -= dist;
             if (overflow.img > 0) {
@@ -759,12 +762,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
         }
         return dist;
-    };
+    }
 
     // collision occurred -> handle it
     function collision(direction, collidedObjects) {
-        var newColliderId,
-            newJObject;
         if (direction === 'top') {
             me.action.jump = false;
             me.collider.top.isColliding = false;
@@ -797,36 +798,36 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         // update position to the edge of the object with the biggest overlap
         if (direction === 'top')
-            cssSetY($(window).height()
-                    - collidedObjects[0].solidPosition[1][1]
-                    - me.obj.outerHeight());
+            cssSetY($(window).height() -
+                    collidedObjects[0].solidPosition[1][1] -
+                    me.obj.outerHeight());
         else if (direction === 'bottom')
-            cssSetY($(window).height()
-                    - collidedObjects[0].solidPosition[1][0]);
+            cssSetY($(window).height() -
+                    collidedObjects[0].solidPosition[1][0]);
         else if (direction === 'left')
             cssSetX(collidedObjects[0].solidPosition[0][1]);
         else if (direction === 'right')
-            cssSetX(collidedObjects[0].solidPosition[0][0]
-                    - me.obj.outerWidth());
-    };
+            cssSetX(collidedObjects[0].solidPosition[0][0] -
+                    me.obj.outerWidth());
+    }
 
     // update css position values
     function cssMoveX(val) {
         me.overflow.document.width = $(document).width();
         me.obj.css('left', '+=' + val + 'px');
-    };
+    }
     function cssMoveY(val) {
         me.overflow.document.height = $(document).height();
         me.obj.css('bottom', '+=' + val + 'px');
-    };
+    }
     function cssSetX(val) {
         me.overflow.document.width = $(document).width();
         me.obj.css('left', val + 'px');
-    };
+    }
     function cssSetY(val) {
         me.overflow.document.height = $(document).height();
         me.obj.css('bottom', val + 'px');
-    };
+    }
 
     // generate the LUT used for the jump function
     function genJumpLut() {
@@ -836,11 +837,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         me.jumpAttr.lut[0] = 0;
         while (pos < me.jumpAttr.height.max) {
             speed -= me.delta.dist.up;
-            pos += speed*me.delta.time.actual;;
+            pos += speed*me.delta.time.actual;
             me.jumpAttr.lut[i] = Math.ceil(pos);
             i++;
         }
-    };
+    }
 
     // calculate next moving distance
     function getMovingDistance(direction) {
@@ -855,15 +856,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 me.jumpAttr.count.actual = me.jumpAttr.lut.length - 1;
                 lastElem = true;
             }
-            dist = me.jumpAttr.lut[me.jumpAttr.count.actual]
-                - me.jumpAttr.lut[me.jumpAttr.count.last];
+            dist = me.jumpAttr.lut[me.jumpAttr.count.actual] -
+                me.jumpAttr.lut[me.jumpAttr.count.last];
             me.jumpAttr.height.actual += dist;
             // on last rising step adjust to max height in order to keep jump
             // height constant
-            if (lastElem
-                    || (me.jumpAttr.height.actual > me.jumpAttr.height.max)) {
+            if (lastElem ||
+                    (me.jumpAttr.height.actual > me.jumpAttr.height.max)) {
                 jumpDiff = me.jumpAttr.height.max - me.jumpAttr.height.actual;
-                if (jumpDiff != 0)
+                if (jumpDiff !== 0)
                     dist += jumpDiff;
                 me.jumpAttr.height.actual = 0;
                 me.action.jump = false;
@@ -872,8 +873,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         else if ((direction === 'bottom') && me.action.inAir) {
             // calculate next falling distance
-            me.speed.inAir += me.delta.dist.down
-                * me.delta.time.actual / me.delta.time.min;
+            me.speed.inAir += me.delta.dist.down *
+                me.delta.time.actual / me.delta.time.min;
             dist = Math.round(me.speed.inAir * me.delta.time.actual);
             // cap the speed at the defined falling speed
             if (me.speed.inAir < me.speed.fall) {
@@ -881,15 +882,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             }
         }
         else if (direction === 'left') {
-            dist = Math.floor(me.speed[me.state.locomotion.type].left
-                    * me.delta.time.actual);
+            dist = Math.floor(me.speed[me.state.locomotion.type].left *
+                    me.delta.time.actual);
         }
         else if (direction === 'right') {
-            dist = Math.floor(me.speed[me.state.locomotion.type].right
-                    * me.delta.time.actual);
+            dist = Math.floor(me.speed[me.state.locomotion.type].right *
+                    me.delta.time.actual);
         }
         return dist;
-    };
+    }
 
     // used to check whether two divs overlap
     function overlaps(a, b) {
@@ -898,10 +899,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             res = [];
         res.pos1 = pos1;
         res.pos2 = pos2;
-        res.isColliding = (positionsCompare(pos1[0], pos2[0])
-                && positionsCompare(pos1[1], pos2[1]));
+        res.isColliding = (positionsCompare(pos1[0], pos2[0]) &&
+                positionsCompare(pos1[1], pos2[1]));
         return res;
-    };
+    }
 
     // compares positions, used in overlap method
     function positionsCompare(p1, p2) {
@@ -915,40 +916,41 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             r2 = p1;
         }
         return (r1[1] > r2[0]);
-    };
+    }
 
     // get position of jquery element in a form used in overlap method
     function positionsGet(elem) {
-        var pos, width, height, res;
+        var pos, width, height;
         pos = elem.offset();
         width = elem.outerWidth();
         height = elem.outerHeight();
         return [ [ pos.left, pos.left + width ],
             [ pos.top, pos.top + height ] ];
-    };
+    }
 
     // set a new random value, used for random animation
     function setNextRandVal() {
         me.rand.count = 0;
         me.rand.nextVal = Math.floor(
-            (1 / me.delta.time.actual)
-            * ((Math.random() * me.rand.maxVal) + me.rand.minVal)
+            (1 / me.delta.time.actual) *
+            ((Math.random() * me.rand.maxVal) + me.rand.minVal)
         );
-    };
+    }
 
     // used to setup the character, somewhat a constructor
     function setup() {
         me.obj
-            .append('<div id="' + me.idCollider + '" class="colliderContainer">'
-                    + '<div id="' + me.idCollider
-                    + '-left" class="collider colliderLeft"></div>'
-                    + '<div id="' + me.idCollider
-                    + '-right" class="collider colliderRight"></div>'
-                    + '<div id="' + me.idCollider
-                    + '-top" class="collider colliderTop"></div>'
-                    + '<div id="' + me.idCollider
-                    + '-bottom" class="collider colliderBottom"></div>'
-                    + '</div>');
+            .append('<div id="' + me.idCollider +
+                    '" class="colliderContainer">' +
+                    '<div id="' + me.idCollider +
+                    '-left" class="collider colliderLeft"></div>' +
+                    '<div id="' + me.idCollider +
+                    '-right" class="collider colliderRight"></div>' +
+                    '<div id="' + me.idCollider +
+                    '-top" class="collider colliderTop"></div>' +
+                    '<div id="' + me.idCollider +
+                    '-bottom" class="collider colliderBottom"></div>' +
+                    '</div>');
         me.collider.left.jObject = $('#' + me.idCollider + '-left');
         me.collider.right.jObject = $('#' + me.idCollider + '-right');
         me.collider.top.jObject = $('#' + me.idCollider + '-top');
@@ -960,7 +962,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         updateCollider();
         genJumpLut();
         me.objImg.addClass('walk');
-    };
+    }
 
     // used to produce an animation that triggers only once
     function singleAnimation(obj, cssClass, cb) {
@@ -973,12 +975,12 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                 case 1: cssClass += ' wave'; break;
                 case 2: cssClass += ' wink'; break;
                 case 3: cssClass += ' jawn'; break;
-            };
+            }
         }
         obj.addClass(cssClass);
         animationDuration = obj.css('animation-duration');
         if (animationDuration === null)
-            animationDuration = obj.css('-webkit-animation-duration')
+            animationDuration = obj.css('-webkit-animation-duration');
         animationIterationCount = obj.css('animation-iteration-count');
         if (animationIterationCount === null)
             animationIterationCount =
@@ -989,7 +991,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             obj.removeClass(cssClass);
             cb();
         }, animationDuration * animationIterationCount * 1000);
-    };
+    }
 
     // update the colliders of the character according to its speed
     function updateCollider(direction, colliderSize) {
@@ -1030,7 +1032,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             .width($('#' + me.idCollider).width() + 'px')
             .css('top', $('#' + me.idCollider).height() + 'px');
         }
-    };
+    }
 
     function updateColliderTolerance(tolBot, tolTop) {
         $('#' + me.id + '-collider-left')
@@ -1039,7 +1041,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         $('#' + me.id + '-collider-right')
             .height(($('#' + me.idCollider).height() - tolBot - tolTop) + 'px')
             .css({'top': tolTop + 'px'});
-    };
+    }
 
     // calc new position, update collider, check collision, update position
     function updatePosition(direction, dist) {
@@ -1075,7 +1077,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             collision(direction, collidedObjects);
         }
         return res;
-    };
+    }
 
     // PRIVILEGED METHODS
     // =========================================================================
@@ -1095,7 +1097,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
 
     // Character Abilities
     this.doAppear = function (x, y, cb) {
-        var collidedObjects, res = false;
+        var res = false;
         // check arguments
         if (x === undefined) x = me.pos.x;
         else if (typeof x != 'number') throw 'bad argument type in x';
@@ -1117,7 +1119,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.overflow.document.heightVirtual = null;
             singleAnimation(me.objImg, 'appear', function () {
                 me.enableMe();
-                if (cb != undefined) cb();
+                if (cb !== undefined) cb();
             });
         }
         return res;
@@ -1134,9 +1136,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.state.stance.type = 'crouch';
             me.objImg.addClass('crouch');
             me.objImg
-                .css('top', (parseInt(me.objImg.css('top'))
-                            - (me.size.heightStand - me.size.heightCrouch))
-                        + 'px');
+                .css('top', (parseInt(me.objImg.css('top')) -
+                            (me.size.heightStand - me.size.heightCrouch)) +
+                        'px');
             $('#' + me.idCollider).height(me.size.heightCrouch + 'px');
             if (crouchJumpHigh && !me.collider.bottom.isColliding)
                 cssMoveY(me.size.heightCrouch);
@@ -1160,8 +1162,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
     this.doJump = function () {
         var res = false;
-        if (me.collider.bottom.isColliding && !me.action.jump
-                && me.enable.jump) {
+        if (me.collider.bottom.isColliding && !me.action.jump &&
+                me.enable.jump) {
             res = true;
             me.action.jump = true;
             me.collider.bottom.isColliding = false;
@@ -1195,7 +1197,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.objImg.removeClass('idle');
             me.objImgCont.removeClass('right left');
             me.objImgCont.addClass(direction);
-            if ((direction === 'left') && (dist != undefined)) dist = -dist;
+            if ((direction === 'left') && (dist !== undefined)) dist = -dist;
         }
         else if ((direction != 'top') && (direction != 'bottom'))
             throw 'unknown direction "' + direction + '"';
@@ -1235,8 +1237,8 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         var colliderSize = 0;
         if (me.state.stance.type === 'crouch') {
             colliderSize = $('#' + me.idCollider + '-top').height();
-            updateCollider('top', colliderSize
-                    + (me.size.heightStand - me.size.heightCrouch));
+            updateCollider('top', colliderSize +
+                    (me.size.heightStand - me.size.heightCrouch));
             checkCollision('top');
             if (me.collider.top.isColliding) {
                 // cannot stand up (object on top)
@@ -1256,9 +1258,9 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     this.doTeleport = function (x, y, cb) {
         var res = false;
         // check arguments (default values are handeled in doAppear)
-        if ((x != undefined) && (typeof x != 'number'))
+        if ((x !== undefined) && (typeof x != 'number'))
             throw 'bad argument type in x';
-        if ((y != undefined) && (typeof y != 'number'))
+        if ((y !== undefined) && (typeof y != 'number'))
             throw 'bad argument type in y';
         if ((me.enable.vanish) && (me.enable.appear)) {
             res = true;
@@ -1269,7 +1271,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return res;
     };
     this.doVanish = function (cb) {
-        var collidedObjects, res = false;
+        var res = false;
         if (me.enable.vanish) {
             res = true;
             me.disableMe();
@@ -1279,7 +1281,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             me.doStand();
             singleAnimation(me.objImg, 'vanish', function () {
                 me.obj.hide();
-                if (cb != undefined) cb();
+                if (cb !== undefined) cb();
             });
         }
         return res;
@@ -1315,12 +1317,12 @@ function KeyHandler() {
     function clearKeyCodeMap() {
         var val;
         for (val in me.keyCodeMap)
-            me.keyCodeMap[val] = false;
-    };
+            if (val in me.keyCodeMap) me.keyCodeMap[val] = false;
+    }
 
     function setKey(keyCode, val) {
         me.keyCodeMap[keyCode] = val;
-    };
+    }
 
     // PRIVILEGED METHODS
     // =========================================================================
@@ -1335,7 +1337,7 @@ function KeyHandler() {
         $(document).keyup( function (event) {
             setKey(event.keyCode, false);
         });
-        $(document).blur( function (event) {
+        $(document).blur( function () {
             clearKeyCodeMap();
         });
     };
@@ -1373,7 +1375,7 @@ function Ticker(maxFps) {
         if (me.time.diff < me.tick.min) {
             me.tick.real = me.tick.min;
         }
-    };
+    }
 
     // PRIVILEGED METHODS
     // =========================================================================
