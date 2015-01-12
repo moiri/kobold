@@ -118,7 +118,7 @@ function Engine() {
         }
 
         if (jump) movable.doJump();
-        movable.updatePosition();
+        movable.doMove();
         movable.doPickUp();
     };
 
@@ -1045,6 +1045,42 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             .css({'top': tolTop + 'px'});
     };
 
+    // calc new position, update collider, check collision, update position
+    function updatePosition(direction, dist) {
+        var collidedObjects, sign, res;
+        // direction is handeled in doMove
+        if (dist === undefined) dist = getMovingDistance(direction);
+        if (me.collider[direction].last != dist) {
+            // moving dist changed
+            updateCollider(direction, Math.abs(dist) + 1);
+            me.collider[direction].last = dist;
+        }
+        collidedObjects = checkCollision(direction);
+        if (!me.collider[direction].isColliding) {
+            // no collision, check and update position
+            res = true;
+            dist = checkPosition(direction, dist);
+            if ((direction === 'left') || (direction === 'right')) {
+                cssMoveX(dist);
+                if (me.collider.bottom.isColliding) {
+                    // update last known position where movable was on ground
+                    sign = (dist < 0) ? -1 : 1; // Math.sign() unsupported in IE
+                    me.pos.x = me.obj.offset().left - sign * me.obj.width();
+                }
+            }
+            else {
+                me.action.inAir = true;
+                cssMoveY(dist);
+            }
+        }
+        else {
+            // collision, allign with object
+            res = false;
+            collision(direction, collidedObjects);
+        }
+        return res;
+    };
+
     // PRIVILEGED METHODS
     // =========================================================================
     // Character enabler and disabler
@@ -1150,6 +1186,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         else if (typeof attr === 'number') dist = Math.abs(attr);
         else if (typeof attr === 'undefined') ; // do nothing
         else throw "bad argument type in attr";
+        if (direction === undefined) {
+            if (me.action.jump) direction = 'top'; // rising
+            else direction = 'bottom'; // falling
+        }
         if ((direction === 'left') || (direction === 'right')) {
             // check if direction must be forced
             if (forced === undefined) forced = false;
@@ -1163,7 +1203,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         else if ((direction != 'top') && (direction != 'bottom'))
             throw 'unknown direction "' + direction + '"';
-        return me.updatePosition(direction, dist);
+        return updatePosition(direction, dist);
     };
     this.doPickUp = function () {
         // while this is an ability, it should not be invoked manually because
@@ -1265,45 +1305,6 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     // setter method to update collider of solids
     this.setSolidCollider = function () {
         me.solids = $('.' + me.solidColliderClass); // internal
-    };
-
-    // calc new position, update collider, check collision, update position
-    this.updatePosition = function (direction, dist) {
-        var collidedObjects, sign, res;
-        if (direction === undefined) {
-            if (me.action.jump) direction = 'top'; // rising
-            else direction = 'bottom'; // falling
-        }
-        if (dist === undefined) dist = getMovingDistance(direction);
-        if (me.collider[direction].last != dist) {
-            // moving dist changed
-            updateCollider(direction, Math.abs(dist) + 1);
-            me.collider[direction].last = dist;
-        }
-        collidedObjects = checkCollision(direction);
-        if (!me.collider[direction].isColliding) {
-            // no collision, check and update position
-            res = true;
-            dist = checkPosition(direction, dist);
-            if ((direction === 'left') || (direction === 'right')) {
-                cssMoveX(dist);
-                if (me.collider.bottom.isColliding) {
-                    // update last known position where movable was on ground
-                    sign = (dist < 0) ? -1 : 1; // Math.sign() unsupported in IE
-                    me.pos.x = me.obj.offset().left - sign * me.obj.width();
-                }
-            }
-            else {
-                me.action.inAir = true;
-                cssMoveY(dist);
-            }
-        }
-        else {
-            // collision, allign with object
-            res = false;
-            collision(direction, collidedObjects);
-        }
-        return res;
     };
 
     setup();
