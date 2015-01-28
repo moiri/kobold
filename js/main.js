@@ -1096,6 +1096,18 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
     };
 
     // Character Abilities
+    /**
+     * Let the character appear at a specific position on the screen with
+     * a fancy animation. Only works if appear is enabled.
+     *
+     * @param {number} [x=Movable~me.pos.x] - x coordiante (in pixel) starting
+     * from the left document border.
+     * @param {number} [y=Movable~me.pos.y] - y coordiante (in pixel) starting
+     * from the top document border.
+     * @param {function} [cb] - callback function which is executed on success,
+     * after the animation has finished.
+     * @return {boolean} - true if success, false if not
+     */
     this.doAppear = function (x, y, cb) {
         var res = false;
         // check arguments
@@ -1124,6 +1136,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return res;
     };
+    /**
+     * Let the character crouch. Only works if crouch is enabled.
+     *
+     * @param {boolean} [crouchJumpHigh=true] - if set to true, the character
+     * will lift its feet instead of ducking its head while in the air. If set
+     * to false the charactre will duck its head when in the air. For more
+     * information check the comments on Engine.enableAttr('crouchJumpHigh')
+     * @return {boolean} true if success, false if not
+     */
     this.doCrouch = function (crouchJumpHigh) {
         var res = true;
         // check arguments
@@ -1148,6 +1169,10 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return res;
     };
+    /**
+     * Change the character into idle state which will enable the random idle
+     * animations.
+     */
     this.doIdle = function () {
         if (me.rand.nextVal < 0)
             setNextRandVal();
@@ -1160,6 +1185,11 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         me.rand.count++;
     };
+    /**
+     * Let the Character Jump. Only works if jump is enabled.
+     *
+     * @return {boolean} true if success, false if not.
+     */
     this.doJump = function () {
         var res = false;
         if (me.collider.bottom.isColliding && !me.action.jump &&
@@ -1216,10 +1246,15 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             throw 'unknown direction "' + direction + '"';
         return updatePosition(direction, dist);
     };
+    /**
+     * Checks for a collision with a pickUp object, removes the pickUp object
+     * and increases Movable~me.pickUpAttr.counter. While this is an ability,
+     * it should not be invoked manually because it is run periodically. Hence
+     * this method is not documented in the README.
+     *
+     * @ignore
+     */
     this.doPickUp = function () {
-        // while this is an ability, it should not be invoked manually because
-        // it is run periodically. Hence this method is not documented in the
-        // README
         var collisionRes = null;
         if (me.enable.pickUp) {
             me.pickUpAttr.jObjects.each(function (idx) {
@@ -1236,6 +1271,14 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
             });
         }
     };
+    /**
+     * Make the character run. This changes the speed and the animation but
+     * does not move the character. To actually move it,
+     * Movable#doMove(direction, dist) must be invoked. This works only if run
+     * is enabled and there is no impact if the character is already running.
+     *
+     * @return {boolean} true if success, false if not.
+     */
     this.doRun = function () {
         var res = true;
         if (!me.enable.run) res = false;
@@ -1246,6 +1289,13 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return res;
     };
+    /**
+     * Let the character stand up. The character will only stand up if it is
+     * crouched and no obstacle is preventing it from standing up.
+     *
+     * @return {boolean} true if success, false if not. If the character is
+     * already standing, the method returns true.
+     */
     this.doStand = function () {
         var colliderSize = 0;
         if (me.state.stance.type === 'crouch') {
@@ -1268,6 +1318,18 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return true;
     };
+    /**
+     * Let the character teleport to a specified location with fancy
+     * animations. This works only if both appear and vanish are enabled.
+     *
+     * @param {number} [x=Movable~me.pos.x] - x coordiante (in pixel) starting
+     * from the left document border
+     * @param {number} [y=Movable~me.pos.x] - y coordiante (in pixel) starting
+     * from the top document border
+     * @param {function} [cb] - callback function which is executed on success,
+     * after the animation has finished
+     * @return {boolean} true if success, false if not
+     */
     this.doTeleport = function (x, y, cb) {
         var res = false;
         // check arguments (default values are handeled in doAppear)
@@ -1283,6 +1345,14 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return res;
     };
+    /**
+     * Let the character vanish with a fancy animation. This only works if
+     * vanish is enabled.
+     *
+     * @param {function} [cb] - callback function which is executed on success,
+     * after the animation has finished
+     * @return {boolean} true if success, false if not
+     */
     this.doVanish = function (cb) {
         var res = false;
         if (me.enable.vanish) {
@@ -1299,6 +1369,14 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return res;
     };
+    /**
+     * Make the character walk. This changes the speed and the animation but
+     * does not move the character. To actually move it,
+     * Movable#doMove(direction, dist) must be invoked. This has no impact when
+     * the character is already walking.
+     *
+     * @return {boolean} This always returns true
+     */
     this.doWalk = function () {
         if (me.state.locomotion != 'walk') {
             me.state.locomotion.type = 'walk';
@@ -1308,12 +1386,20 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         return true;
     };
 
-    // setter method for tick time
+    /**
+     * setter method for tick time
+     *
+     * @ignore
+     * @param {number} val - time to set
+     */
     this.setDeltaTime = function (val) {
         me.delta.time.actual = val;
     };
 
-    // setter method to update collider of solids
+    /**
+     * setter method to update collider of solids
+     * @ignore
+     */
     this.setSolidCollider = function () {
         me.solids = $('.' + me.solidColliderClass); // internal
     };
