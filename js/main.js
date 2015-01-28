@@ -1177,6 +1177,19 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         }
         return res;
     };
+    /**
+     * Move the character in a direction by a distance. If an obstacle is in
+     * the way, the character will only move to the border of the obstacle.
+     * Even if the distance to move is larger than the obstacle.
+     *
+     * @param {string} direction - indicates the moving direction must be a
+     * string with the value of either 'left', 'right', 'top', or 'bottom'.
+     * @param {attr} dist - standard distance depending on speed and direction
+     * [optional] must be a positive number (negative signes are ignored)
+     * indication the distance in pixel the character will move in a given
+     * direction.
+     * @return {boolean} true if success, false if there was a collision
+     */
     this.doMove = function (direction, attr) {
         var forced, dist;
         // check argument
