@@ -38,6 +38,7 @@ function Engine() {
             crouch = false,
             left = false,
             right = false,
+            fall = false,
             jump = false,
             forceDirection = false,
             forceRun = false,
@@ -53,6 +54,7 @@ function Engine() {
         left = me.keyHandler.keyCodeMap[movable.getKeyCode('left')];
         right = me.keyHandler.keyCodeMap[movable.getKeyCode('right')];
         jump = me.keyHandler.keyCodeMap[movable.getKeyCode('jump')];
+        fall = me.keyHandler.keyCodeMap[movable.getKeyCode('fall')];
 
         // check multi-key enables
         forceDirection = me.enable.forceDirection && left && right;
@@ -117,6 +119,7 @@ function Engine() {
                     movable.getState('direction');
         }
 
+        if (fall) movable.doFall();
         if (jump) movable.doJump();
         movable.doMove();
         movable.doPickUp();
@@ -330,6 +333,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         // Enables
         me.enable.run = true;
         me.enable.jump = true;
+        me.enable.fall = true;
         me.enable.crouch = true;
         me.enable.appear = true;
         me.enable.vanish = true;
@@ -366,6 +370,7 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         };
 
         me.setKeyCode('jump', 32);
+        me.setKeyCode('fall', 40);
         me.setKeyCode('run', 16);
         me.setKeyCode('left', 37);
         me.setKeyCode('right', 39);
@@ -1095,6 +1100,14 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
         else me.enable.cb.disable();
     };
 
+    // Collision
+    this.disableCollider = function() {
+        $('#' + me.idCollider).hide();
+    }
+    this.enableCollider = function() {
+        $('#' + me.idCollider).show();
+    }
+
     // Character Abilities
     /**
      * Let the character appear at a specific position on the screen with
@@ -1168,6 +1181,16 @@ function Movable(id, config, setEnableMeCb, setKeyCodeCb) {
                     me.collider.top.tolerance);
         }
         return res;
+    };
+    /**
+     * Fall through a collider
+     */
+    this.doFall = function () {
+        // var collidedObjects;
+        // collidedObjects = me.checkCollision('bottom');
+        //disable colliding objects
+        //let movable fall and check top collision on now ignored colliders
+        // collidedObjects = me.checkCollision('top', true);
     };
     /**
      * Change the character into idle state which will enable the random idle
